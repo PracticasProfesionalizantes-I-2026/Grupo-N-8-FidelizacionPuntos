@@ -40,7 +40,7 @@ cuenta, ya descontados los puntos vencidos.
 ### 4. FLUJOS ALTERNATIVOS (Caminos Tristes / Excepciones)
 
 * **4a. Error al recuperar el saldo (HTTP 500 Internal Server Error):**
-  1. Si en el Paso 4 la Capa de Persistencia no logra recuperar la información
+  1. El sistema detecta que en el Paso 4 la Capa de Persistencia no logra recuperar la información
      (ej. falla de conexión).
   2. El Sistema interrumpe la operación y registra el error como no controlado.
   3. El Sistema devuelve un código **500 Internal Server Error** con el mensaje:

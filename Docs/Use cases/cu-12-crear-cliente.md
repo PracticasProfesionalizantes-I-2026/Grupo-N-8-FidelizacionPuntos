@@ -40,7 +40,7 @@ venta, con saldo de puntos inicial en cero.
 ### 4. FLUJOS ALTERNATIVOS (Caminos Tristes / Excepciones)
 
 * **2a. Datos inválidos o incompletos (HTTP 400 Bad Request):**
-  1. Si en el Paso 2 el JSON no incluye `nombre` o `documento`, o el formato es
+  1. El sistema detecta que en el Paso 2 el JSON no incluye `nombre` o `documento`, o el formato es
      incorrecto.
   2. El Sistema (Capa de Presentación) rechaza la petición por error de
      validación.
@@ -48,7 +48,7 @@ venta, con saldo de puntos inicial en cero.
      ingresados son inválidos o no existen". El flujo retorna al Paso 1.
 
 * **3a. Cliente ya existe (HTTP 409 Conflict):**
-  1. Si en el Paso 3 el documento ingresado ya pertenece a un cliente registrado,
+  1. El sistema detecta que en el Paso 3 el documento ingresado ya pertenece a un cliente registrado,
      violando **RN-01**.
   2. El Sistema (Capa de Negocio) lanza la excepción de dominio
      `ClienteDuplicadoException`.

@@ -43,7 +43,7 @@ contraseña), preservando el documento como identificador inmutable.
 ### 4. FLUJOS ALTERNATIVOS (Caminos Tristes / Excepciones)
 
 * **2a. Dato inválido (HTTP 400 Bad Request):**
-  1. Si en el Paso 2 el JSON contiene campos con formato incorrecto o excede la
+  1. El sistema detecta que en el Paso 2 el JSON contiene campos con formato incorrecto o excede la
      longitud máxima permitida.
   2. El Sistema (Capa de Presentación) rechaza la petición por validación de
      esquema.
@@ -51,14 +51,14 @@ contraseña), preservando el documento como identificador inmutable.
      ingresados son inválidos". Fin del caso de uso.
 
 * **2b. Intento de modificar el documento (HTTP 400 Bad Request):**
-  1. Si en el Paso 2 el JSON incluye un campo `documento` distinto al almacenado,
+  1. El sistema detecta que en el Paso 2 el JSON incluye un campo `documento` distinto al almacenado,
      violando **RN-04**.
   2. El Sistema (Capa de Presentación) rechaza la petición.
   3. El Sistema devuelve un código **400 Bad Request** con el mensaje: "El
      documento de identidad no puede ser modificado". Fin del caso de uso.
 
 * **3a. Email ya registrado por otro cliente (HTTP 409 Conflict):**
-  1. Si en el Paso 3 el nuevo email ya pertenece a otro cliente, violando **RN-01**.
+  1. El sistema detecta que en el Paso 3 el nuevo email ya pertenece a otro cliente, violando **RN-01**.
   2. El Sistema (Capa de Negocio) lanza la excepción de dominio
      `EmailDuplicadoException`.
   3. El Sistema devuelve un código **409 Conflict** con el mensaje: "El email

@@ -45,19 +45,19 @@ puntos inicial en cero para poder acumular y canjear beneficios.
 ### 4. FLUJOS ALTERNATIVOS (Caminos Tristes / Excepciones)
 
 * **1a. JSON inválido o ilegible (HTTP 400 Bad Request):**
-  1. Si en el Paso 1 el cuerpo de la petición no es un JSON válido.
+  1. El sistema detecta que en el Paso 1 el cuerpo de la petición no es un JSON válido.
   2. El Sistema (Capa de Presentación / model binding) rechaza la petición.
   3. El Sistema devuelve un código **400 Bad Request**. Fin del caso de uso.
 
 * **2a. Dato obligatorio faltante (HTTP 400 Bad Request):**
-  1. Si en el Paso 2 el JSON no incluye `nombre`, `documento`, `email` o `password`.
+  1. El sistema detecta que en el Paso 2 el JSON no incluye `nombre`, `documento`, `email` o `password`.
   2. El Sistema (Capa de Presentación) rechaza la petición por error de validación
      (`ModelState.IsValid == false`).
   3. El Sistema devuelve un código **400 Bad Request** detallando el campo faltante.
      Fin del caso de uso.
 
 * **3a. Documento o email ya registrado (HTTP 409 Conflict):**
-  1. Si en el Paso 3 el Sistema detecta que el documento o el email ya pertenecen a
+  1. El sistema detecta que en el Paso 3 el Sistema detecta que el documento o el email ya pertenecen a
      un cliente existente, violando la regla de negocio **RN-01**.
   2. El Sistema frena la ejecución en la **Capa de Negocio** y lanza la excepción de
      dominio `ClienteDuplicadoException`.
@@ -65,7 +65,7 @@ puntos inicial en cero para poder acumular y canjear beneficios.
      documento/email ingresado ya se encuentra registrado". Fin del caso de uso.
 
 * **3b. Contraseña inválida (HTTP 400 Bad Request):**
-  1. Si en el Paso 3 la contraseña no cumple la política mínima de seguridad
+  1. El sistema detecta que en el Paso 3 la contraseña no cumple la política mínima de seguridad
      (**RN-02**: longitud y complejidad mínimas).
   2. El Sistema (Capa de Negocio) lanza la excepción de dominio
      `PasswordInvalidaException`.
@@ -73,7 +73,7 @@ puntos inicial en cero para poder acumular y canjear beneficios.
      ingresados son inválidos o están incompletos". Fin del caso de uso.
 
 * **4a. Error interno en la persistencia (HTTP 500 Internal Server Error):**
-  1. Si en el Paso 4 la Capa de Persistencia no puede guardar el registro.
+  1. EL sistema detecta que en el Paso 4 la Capa de Persistencia no puede guardar el registro.
   2. El Sistema interrumpe la operación y registra el error como no controlado.
   3. El Sistema devuelve un código **500 Internal Server Error**. Fin del caso de uso.
 

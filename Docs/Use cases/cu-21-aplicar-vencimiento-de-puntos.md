@@ -47,13 +47,13 @@ alcanzaron su fecha de vencimiento, siguiendo el orden FIFO.
 ### 4. FLUJOS ALTERNATIVOS (Caminos Tristes / Excepciones)
 
 * **2a. No hay puntos vencidos (Resultado: Sin cambios):**
-  1. Si en el Paso 2 el Sistema no encuentra lotes de puntos vencidos.
+  1. El sistema detecta que en el Paso 2 el Sistema no encuentra lotes de puntos vencidos.
   2. El proceso finaliza sin realizar cambios ni registrar movimientos.
   3. El *job* registra en su log de ejecución: "Sin vencimientos a aplicar". Fin
      del caso de uso.
 
 * **4a. Error interno en la persistencia (Resultado: Error):**
-  1. Si en el Paso 4 la Capa de Persistencia no puede registrar el movimiento de
+  1. El sistema detecta que en el Paso 4 la Capa de Persistencia no puede registrar el movimiento de
      vencimiento (ej. falla de conexión).
   2. El Sistema interrumpe el descuento de ese cliente, registra el error como no
      controlado y continúa con el siguiente cliente del lote (el fallo de un

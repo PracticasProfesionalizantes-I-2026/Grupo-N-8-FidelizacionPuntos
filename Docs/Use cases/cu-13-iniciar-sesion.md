@@ -42,12 +42,12 @@ auditoría).
 ### 4. FLUJOS ALTERNATIVOS (Caminos Tristes / Excepciones)
 
 * **2a. Dato obligatorio faltante (HTTP 400 Bad Request):**
-  1. Si en el Paso 2 el JSON no incluye `email` o `password`.
+  1. El sistema detecta que en el Paso 2 el JSON no incluye `email` o `password`.
   2. El Sistema (Capa de Presentación) rechaza la petición.
   3. El Sistema devuelve un código **400 Bad Request**. Fin del caso de uso.
 
 * **3a. Credenciales incorrectas (HTTP 401 Unauthorized):**
-  1. Si en el Paso 3 las credenciales no coinciden con ningún admin registrado.
+  1. El sistema detecta que en el Paso 3 las credenciales no coinciden con ningún admin registrado.
   2. El Sistema (Capa de Negocio) lanza la excepción de dominio
      `CredencialesInvalidasException`.
   3. El Sistema devuelve un código **401 Unauthorized** con el mensaje: "Usuario o

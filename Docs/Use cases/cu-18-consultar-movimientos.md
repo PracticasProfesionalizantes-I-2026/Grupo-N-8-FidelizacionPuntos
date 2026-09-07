@@ -42,12 +42,12 @@ canjes) realizados en todo el sistema, con filtros de búsqueda.
 ### 4. FLUJOS ALTERNATIVOS (Caminos Tristes / Excepciones)
 
 * **2a. Filtro con formato inválido (HTTP 400 Bad Request):**
-  1. Si en el Paso 2 alguno de los filtros no respeta el formato esperado.
+  1. El sistema detecta que en el Paso 2 alguno de los filtros no respeta el formato esperado.
   2. El Sistema (Capa de Presentación) rechaza la petición.
   3. El Sistema devuelve un código **400 Bad Request**. Fin del caso de uso.
 
 * **4a. Sin resultados (HTTP 200 OK):**
-  1. Si en el Paso 4 el Sistema no encuentra movimientos para los filtros
+  1. El sistema detecta que en el Paso 4 el Sistema no encuentra movimientos para los filtros
      seleccionados.
   2. El Sistema no interrumpe el flujo: no es un error, es un resultado vacío
      válido.

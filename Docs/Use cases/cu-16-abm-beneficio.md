@@ -43,13 +43,13 @@ disponibles para los clientes.
 ### 4. FLUJOS ALTERNATIVOS (Caminos Tristes / Excepciones)
 
 * **2a. Datos inválidos o inexistentes (HTTP 400 Bad Request):**
-  1. Si en el Paso 2 los datos son inválidos o faltan campos obligatorios.
+  1. El sistema detecta que en el Paso 2 los datos son inválidos o faltan campos obligatorios.
   2. El Sistema (Capa de Presentación) rechaza la petición.
   3. El Sistema devuelve un código **400 Bad Request** con el mensaje: "Los datos
      ingresados son inválidos o no existen". El flujo retorna al Paso 1.
 
 * **3a. Costo en puntos inválido (HTTP 400 Bad Request):**
-  1. Si en el Paso 3 (alta o modificación) el costo en puntos ingresado es menor o
+  1. El sistema detecta que en el Paso 3 (alta o modificación) el costo en puntos ingresado es menor o
      igual a 0, violando **RN-16**.
   2. El Sistema (Capa de Negocio) lanza la excepción de dominio
      `CostoInvalidoException`.
@@ -57,7 +57,7 @@ disponibles para los clientes.
      en puntos debe ser mayor a 0". El flujo retorna al Paso 1.
 
 * **3b. Beneficio inexistente (HTTP 404 Not Found):**
-  1. Si en el Paso 3 (modificación o desactivación) el `id` no corresponde a
+  1. El sistema detecta que en el Paso 3 (modificación o desactivación) el `id` no corresponde a
      ningún beneficio registrado.
   2. La Capa de Negocio no encuentra la entidad correspondiente.
   3. El Sistema devuelve un código **404 Not Found**. Fin del caso de uso.

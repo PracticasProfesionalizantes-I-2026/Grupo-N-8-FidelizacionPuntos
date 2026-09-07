@@ -43,13 +43,13 @@ Permite al administrador generar reportes sobre la actividad del sistema
 ### 4. FLUJOS ALTERNATIVOS (Caminos Tristes / Excepciones)
 
 * **2a. Parámetros inválidos (HTTP 400 Bad Request):**
-  1. Si en el Paso 2 el tipo de reporte no existe o el rango de período es
+  1. El sistema detecta que en el Paso 2 el tipo de reporte no existe o el rango de período es
      inválido (ej. `periodoDesde` posterior a `periodoHasta`).
   2. El Sistema (Capa de Presentación) rechaza la petición.
   3. El Sistema devuelve un código **400 Bad Request**. Fin del caso de uso.
 
 * **4a. Sin datos para el período seleccionado (HTTP 200 OK):**
-  1. Si en el Paso 4 el Sistema no encuentra información para los parámetros
+  1. El sistema detecta que en el Paso 4 el Sistema no encuentra información para los parámetros
      seleccionados.
   2. El Sistema no interrumpe el flujo: no es un error, es un resultado vacío
      válido.

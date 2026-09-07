@@ -43,7 +43,7 @@ relevantes de su cuenta de puntos.
 ### 4. FLUJOS ALTERNATIVOS (Caminos Tristes / Excepciones)
 
 * **3a. Error en el envío (Resultado: Reintento):**
-  1. Si en el Paso 3 el Sistema no logra enviar la notificación (ej. proveedor de
+  1. El sistema detecta que en el Paso 3 el Sistema no logra enviar la notificación (ej. proveedor de
      email/SMS no disponible).
   2. El Sistema registra el error y reintenta el envío según la política de
      reintentos configurada (backoff exponencial, máximo N intentos).

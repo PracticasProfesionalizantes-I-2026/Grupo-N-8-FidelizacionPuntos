@@ -46,18 +46,18 @@ catálogo, descontando los puntos correspondientes mediante el método FIFO.
 ### 4. FLUJOS ALTERNATIVOS (Caminos Tristes / Excepciones)
 
 * **2a. Dato obligatorio faltante (HTTP 400 Bad Request):**
-  1. Si en el Paso 2 el JSON no incluye `beneficioId`.
+  1. El sistema detecta que en el Paso 2 el JSON no incluye `beneficioId`.
   2. El Sistema (Capa de Presentación) rechaza la petición.
   3. El Sistema devuelve un código **400 Bad Request**. Fin del caso de uso.
 
 * **3a. Beneficio inexistente (HTTP 404 Not Found):**
-  1. Si en el Paso 3 el `beneficioId` no corresponde a ningún beneficio registrado.
+  1. El sistema detecta que en el Paso 3 el `beneficioId` no corresponde a ningún beneficio registrado.
   2. La Capa de Negocio no encuentra la entidad correspondiente.
   3. El Sistema devuelve un código **404 Not Found** con el mensaje: "No hay
      beneficios disponibles". Fin del caso de uso.
 
 * **3b. Beneficio inactivo (HTTP 409 Conflict):**
-  1. Si en el Paso 3 el Sistema detecta que el beneficio no está activo, violando
+  1. El sistema detecta que en el Paso 3 el Sistema detecta que el beneficio no está activo, violando
      **RN-17**.
   2. El Sistema (Capa de Negocio) lanza la excepción de dominio
      `BeneficioInactivoException`.
@@ -65,7 +65,7 @@ catálogo, descontando los puntos correspondientes mediante el método FIFO.
      no pudo ser canjeado". Fin del caso de uso.
 
 * **3c. Saldo insuficiente (HTTP 409 Conflict):**
-  1. Si en el Paso 3 el Sistema detecta que el cliente no posee puntos suficientes
+  1. El sistema detecta que en el Paso 3 el Sistema detecta que el cliente no posee puntos suficientes
      para el beneficio, violando **RN-08**.
   2. El Sistema (Capa de Negocio) lanza la excepción de dominio
      `SaldoInsuficienteException`.
@@ -73,7 +73,7 @@ catálogo, descontando los puntos correspondientes mediante el método FIFO.
      insuficiente para hacer canje". Fin del caso de uso.
 
 * **5a. Error interno en la persistencia (HTTP 500 Internal Server Error):**
-  1. Si en el Paso 5 la Capa de Persistencia no puede registrar el canje o
+  1. El sistema detecta que en el Paso 5 la Capa de Persistencia no puede registrar el canje o
      actualizar el saldo (ej. falla de conexión).
   2. El Sistema revierte la transacción y registra el error como no controlado.
   3. El Sistema devuelve un código **500 Internal Server Error**. Fin del caso de

@@ -44,7 +44,7 @@ puntos que recibe el cliente por sus compras.
 ### 4. FLUJOS ALTERNATIVOS (Caminos Tristes / Excepciones)
 
 * **3a. Configuración inválida (HTTP 400 Bad Request):**
-  1. Si en el Paso 3 el Sistema detecta una inconsistencia en la configuración
+  1. El sistema detecta que en el Paso 3 el Sistema detecta una inconsistencia en la configuración
      (ej. valores negativos o rangos de vigencia superpuestos con una regla ya
      activa, violando **RN-18**).
   2. El Sistema (Capa de Negocio) lanza la excepción de dominio
@@ -52,7 +52,7 @@ puntos que recibe el cliente por sus compras.
   3. El Sistema informa el error. El flujo retorna al Paso 1.
 
 * **3b. Falta de datos (HTTP 400 Bad Request):**
-  1. Si en el Paso 3 faltan datos obligatorios de la regla.
+  1. El sistema detecta que en el Paso 3 faltan datos obligatorios de la regla.
   2. El Sistema (Capa de Negocio) detecta los campos sin completar.
   3. El Sistema devuelve un código **400 Bad Request** con el mensaje: "Campos sin
      rellenar". El flujo retorna al Paso 1.

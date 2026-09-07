@@ -39,7 +39,7 @@ canje, junto con su costo en puntos.
 ### 4. FLUJOS ALTERNATIVOS (Caminos Tristes / Excepciones)
 
 * **4a. No hay beneficios disponibles (HTTP 200 OK):**
-  1. Si en el Paso 4 el Sistema no encuentra beneficios activos.
+  1. El sistema detecta que en el Paso 4 el Sistema no encuentra beneficios activos.
   2. El Sistema no interrumpe el flujo: no es un error, es un resultado vacío
      válido.
   3. El Sistema devuelve un código **200 OK** con una lista vacía y el mensaje: "No

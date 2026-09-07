@@ -44,7 +44,7 @@ para fines de control y seguimiento.
 ### 4. FLUJOS ALTERNATIVOS (Caminos Tristes / Excepciones)
 
 * **3a. Consulta sin criterios de búsqueda (HTTP 200 OK):**
-  1. Si en el Paso 3 el admin no ingresó ningún filtro (búsqueda completamente
+  1. El sistema detecta que en el Paso 3 el admin no ingresó ningún filtro (búsqueda completamente
      abierta).
   2. El Sistema, por política de la interfaz, no ejecuta una consulta masiva sin
      acotar.
@@ -52,7 +52,7 @@ para fines de control y seguimiento.
      admin definir al menos un criterio de búsqueda. Fin del caso de uso.
 
 * **4a. Sin resultados (HTTP 200 OK):**
-  1. Si en el Paso 4 el Sistema no encuentra registros para los filtros
+  1. El sistema detecta que en el Paso 4 el Sistema no encuentra registros para los filtros
      seleccionados.
   2. El Sistema no interrumpe el flujo: no es un error, es un resultado vacío
      válido.

@@ -44,20 +44,20 @@ panel de administración.
 ### 4. FLUJOS ALTERNATIVOS (Caminos Tristes / Excepciones)
 
 * **2a. Datos inválidos o inexistentes (HTTP 400 Bad Request):**
-  1. Si en el Paso 2 los datos son inválidos o faltan campos obligatorios.
+  1. El sistema detecta que en el Paso 2 los datos son inválidos o faltan campos obligatorios.
   2. El Sistema (Capa de Presentación) rechaza la petición.
   3. El Sistema devuelve un código **400 Bad Request** con el mensaje: "Los datos
      ingresados son inválidos o no existen". El flujo retorna al Paso 1.
 
 * **3a. Cliente a crear ya existe (HTTP 409 Conflict):**
-  1. Si en el Paso 3 (alta) el documento ingresado ya existe, violando **RN-01**.
+  1. El sistema detecta que en el Paso 3 (alta) el documento ingresado ya existe, violando **RN-01**.
   2. El Sistema (Capa de Negocio) lanza la excepción de dominio
      `ClienteDuplicadoException`.
   3. El Sistema devuelve un código **409 Conflict** con el mensaje: "El documento
      ingresado pertenece a un cliente activo". El flujo retorna al Paso 1.
 
 * **3b. Cliente inexistente (HTTP 404 Not Found):**
-  1. Si en el Paso 3 (modificación o baja) el `id` no corresponde a ningún cliente
+  1. El sistema detecta que en el Paso 3 (modificación o baja) el `id` no corresponde a ningún cliente
      registrado.
   2. La Capa de Negocio no encuentra la entidad correspondiente.
   3. El Sistema devuelve un código **404 Not Found**. Fin del caso de uso.

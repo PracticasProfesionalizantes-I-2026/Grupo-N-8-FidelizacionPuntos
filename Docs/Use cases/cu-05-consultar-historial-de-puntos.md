@@ -42,13 +42,13 @@ vencimientos de puntos realizados sobre su cuenta.
 ### 4. FLUJOS ALTERNATIVOS (Caminos Tristes / Excepciones)
 
 * **2a. Filtro con formato inválido (HTTP 400 Bad Request):**
-  1. Si en el Paso 2 alguno de los filtros (ej. `fechaDesde`) no respeta el formato
+  1. El sistema detecta que en el Paso 2 alguno de los filtros (ej. `fechaDesde`) no respeta el formato
      esperado.
   2. El Sistema (Capa de Presentación) rechaza la petición.
   3. El Sistema devuelve un código **400 Bad Request**. Fin del caso de uso.
 
 * **4a. Sin movimientos registrados (HTTP 200 OK):**
-  1. Si en el Paso 4 el Sistema no encuentra movimientos para los criterios
+  1. El sistema detecta que en el Paso 4 el Sistema no encuentra movimientos para los criterios
      seleccionados.
   2. El Sistema no interrumpe el flujo: no es un error, es un resultado vacío
      válido.

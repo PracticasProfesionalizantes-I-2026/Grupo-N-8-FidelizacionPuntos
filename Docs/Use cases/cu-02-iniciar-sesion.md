@@ -41,12 +41,12 @@ contraseña) para obtener un token de acceso (JWT) y acceder a sus funcionalidad
 ### 4. FLUJOS ALTERNATIVOS (Caminos Tristes / Excepciones)
 
 * **2a. Dato obligatorio faltante (HTTP 400 Bad Request):**
-  1. Si en el Paso 2 el JSON no incluye `email` o `password`.
+  1. El sisteam detecta que en el Paso 2 el JSON no incluye `email` o `password`.
   2. El Sistema (Capa de Presentación) rechaza la petición por error de validación.
   3. El Sistema devuelve un código **400 Bad Request**. Fin del caso de uso.
 
 * **3a. Credenciales incorrectas (HTTP 401 Unauthorized):**
-  1. Si en el Paso 3 el email no existe o la contraseña no coincide con el hash
+  1. El sistema detecta que en el Paso 3 el email no existe o la contraseña no coincide con el hash
      almacenado.
   2. El Sistema (Capa de Negocio) incrementa el contador de intentos fallidos y
      evalúa la regla **RN-03**; lanza la excepción de dominio
@@ -55,7 +55,7 @@ contraseña) para obtener un token de acceso (JWT) y acceder a sus funcionalidad
      contraseña incorrectos". Fin del caso de uso.
 
 * **3b. Cuenta bloqueada por intentos fallidos (HTTP 403 Forbidden):**
-  1. Si en el Paso 3 el contador de intentos fallidos alcanzó el umbral configurado
+  1. El sistema detecta que en el Paso 3 el contador de intentos fallidos alcanzó el umbral configurado
      (**RN-03**) y la cuenta quedó bloqueada temporalmente.
   2. El Sistema (Capa de Negocio) lanza la excepción de dominio
      `CuentaBloqueadaException`.
@@ -64,7 +64,7 @@ contraseña) para obtener un token de acceso (JWT) y acceder a sus funcionalidad
      de uso.
 
 * **3c. Cuenta inactiva (HTTP 403 Forbidden):**
-  1. Si en el Paso 3 el Sistema detecta que la cuenta del cliente fue dada de baja
+  1. EL sistema detecta que en el Paso 3 el Sistema detecta que la cuenta del cliente fue dada de baja
      (CU-14, **RN-14**).
   2. El Sistema (Capa de Negocio) lanza la excepción de dominio
      `CuentaInactivaException`.

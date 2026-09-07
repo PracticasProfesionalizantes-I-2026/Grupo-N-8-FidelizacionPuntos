@@ -49,21 +49,21 @@ nombre de un cliente que se presenta físicamente en el local.
 ### 4. FLUJOS ALTERNATIVOS (Caminos Tristes / Excepciones)
 
 * **1a. Cliente no registrado (HTTP 404 Not Found):**
-  1. Si en el Paso 1/2 el documento ingresado no corresponde a un cliente
+  1. El sistema detecta que en el Paso 1/2 el documento ingresado no corresponde a un cliente
      registrado.
   2. La Capa de Negocio no encuentra la entidad correspondiente.
   3. El Sistema devuelve un código **404 Not Found** con el mensaje: "El documento
      ingresado no se encuentra registrado". Fin del caso de uso.
 
 * **3a. Beneficio inactivo (HTTP 409 Conflict):**
-  1. Si en el Paso 3 el beneficio seleccionado no está activo, violando **RN-17**.
+  1. El sistema detecta que en el Paso 3 el beneficio seleccionado no está activo, violando **RN-17**.
   2. El Sistema (Capa de Negocio) lanza la excepción de dominio
      `BeneficioInactivoException`.
   3. El Sistema devuelve un código **409 Conflict** con el mensaje: "El beneficio
      no pudo ser canjeado". Fin del caso de uso.
 
 * **3b. Saldo insuficiente (HTTP 409 Conflict):**
-  1. Si en el Paso 3 el cliente no posee puntos suficientes, violando **RN-08**.
+  1. El sistema detecta que en el Paso 3 el cliente no posee puntos suficientes, violando **RN-08**.
   2. El Sistema (Capa de Negocio) lanza la excepción de dominio
      `SaldoInsuficienteException`.
   3. El Sistema devuelve un código **409 Conflict** con el mensaje: "Saldo
@@ -71,7 +71,7 @@ nombre de un cliente que se presenta físicamente en el local.
      empleado seleccione otro beneficio.
 
 * **5a. Error interno en la persistencia (HTTP 500 Internal Server Error):**
-  1. Si en el Paso 5 la Capa de Persistencia no puede registrar el canje o
+  1. El sistema detecta que en el Paso 5 la Capa de Persistencia no puede registrar el canje o
      actualizar el saldo.
   2. El Sistema revierte la transacción y registra el error como no controlado.
   3. El Sistema devuelve un código **500 Internal Server Error**. Fin del caso de

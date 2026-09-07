@@ -40,7 +40,7 @@ su fecha y estado.
 ### 4. FLUJOS ALTERNATIVOS (Caminos Tristes / Excepciones)
 
 * **4a. Sin canjes registrados (HTTP 200 OK):**
-  1. Si en el Paso 4 el Sistema no encuentra canjes realizados por el cliente.
+  1. El sistema detecta que en el Paso 4 el Sistema no encuentra canjes realizados por el cliente.
   2. El Sistema no interrumpe el flujo: no es un error, es un resultado vacío
      válido.
   3. El Sistema devuelve un código **200 OK** con una lista vacía y el mensaje:

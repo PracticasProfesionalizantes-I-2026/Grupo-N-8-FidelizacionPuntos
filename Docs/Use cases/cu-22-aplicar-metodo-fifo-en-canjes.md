@@ -45,14 +45,14 @@ un canje, priorizando siempre los puntos vigentes más antiguos.
 ### 4. FLUJOS ALTERNATIVOS (Caminos Tristes / Excepciones)
 
 * **2a. Un lote no cubre el total requerido (Continúa el flujo principal):**
-  1. Si en el Paso 2 el lote más antiguo no alcanza para cubrir el total del
+  1. El sistema detecta que en el Paso 2 el lote más antiguo no alcanza para cubrir el total del
      canje.
   2. El Sistema descuenta el total disponible de ese lote y continúa con el
      siguiente lote (por antigüedad) hasta completar el monto del canje.
   3. El flujo continúa en el Paso 3 del flujo principal.
 
 * **4a. Error interno en la persistencia (Resultado: Error, propagado a CU-07/11):**
-  1. Si en el Paso 4 la Capa de Persistencia no puede actualizar el estado de los
+  1. El sistema detecta que en el Paso 4 la Capa de Persistencia no puede actualizar el estado de los
      lotes.
   2. El Sistema revierte la operación completa (ningún lote queda parcialmente
      descontado) y propaga la excepción `PersistenceException` al caso de uso

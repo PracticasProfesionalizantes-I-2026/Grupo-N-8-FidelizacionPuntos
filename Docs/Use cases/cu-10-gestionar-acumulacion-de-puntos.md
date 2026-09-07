@@ -47,7 +47,7 @@ correspondientes según las reglas de acumulación configuradas (CU-17).
 
 * **2a. Dato obligatorio faltante o producto/cantidad inválido (HTTP 400 Bad
   Request):**
-  1. Si en el Paso 2 el empleado ingresa un producto o cantidad incorrectos; el
+  1. El sistema detecta que en el Paso 2 el empleado ingresa un producto o cantidad incorrectos; el
      empleado puede corregir/quitar el ítem mal cargado antes de reenviar la
      petición sin que el caso de uso finalice.
   2. El Sistema (Capa de Presentación) rechaza únicamente la petición con el ítem
@@ -56,21 +56,21 @@ correspondientes según las reglas de acumulación configuradas (CU-17).
      rechazado. El flujo retorna al Paso 1.
 
 * **3a. Cliente no registrado (HTTP 404 Not Found):**
-  1. Si en el Paso 3 el documento ingresado no corresponde a ningún cliente
+  1. El sistema detecta que en el Paso 3 el documento ingresado no corresponde a ningún cliente
      registrado.
   2. La Capa de Negocio no encuentra la entidad correspondiente.
   3. El Sistema devuelve un código **404 Not Found** con el mensaje: "El documento
      ingresado no se encuentra registrado". Fin del caso de uso.
 
 * **3b. Documento del cliente mal ingresado (HTTP 400 Bad Request):**
-  1. Si en el Paso 3 el documento no respeta el formato válido (ej. longitud o
+  1. El sistema detecta que en el Paso 3 el documento no respeta el formato válido (ej. longitud o
      tipo de dato incorrectos).
   2. El Sistema (Capa de Negocio) rechaza la operación antes de buscar al cliente.
   3. El Sistema devuelve un código **400 Bad Request** con el mensaje: "El
      documento ingresado fue incorrecto". Fin del caso de uso.
 
 * **4a. Error interno en la persistencia (HTTP 500 Internal Server Error):**
-  1. Si en el Paso 4 la Capa de Persistencia no puede registrar el movimiento o
+  1. El sistema detecta que en el Paso 4 la Capa de Persistencia no puede registrar el movimiento o
      actualizar el saldo.
   2. El Sistema revierte la transacción y registra el error como no controlado.
   3. El Sistema devuelve un código **500 Internal Server Error**. Fin del caso de
