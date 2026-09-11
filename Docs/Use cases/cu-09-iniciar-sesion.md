@@ -24,7 +24,7 @@ Permite al empleado autenticarse en el sistema para acceder a sus funcionalidade
 operativas (acumulación de puntos, canje presencial, alta de clientes).
 
 ### 2. PRECONDICIONES
-1. El empleado se encuentra registrado en el sistema (CU-15) y activo.
+1. El empleado se encuentra registrado en el sistema (CU-16) y activo.
 
 ### 3. FLUJO PRINCIPAL (Camino Feliz - HTTP 200)
 1. El Actor envía una petición al endpoint `POST /api/auth/login` con un JSON que
@@ -54,7 +54,7 @@ operativas (acumulación de puntos, canje presencial, alta de clientes).
 
 * **3b. Cuenta inactiva (HTTP 403 Forbidden):**
   1. El sistema detecta que en el Paso 3 el Sistema detecta que la cuenta del empleado está inactiva
-     (CU-15, **RN-15**).
+     (CU-16, **RN-15**).
   2. El Sistema (Capa de Negocio) lanza la excepción de dominio
      `CuentaInactivaException`.
   3. El Sistema devuelve un código **403 Forbidden** con el mensaje: "La cuenta se

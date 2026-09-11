@@ -20,17 +20,20 @@
 ---
 
 ### 1. BREVE DESCRIPCIÓN
-Permite al empleado registrar una compra de un cliente y acreditarle los puntos
-correspondientes según las reglas de acumulación configuradas (CU-17).
+Permite al empleado registrar, en el punto de venta, una compra realizada por un
+cliente y acreditarle los puntos correspondientes según las reglas de
+acumulación configuradas (CU-19).
 
 ### 2. PRECONDICIONES
 1. El empleado se encuentra autenticado (Token JWT válido, CU-09).
 2. El cliente se encuentra registrado en el sistema.
-3. Existen reglas de acumulación activas (CU-17).
+3. Existen reglas de acumulación activas (CU-19).
 
 ### 3. FLUJO PRINCIPAL (Camino Feliz - HTTP 201)
-1. El Actor envía una petición al endpoint `POST /api/movimientos/acumulaciones`
-   con un JSON que contiene el documento del cliente y el detalle de la compra
+1. El cliente realiza una compra en el local; el empleado le solicita el
+   documento, carga los productos de la venta y, al finalizarla, el Actor
+   envía una petición al endpoint `POST /api/movimientos/acumulaciones` con un
+   JSON que contiene el documento del cliente y el detalle de la compra
    (`clienteDocumento`, `items: [{producto, cantidad, monto}]`).
 2. La **Capa de Presentación** (`MovimientosController.RegistrarAcumulacion`)
    valida que el JSON sea estructuralmente correcto.
@@ -69,6 +72,18 @@ correspondientes según las reglas de acumulación configuradas (CU-17).
   3. El Sistema devuelve un código **400 Bad Request** con el mensaje: "El
      documento ingresado fue incorrecto". Fin del caso de uso.
 
+* **3c. El empleado detecta un cálculo de puntos incorrecto antes de
+  confirmar la venta (Resultado: Sin cambios; el caso de uso no finaliza):**
+  1. El sistema, en el Paso 3, calcula y exhibe al empleado el detalle de la
+     compra y los puntos a acreditar antes de que confirme la venta.
+  2. El empleado revisa el detalle y detecta que un producto o una cantidad
+     fueron mal cargados, generando un cálculo que no corresponde a la compra
+     real.
+  3. El empleado corrige el carrito y solicita un nuevo cálculo; el caso de uso
+     continúa desde el Paso 1 sin que la Capa de Persistencia registre ningún
+     movimiento hasta que el empleado confirme la venta con el cálculo
+     correcto.
+
 * **4a. Error interno en la persistencia (HTTP 500 Internal Server Error):**
   1. El sistema detecta que en el Paso 4 la Capa de Persistencia no puede registrar el movimiento o
      actualizar el saldo.
@@ -106,6 +121,7 @@ venta operado por el empleado)._
 | 2a. Ítem inválido | `400 Bad Request` | — (validación de esquema) | `RegistrarAcumulacion_WithInvalidItem_Returns400BadRequest` |
 | 3a. Cliente no registrado | `404 Not Found` | `RegistrarAcumulacionAsync_WithUnknownDocumento_ThrowsClienteNotFoundException` | `RegistrarAcumulacion_WithUnknownDocumento_Returns404NotFound` |
 | 3b. Documento mal ingresado | `400 Bad Request` | `RegistrarAcumulacionAsync_WithMalformedDocumento_ThrowsValidationException` | `RegistrarAcumulacion_WithMalformedDocumento_Returns400BadRequest` |
+| 3c. Cálculo revisado antes de confirmar | Sin cambios (no se envía la petición) | — (verificación del empleado, previa al envío) | — (no genera una petición distinta; se cubre con el test del flujo principal una vez corregido el carrito) |
 | 4a. Error interno de persistencia | `500 Internal Server Error` | `RegistrarAcumulacionAsync_WhenRepositoryFails_ThrowsPersistenceException` | `RegistrarAcumulacion_WhenPersistenceFails_Returns500InternalServerError` |
 
 > Regla de oro: cada flujo del caso de uso debe tener al menos un test.

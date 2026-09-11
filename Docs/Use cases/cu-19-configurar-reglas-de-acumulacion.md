@@ -8,7 +8,7 @@
 
 | Campo | Valor |
 | --- | --- |
-| **ID del Caso de Uso** | CU-17 |
+| **ID del Caso de Uso** | CU-19 |
 | **Nombre** | Configurar reglas de acumulación |
 | **Actor Principal** | Admin |
 | **Alcance / Nivel** | Sistema; meta de usuario |
@@ -24,7 +24,7 @@ Permite al admin definir los criterios utilizados para calcular la cantidad de
 puntos que recibe el cliente por sus compras.
 
 ### 2. PRECONDICIONES
-1. El admin se encuentra autenticado (Token JWT válido, CU-13) con permisos sobre
+1. El admin se encuentra autenticado (Token JWT válido, CU-14) con permisos sobre
    el recurso Reglas de Acumulación.
 
 ### 3. FLUJO PRINCIPAL (Camino Feliz - HTTP 200/201)
@@ -78,7 +78,7 @@ administración web)._
 | `201` | Created | Confirmación de persistencia exitosa de la nueva regla. |
 | `400` | Bad Request | Configuración inválida (RN-18) o campos obligatorios faltantes. |
 
-### Matriz de trazabilidad CU-17 → Test
+### Matriz de trazabilidad CU-19 → Test
 
 | Paso del CU | Excepción / Código | Test unitario (BusinessLogic) | Test integración (HTTP) |
 | --- | --- | --- | --- |

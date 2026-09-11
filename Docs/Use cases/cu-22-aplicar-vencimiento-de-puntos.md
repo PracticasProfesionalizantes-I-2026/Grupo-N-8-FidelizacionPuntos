@@ -9,7 +9,7 @@
 
 | Campo | Valor |
 | --- | --- |
-| **ID del Caso de Uso** | CU-21 |
+| **ID del Caso de Uso** | CU-22 |
 | **Nombre** | Aplicar vencimiento de puntos |
 | **Actor Principal** | Sistema |
 | **Alcance / Nivel** | Sistema; subfunción (proceso batch interno) |
@@ -41,7 +41,7 @@ alcanzaron su fecha de vencimiento, siguiendo el orden FIFO.
    correspondiente.
 4. La **Capa de Persistencia** registra el movimiento de vencimiento en
    `Movimientos` para fines de auditoría (**RN-13**).
-5. El Sistema notifica al cliente sobre los puntos vencidos (ver CU-23) y el
+5. El Sistema notifica al cliente sobre los puntos vencidos y el
    proceso finaliza con estado **Éxito**.
 
 ### 4. FLUJOS ALTERNATIVOS (Caminos Tristes / Excepciones)
@@ -59,7 +59,7 @@ alcanzaron su fecha de vencimiento, siguiendo el orden FIFO.
      controlado y continúa con el siguiente cliente del lote (el fallo de un
      cliente no bloquea el proceso completo).
   3. El *job* queda registrado con estado **Error parcial**, disponible para
-     reintento o revisión manual del admin (CU-20). Fin del caso de uso para ese
+     reintento o revisión manual del admin (CU-21). Fin del caso de uso para ese
      cliente.
 
 ### 5. SUB-VARIACIONES (opcional)
@@ -70,7 +70,7 @@ interno)._
 1. El saldo de puntos de cada cliente afectado queda actualizado, descontando los
    lotes vencidos.
 2. El vencimiento queda registrado en `Movimientos` y es auditable (**RN-13**,
-   CU-20).
+   CU-21).
 
 ---
 
@@ -84,7 +84,7 @@ interno)._
 | `Sin cambios` | No se encontraron lotes vencidos en la ejecución del job. |
 | `Error parcial` | Falla de persistencia al procesar un cliente puntual; el proceso continúa con el resto del lote. |
 
-### Matriz de trazabilidad CU-21 → Test
+### Matriz de trazabilidad CU-22 → Test
 
 | Paso del CU | Excepción / Resultado | Test unitario (BusinessLogic) | Test integración (Job / Persistencia) |
 | --- | --- | --- | --- |

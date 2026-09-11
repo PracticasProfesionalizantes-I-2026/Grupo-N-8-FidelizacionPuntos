@@ -76,41 +76,45 @@ En esta entrega NO se incluirá: 1\) Sistemas de notificaciones automáticas. 2\
 
 **Clientes:**
 
-* **RF-01:** El sistema debe permitir el ABM de un cliente  
-* **RF-02:** El sistema debe permitir al cliente visualizar un dashboard con información sobre sus puntos, vencimientos y canjes realizados.
+* **RF-01:** El sistema debe permitir el ABM de un cliente 
+* **RF-02:** El sistema debe permitir inisiar sesion al cliente  
+* **RF-03:** El sistema debe permitir gestionar el perfil de un cliente 
+* **RF-04:** El sistema debe permitir al cliente visualizar un dashboard con información sobre sus puntos, vencimientos y canjes realizados.
+* **RF-05:** El sistema debe permitir al cliente visualizar/consultar beneficios disponibles
 
 **Compras:**
 
-* **RF-03:** El sistema debe permitir registrar compras asociadas a clientes mediante carga manual o escaneo de productos.  
-* **RF-04:** El sistema debe acreditar automáticamente los puntos correspondientes según la compra realizada.
+* **RF-06:** El sistema debe permitir registrar compras asociadas a clientes mediante carga manual
+* **RF-07:** El sistema debe acreditar automáticamente los puntos correspondientes según la compra realizada.
 
 **Puntos:**
 
-* **RF-05:** El sistema debe gestionar el historial y disponibilidad de puntos de cada cliente.  
-* **RF-06:** El sistema debe validar las reglas de negocio correspondientes al canje de puntos.
+* **RF-08:** El sistema debe gestionar el historial y disponibilidad de puntos de cada cliente.  
+* **RF-09:** El sistema debe validar las reglas de negocio correspondientes al canje de puntos.
 
 **Canje:**
 
-* **RF-07:** El sistema debe permitir el canje de puntos por beneficios definidos.  
-* **RF-08:** El sistema debe gestionar automáticamente las validaciones y registros correspondientes al proceso de canje.
-
-**Estados:**
-
-* **RF-09:** El sistema debe manejar estados de puntos (pendiente y disponible).  
-* **RF-10:** El sistema debe cambiar automáticamente el estado de los puntos de pendiente a disponible luego de 7 días.
+* **RF-10:** El sistema debe permitir el canje de puntos por beneficios definidos.  
+* **RF-11:** El sistema debe gestionar automáticamente las validaciones y registros correspondientes al proceso de canje.
+* **RF-12;** El sistema debe aplicar metodo FIFO en los canjes respecto
 
 **Admin:**
-
-* **RF-11:** El sistema debe permitir al administrador visualizar y filtrar el historial de ventas, incluyendo comparaciones entre distintos períodos.  
-* **RF-12:** El sistema debe permitir al administrador crear y eliminar un empleado.  
-* **RF-13:** El sistema debe permitir al administrador crear y eliminar un cliente.  
-* **RF-14:** El sistema debe permitir al administrador gestionar productos y beneficios.
+* **RF-13:** El sistema debe permitir iniciar sesion al admin  
+* **RF-14:** El sistema debe permitir al administrador visualizar y filtrar el historial de ventas, incluyendo comparaciones entre distintos períodos.  
+* **RF-15:** El sistema debe permitir al administrador crear y eliminar un empleado.  
+* **RF-16:** El sistema debe permitir al administrador crear y eliminar un cliente.  
+* **RF-17:** El sistema debe permitir al administrador gestionar productos y beneficios.
+* **RF-18;** El sistema debe permitir al administrador crear o modificar reglas de acumulacion de puntos
+* **RF-19;** El sistema debe permitir al administrador realizar auditorias de operaciones
+* **RF-20;** El sistema debe permitir al administrador aplicar lapso de vencimiento a los puntos
+* **RF-21;** El sistema debe permitir al administrador generar reportes basicos
 
 **Empleado:**
 
-* **RF-15:** El sistema debe permitir visualizar los canjes realizados por los clientes.  
-* **RF-16:** El sistema debe permitir corregir errores en la asignación de puntos a clientes.  
-* **RF-17:** El sistema debe permitir al empleado crear una cuenta de cliente.
+* **RF-22:** El sistema debe permitir iniciar sesion al empleado  
+* **RF-23:** El sistema debe permitir visualizar los canjes realizados por los clientes.
+* **RF-24:** El sistema debe permitir al empleado corregir errores en la asignación de una compra de un clientes.  
+* **RF-25:** El sistema debe permitir al empleado crear una cuenta de cliente.
 
 ## **5.2 Requerimientos No Funcionales**
 

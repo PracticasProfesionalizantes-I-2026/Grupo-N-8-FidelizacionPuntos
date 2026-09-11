@@ -37,7 +37,7 @@ catálogo, descontando los puntos correspondientes mediante el método FIFO.
    beneficio esté activo (**RN-17**) y que el cliente posea puntos suficientes
    (**RN-08**).
 4. El Sistema (Capa de Negocio, delegando en `LotePuntosService.AplicarFifoAsync` —
-   ver CU-22) calcula los puntos a descontar utilizando el método **FIFO** (RN-09).
+   ver CU-23) calcula los puntos a descontar utilizando el método **FIFO** (RN-09).
 5. La **Capa de Persistencia** registra el canje y actualiza el saldo de puntos del
    cliente en una única transacción.
 6. El Sistema devuelve un código **201 Created** con la confirmación de la
@@ -122,4 +122,4 @@ presencial en punto de venta lo gestiona el empleado (ver CU-11)._
 | 5a. Error interno de persistencia | `500 Internal Server Error` | `CrearCanjeAsync_WhenRepositoryFails_ThrowsPersistenceException` | `CrearCanje_WhenPersistenceFails_Returns500InternalServerError` |
 
 > Regla de oro: cada flujo del caso de uso debe tener al menos un test. El cálculo
-> FIFO se cubre en detalle en la matriz de CU-22.
+> FIFO se cubre en detalle en la matriz de CU-23.

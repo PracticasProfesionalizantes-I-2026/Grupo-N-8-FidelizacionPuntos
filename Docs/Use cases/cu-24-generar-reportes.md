@@ -8,7 +8,7 @@
 
 | Campo | Valor |
 | --- | --- |
-| **ID del Caso de Uso** | CU-19 |
+| **ID del Caso de Uso** | CU-24 |
 | **Nombre** | Generar reportes |
 | **Actor Principal** | Admin |
 | **Alcance / Nivel** | Sistema; meta de usuario |
@@ -24,7 +24,7 @@ Permite al administrador generar reportes sobre la actividad del sistema
 (acumulación, canjes, clientes activos, etc.) para un período determinado.
 
 ### 2. PRECONDICIONES
-1. El admin se encuentra autenticado (Token JWT válido, CU-13).
+1. El admin se encuentra autenticado (Token JWT válido, CU-14).
 
 ### 3. FLUJO PRINCIPAL (Camino Feliz - HTTP 200)
 1. El Actor envía una petición al endpoint `GET /api/admin/reportes` indicando el
@@ -75,7 +75,7 @@ Permite al administrador generar reportes sobre la actividad del sistema
 | `200` | OK | Éxito al generar el reporte (con o sin datos). |
 | `400` | Bad Request | Tipo de reporte inexistente o período inválido. |
 
-### Matriz de trazabilidad CU-19 → Test
+### Matriz de trazabilidad CU-25 → Test
 
 | Paso del CU | Excepción / Código | Test unitario (BusinessLogic) | Test integración (HTTP) |
 | --- | --- | --- | --- |

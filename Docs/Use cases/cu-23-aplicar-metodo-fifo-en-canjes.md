@@ -9,7 +9,7 @@
 
 | Campo | Valor |
 | --- | --- |
-| **ID del Caso de Uso** | CU-22 |
+| **ID del Caso de Uso** | CU-23 |
 | **Nombre** | Aplicar método FIFO en canjes |
 | **Actor Principal** | Sistema |
 | **Alcance / Nivel** | Sistema; subfunción (invocada internamente) |
@@ -79,13 +79,13 @@ originó en CU-07 (cliente) o CU-11 (empleado)._
 | `Éxito` | Lotes descontados correctamente en orden FIFO, excluyendo vencidos. |
 | `Error` (propaga `500`) | Falla de persistencia al actualizar el estado de los lotes; se revierte toda la operación. |
 
-### Matriz de trazabilidad CU-22 → Test
+### Matriz de trazabilidad CU-23 → Test
 
 | Paso del CU | Excepción / Resultado | Test unitario (BusinessLogic) | Test integración (HTTP, vía CU-07/11) |
 | --- | --- | --- | --- |
 | Flujo principal | `Éxito` | `AplicarFifoAsync_WithSingleSufficientLote_DiscountsOldestLoteFirst` | `CrearCanje_WithSingleSufficientLote_Returns201Created` |
 | 2a. Lote insuficiente, requiere múltiples lotes | `Éxito` (continúa) | `AplicarFifoAsync_WhenOldestLoteInsufficient_ContinuesWithNextLote` | `CrearCanje_WhenPointsSpanMultipleLotes_Returns201Created` |
-| — Exclusión de lotes vencidos | `Éxito` | `AplicarFifoAsync_ExcludesExpiredLotesFromCalculation` | *(cubierto indirectamente por los tests de CU-21)* |
+| — Exclusión de lotes vencidos | `Éxito` | `AplicarFifoAsync_ExcludesExpiredLotesFromCalculation` | *(cubierto indirectamente por los tests de CU-22)* |
 | 4a. Error interno de persistencia | `Error` (`500`) | `AplicarFifoAsync_WhenRepositoryFails_ThrowsPersistenceExceptionAndRollsBack` | `CrearCanje_WhenLoteUpdateFails_Returns500InternalServerError` |
 
 > Regla de oro: cada flujo del caso de uso debe tener al menos un test.

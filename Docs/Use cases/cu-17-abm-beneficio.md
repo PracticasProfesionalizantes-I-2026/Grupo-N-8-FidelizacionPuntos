@@ -2,20 +2,21 @@
 
 > Especificación elaborada siguiendo la guía
 > `GUIA-Especificacion-Casos-de-Uso.md` (sección 3).
-> Reglas de negocio RN-16 (costo mayor a 0) y RN-17 (beneficio inactivo no
-> canjeable) **a implementar**; cada caso borde debe contar con su test unitario e
-> integración (ver matriz de trazabilidad).
+> Reglas de negocio RN-16 (costo mayor a 0), RN-17 (beneficio inactivo no
+> canjeable) y RN-23 (nombre de beneficio único) **a implementar**; cada caso
+> borde debe contar con su test unitario e integración (ver matriz de
+> trazabilidad).
 
 | Campo | Valor |
 | --- | --- |
-| **ID del Caso de Uso** | CU-16 |
+| **ID del Caso de Uso** | CU-17 |
 | **Nombre** | ABM Beneficio |
 | **Actor Principal** | Admin |
 | **Alcance / Nivel** | Sistema; meta de usuario |
 | **Stakeholders e intereses** | Admin → mantener el catálogo de beneficios actualizado; Cliente → ver siempre beneficios vigentes y con un costo correcto |
 | **Disparador (Trigger)** | El admin accede a la gestión de beneficios |
 | **Prioridad / Frecuencia** | Media; uso ocasional |
-| **Reglas de negocio relacionadas** | RN-16 (costo en puntos mayor a 0); RN-17 (beneficio inactivo no canjeable) |
+| **Reglas de negocio relacionadas** | RN-16 (costo en puntos mayor a 0); RN-17 (beneficio inactivo no canjeable); RN-23 (nombre de beneficio único) |
 
 ---
 
@@ -24,7 +25,7 @@ Permite al administrador crear, modificar, ocultar o desactivar beneficios
 disponibles para los clientes.
 
 ### 2. PRECONDICIONES
-1. El admin se encuentra autenticado (Token JWT válido, CU-13) con permisos sobre
+1. El admin se encuentra autenticado (Token JWT válido, CU-14) con permisos sobre
    el recurso Beneficios.
 
 ### 3. FLUJO PRINCIPAL (Camino Feliz - HTTP 200/201/204)
@@ -34,8 +35,8 @@ disponibles para los clientes.
 2. La **Capa de Presentación** (`AdminBeneficiosController`) valida que el JSON
    (en alta/modificación) sea estructuralmente correcto.
 3. La **Capa de Negocio** (`BeneficioAdminService`) valida que el costo en puntos
-   sea mayor a 0 (**RN-16**) y que el beneficio exista, en modificación o
-   desactivación.
+   sea mayor a 0 (**RN-16**) y que el nombre no esté ya registrado, en el alta
+   (**RN-23**); y que el beneficio exista, en modificación o desactivación.
 4. La **Capa de Persistencia** registra los cambios en la tabla `Beneficios`.
 5. El Sistema devuelve un código **201 Created** (alta), **200 OK** (modificación)
    o **200 OK** (desactivación), informando el resultado de la operación.
@@ -56,7 +57,15 @@ disponibles para los clientes.
   3. El Sistema devuelve un código **400 Bad Request** con el mensaje: "El costo
      en puntos debe ser mayor a 0". El flujo retorna al Paso 1.
 
-* **3b. Beneficio inexistente (HTTP 404 Not Found):**
+* **3b. Beneficio a crear ya existe (HTTP 409 Conflict):**
+  1. El sistema detecta que en el Paso 3 (alta) el nombre ingresado ya corresponde a un
+     beneficio existente, violando **RN-23**.
+  2. El Sistema (Capa de Negocio) lanza la excepción de dominio
+     `BeneficioDuplicadoException`.
+  3. El Sistema devuelve un código **409 Conflict** con el mensaje: "El beneficio
+     ingresado ya existe". El flujo retorna al Paso 1.
+
+* **3c. Beneficio inexistente (HTTP 404 Not Found):**
   1. El sistema detecta que en el Paso 3 (modificación o desactivación) el `id` no corresponde a
      ningún beneficio registrado.
   2. La Capa de Negocio no encuentra la entidad correspondiente.
@@ -88,8 +97,9 @@ disponibles para los clientes.
 | `201` | Created | Confirmación de persistencia exitosa del nuevo recurso Beneficio. |
 | `400` | Bad Request | Datos inválidos o costo en puntos ≤ 0 (RN-16). |
 | `404` | Not Found | Beneficio inexistente en modificación o desactivación. |
+| `409` | Conflict | Violación de RN-23: nombre de beneficio ya existente en el alta. |
 
-### Matriz de trazabilidad CU-16 → Test
+### Matriz de trazabilidad CU-17 → Test
 
 | Paso del CU | Excepción / Código | Test unitario (BusinessLogic) | Test integración (HTTP) |
 | --- | --- | --- | --- |
@@ -98,6 +108,7 @@ disponibles para los clientes.
 | Flujo principal (desactivación) | `200 OK` | `DesactivarBeneficioAsync_WithExistingId_DeactivatesBeneficio` | `AbmBeneficio_Deactivate_WithExistingId_Returns200OK` |
 | 2a. Datos inválidos | `400 Bad Request` | — (validación de esquema) | `AbmBeneficio_WithInvalidData_Returns400BadRequest` |
 | 3a. Costo en puntos inválido | `400 Bad Request` | `CrearBeneficioAsync_WithNonPositiveCosto_ThrowsCostoInvalidoException` | `AbmBeneficio_Create_WithNonPositiveCosto_Returns400BadRequest` |
-| 3b. Beneficio inexistente | `404 Not Found` | `ActualizarBeneficioAsync_WithNonExistentId_ThrowsBeneficioNotFoundException` | `AbmBeneficio_Update_WithNonExistentId_Returns404NotFound` |
+| 3b. Beneficio a crear ya existe | `409 Conflict` | `CrearBeneficioAsync_WhenNombreExists_ThrowsBeneficioDuplicadoException` | `AbmBeneficio_Create_WhenNombreExists_Returns409Conflict` |
+| 3c. Beneficio inexistente | `404 Not Found` | `ActualizarBeneficioAsync_WithNonExistentId_ThrowsBeneficioNotFoundException` | `AbmBeneficio_Update_WithNonExistentId_Returns404NotFound` |
 
 > Regla de oro: cada flujo del caso de uso debe tener al menos un test.

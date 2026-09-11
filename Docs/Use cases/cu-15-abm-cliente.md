@@ -8,7 +8,7 @@
 
 | Campo | Valor |
 | --- | --- |
-| **ID del Caso de Uso** | CU-14 |
+| **ID del Caso de Uso** | CU-15 |
 | **Nombre** | ABM Cliente |
 | **Actor Principal** | Admin |
 | **Alcance / Nivel** | Sistema; meta de usuario |
@@ -24,7 +24,7 @@ Permite al administrador dar de alta, modificar o dar de baja clientes desde el
 panel de administración.
 
 ### 2. PRECONDICIONES
-1. El admin se encuentra autenticado (Token JWT válido, CU-13) con permisos sobre
+1. El admin se encuentra autenticado (Token JWT válido, CU-14) con permisos sobre
    el recurso Clientes.
 
 ### 3. FLUJO PRINCIPAL (Camino Feliz - HTTP 200/201/204)
@@ -92,7 +92,7 @@ panel de administración.
 | `404` | Not Found | Cliente inexistente en modificación o baja. |
 | `409` | Conflict | Violación de RN-01: documento ya existente en el alta. |
 
-### Matriz de trazabilidad CU-14 → Test
+### Matriz de trazabilidad CU-15 → Test
 
 | Paso del CU | Excepción / Código | Test unitario (BusinessLogic) | Test integración (HTTP) |
 | --- | --- | --- | --- |

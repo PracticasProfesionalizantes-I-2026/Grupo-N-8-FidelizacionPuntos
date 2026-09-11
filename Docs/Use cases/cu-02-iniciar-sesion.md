@@ -65,14 +65,14 @@ contraseña) para obtener un token de acceso (JWT) y acceder a sus funcionalidad
 
 * **3c. Cuenta inactiva (HTTP 403 Forbidden):**
   1. EL sistema detecta que en el Paso 3 el Sistema detecta que la cuenta del cliente fue dada de baja
-     (CU-14, **RN-14**).
+     (CU-15, **RN-14**).
   2. El Sistema (Capa de Negocio) lanza la excepción de dominio
      `CuentaInactivaException`.
   3. El Sistema devuelve un código **403 Forbidden** con el mensaje: "La cuenta se
      encuentra inactiva. Contacte al administrador". Fin del caso de uso.
 
 ### 5. SUB-VARIACIONES (opcional)
-1. El actor puede iniciar sesión desde la app web o la app móvil; en ambos casos el
+1. El actor puede iniciar sesión desde la app web en este casos el
    esquema del cuerpo y el resultado (`200 OK` con token JWT) son idénticos.
 
 ### 6. POSTCONDICIONES

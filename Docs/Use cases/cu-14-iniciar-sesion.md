@@ -8,7 +8,7 @@
 
 | Campo | Valor |
 | --- | --- |
-| **ID del Caso de Uso** | CU-13 |
+| **ID del Caso de Uso** | CU-14 |
 | **Nombre** | Iniciar sesión (Admin) |
 | **Actor Principal** | Admin |
 | **Alcance / Nivel** | Sistema; meta de usuario |
@@ -73,7 +73,7 @@ administración web)._
 | `400` | Bad Request | Fallo en la validación de esquema o campos faltantes. |
 | `401` | Unauthorized | Credenciales incorrectas. |
 
-### Matriz de trazabilidad CU-13 → Test
+### Matriz de trazabilidad CU-14 → Test
 
 | Paso del CU | Excepción / Código | Test unitario (BusinessLogic) | Test integración (HTTP) |
 | --- | --- | --- | --- |

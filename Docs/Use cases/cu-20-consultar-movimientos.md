@@ -8,7 +8,7 @@
 
 | Campo | Valor |
 | --- | --- |
-| **ID del Caso de Uso** | CU-18 |
+| **ID del Caso de Uso** | CU-20 |
 | **Nombre** | Consultar movimientos |
 | **Actor Principal** | Admin |
 | **Alcance / Nivel** | Sistema; subfunción |
@@ -21,10 +21,10 @@
 
 ### 1. BREVE DESCRIPCIÓN
 Permite al administrador consultar los movimientos de puntos (acumulaciones y
-canjes) realizados en todo el sistema, con filtros de búsqueda.
+canjes) realizados en todo el sistema, con filtros de búsqueda y comparación entre fechas distintas, o misma fecha pero distinto movimiento. 
 
 ### 2. PRECONDICIONES
-1. El admin se encuentra autenticado (Token JWT válido, CU-13).
+1. El admin se encuentra autenticado (Token JWT válido, CU-14).
 
 ### 3. FLUJO PRINCIPAL (Camino Feliz - HTTP 200)
 1. El Actor envía una petición al endpoint `GET /api/admin/movimientos` con
@@ -72,7 +72,7 @@ _No aplica: consulta de lectura simple, sin variantes de mecanismo relevantes._
 | `200` | OK | Éxito al recuperar los movimientos (con o sin resultados). |
 | `400` | Bad Request | Filtro de búsqueda con formato inválido. |
 
-### Matriz de trazabilidad CU-18 → Test
+### Matriz de trazabilidad CU-20 → Test
 
 | Paso del CU | Excepción / Código | Test unitario (BusinessLogic) | Test integración (HTTP) |
 | --- | --- | --- | --- |

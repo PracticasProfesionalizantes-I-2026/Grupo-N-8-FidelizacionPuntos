@@ -78,7 +78,7 @@ puntos inicial en cero para poder acumular y canjear beneficios.
   3. El Sistema devuelve un código **500 Internal Server Error**. Fin del caso de uso.
 
 ### 5. SUB-VARIACIONES (opcional)
-1. El actor puede registrarse desde la app web o desde la app móvil; en ambos casos
+1. El actor puede registrarse desde la app web en este casos
    el esquema del cuerpo y el resultado (`201 Created`) son idénticos.
 
 ### 6. POSTCONDICIONES

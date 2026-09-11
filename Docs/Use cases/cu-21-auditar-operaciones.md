@@ -8,7 +8,7 @@
 
 | Campo | Valor |
 | --- | --- |
-| **ID del Caso de Uso** | CU-20 |
+| **ID del Caso de Uso** | CU-21 |
 | **Nombre** | Auditar operaciones |
 | **Actor Principal** | Admin |
 | **Alcance / Nivel** | Sistema; meta de usuario |
@@ -24,7 +24,7 @@ Permite al admin consultar el historial de operaciones registradas en el sistema
 para fines de control y seguimiento.
 
 ### 2. PRECONDICIONES
-1. El admin se encuentra autenticado (Token JWT válido, CU-13).
+1. El admin se encuentra autenticado (Token JWT válido, CU-14).
 2. Existen registros de auditoría previamente generados (**RN-13**).
 
 ### 3. FLUJO PRINCIPAL (Camino Feliz - HTTP 200)
@@ -76,7 +76,7 @@ _No aplica: consulta de lectura simple, sin variantes de mecanismo relevantes._
 | --- | --- | --- |
 | `200` | OK | Éxito al recuperar los registros de auditoría (con o sin resultados). |
 
-### Matriz de trazabilidad CU-20 → Test
+### Matriz de trazabilidad CU-21 → Test
 
 | Paso del CU | Excepción / Código | Test unitario (BusinessLogic) | Test integración (HTTP) |
 | --- | --- | --- | --- |
