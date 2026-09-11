@@ -5,6 +5,12 @@
 > Reglas de negocio RN-18 (versión activa única) y RN-13 (trazabilidad para
 > auditoría) **a implementar**; cada caso borde debe contar con su test unitario e
 > integración (ver matriz de trazabilidad).
+> RF-22 ("el admin aplica lapso de vencimiento a los puntos") no tenía un caso
+> de uso propio en la documentación original; se decidió incorporar ese lapso
+> (`diasVigenciaPuntos`) como un campo más de esta misma regla en vez de crear
+> un CU y una pantalla de configuración separados, ya que ambos valores
+> (puntos por monto y días de vigencia) se definen juntos y con la misma
+> frecuencia de uso.
 
 | Campo | Valor |
 | --- | --- |
@@ -15,7 +21,7 @@
 | **Stakeholders e intereses** | Admin → ajustar cómo se generan los puntos según la estrategia comercial; Empleado → operar acumulaciones (CU-10) con reglas siempre vigentes y sin ambigüedad; Negocio → que el criterio de acumulación quede documentado y auditable |
 | **Disparador (Trigger)** | El admin decide crear o modificar una regla de acumulación |
 | **Prioridad / Frecuencia** | Baja; uso ocasional |
-| **Reglas de negocio relacionadas** | RN-18 (una única versión activa por regla); RN-13 (registro para auditoría) |
+| **Reglas de negocio relacionadas** | RN-18 (una única versión activa por regla); RN-13 (registro para auditoría); RN-21/RF-22 (lapso de vencimiento de los puntos acreditados bajo la regla) |
 
 ---
 
@@ -34,7 +40,8 @@ calcular la cantidad de puntos que recibe el cliente por sus compras.
    /api/admin/reglas-acumulacion` (crear) o `PUT
    /api/admin/reglas-acumulacion/{id}` (modificar). Las operaciones de creación y
    modificación reciben un JSON con el criterio (`puntosPorMonto`,
-   `vigenciaDesde`).
+   `vigenciaDesde`, `diasVigenciaPuntos` — RF-22: cuántos días tarda en vencer
+   un lote acreditado bajo esta regla, RN-21).
 2. La **Capa de Presentación** (`AdminReglasAcumulacionController`) valida que el
    JSON sea estructuralmente correcto (en creación/modificación).
 3. La **Capa de Negocio** (`ReglaAcumulacionService`) recupera la(s) regla(s)

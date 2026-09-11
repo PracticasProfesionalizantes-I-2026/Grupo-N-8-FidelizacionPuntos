@@ -12,8 +12,9 @@
 
 ## 1. Decisiones de diseño tomadas en este Paso 1
 
-Dos vacíos detectados en el relevamiento de los 26 CU, resueltos junto con
-Daniel antes de cerrar el plan:
+Vacíos detectados en el relevamiento de los 26 CU (los dos primeros resueltos
+antes de cerrar el plan; los dos últimos, sobre la marcha al codificar la
+Fase 1/2):
 
 1. **Colisión de endpoint de login (CU-02/CU-09/CU-14):** las tres CU definen
    `POST /api/auth/login` sin distinguir el rol. Se resuelve con **un único
@@ -38,6 +39,24 @@ Daniel antes de cerrar el plan:
    clientes/empleados/beneficios/productos, cambios de reglas de acumulación).
    Se agrega la entidad `Auditoria` (sección 2) como registro de solo inserción
    (RN-20) de todas las operaciones relevantes del sistema.
+4. **RF-22 (lapso de vencimiento) sin CU propio:** al implementar CU-22/CU-26
+   se detectó que RF-22 ("el admin aplica lapso de vencimiento a los puntos")
+   no tiene ningún caso de uso que diga dónde se configura ese lapso — ni
+   CU-19 ni CU-22 lo definían. Se agregó `DiasVigenciaPuntos` a
+   `ReglaAcumulacion` (y a CU-19) en vez de crear un CU y una entidad nuevos,
+   ya que es un dato que el admin configura junto con `PuntosPorMonto`, con
+   la misma frecuencia de uso.
+5. **Campos de bloqueo por intentos fallidos (RN-03):** `Cliente`, `Empleado`
+   y `Admin` no tenían dónde guardar el contador de intentos fallidos ni el
+   bloqueo temporal que exige RN-03 (CU-02/CU-09/CU-14). Se extrajo una base
+   común `CuentaConCredenciales` (Email, PasswordHash, Activo,
+   IntentosFallidos, BloqueadoHasta) para no triplicar estos 4 campos en las
+   tres entidades.
+6. **`PuntosDisponibles` por lote (RN-05, RN-09):** para poder calcular el
+   saldo disponible y aplicar FIFO sin recorrer todo el historial de canjes,
+   cada lote de acumulación/bono necesita su propio saldo restante mutable,
+   además del monto original (histórico) en `Puntos`. Se agregó
+   `Movimiento.PuntosDisponibles`.
 
 ---
 
@@ -54,8 +73,8 @@ RN-15, RN-17, RN-26).
 | **Admin** | Nombre, Email (único), PasswordHash, Activo | — (destino de códigos de recuperación de Empleado, RN-28) | — |
 | **Producto** | Nombre (único), Descripcion, Precio (>0), Activo | — | RN-24, RN-25, RN-26 |
 | **Beneficio** | Nombre (único), Descripcion, CostoPuntos (>0), Categoria (enum), Activo | 1‑N `Movimiento` (Restrict, nullable, en canjes) | RN-16, RN-17, RN-23 |
-| **ReglaAcumulacion** | PuntosPorMonto, VigenciaDesde, VigenciaHasta (nullable), Activa | — | RN-18 |
-| **Movimiento** | Tipo (enum: `Acumulacion`, `Canje`, `BonoCumpleanos`, `Vencimiento`), Puntos (+/-), Fecha, FechaVencimiento (nullable, lotes de acumulación), Detalle | N‑1 `Cliente` (Restrict); N‑1 `Empleado` (Restrict, nullable — null en procesos de Sistema: CU-22/CU-26); N‑1 `Beneficio` (Restrict, nullable, solo en canjes) | RN-05, RN-06, RN-09, RN-12, RN-13, RN-21 |
+| **ReglaAcumulacion** | PuntosPorMonto, VigenciaDesde, VigenciaHasta (nullable), DiasVigenciaPuntos (RF-22), Activa | — | RN-18, RN-21, RF-22 |
+| **Movimiento** | Tipo (enum: `Acumulacion`, `Canje`, `BonoCumpleanos`, `Vencimiento`), Puntos (monto original, histórico), PuntosDisponibles (saldo restante del lote, mutable), Fecha, FechaVencimiento (nullable, lotes de acumulación), Detalle | N‑1 `Cliente` (Restrict); N‑1 `Empleado` (Restrict, nullable — null en procesos de Sistema: CU-22/CU-26); N‑1 `Beneficio` (Restrict, nullable, solo en canjes) | RN-05, RN-06, RN-09, RN-12, RN-13, RN-21 |
 | **CodigoRecuperacion** *(nueva, CU-25)* | Codigo (hasheado), FechaCreacion, FechaExpiracion, Usado | N‑1 `Cliente` / N‑1 `Empleado` / N‑1 `Admin` (nullable, exactamente uno no-nulo según el rol que solicitó) | RN-27, RN-28 |
 | **Auditoria** *(nueva, CU-21/CU-24)* | Fecha, TipoOperacion (string), ActorTipo (enum: Empleado/Admin/Sistema), ActorId (nullable), EntidadAfectada, EntidadId (nullable), Detalle | Sin FK estrictas (referencias lógicas a ActorId/EntidadId, no navegación EF, para no acoplar el log a la entidad auditada) | RN-13, RN-19, RN-20 (solo inserción; sin `UpdateAsync`/`DeleteAsync` en el repositorio) |
 
@@ -138,15 +157,24 @@ los procesos batch de Sistema (CU-22, CU-26); en CU-10 y CU-11 es obligatorio.
 
 ---
 
-## 5. Próximos pasos
+## 5. Estado de avance
 
-Con este plan aprobado, la Fase 2 (Paso 2 de la adenda) sigue el orden:
+1. **Fase 1 (completa):** `Shared/` (DTOs + 22 excepciones) + `DataAccess/`
+   (9 entidades, `DbContext` con `DeleteBehavior.Restrict`, migraciones,
+   `DbInitializer` con datos de prueba). `dotnet build` y `dotnet run` (crea
+   la base y siembra los datos) verificados.
+2. **Fase 2 (completa):** `BusinessLogic/` — 12 interfaces + servicios
+   (`AuthService`, `ClienteService`, `ClienteAdminService`,
+   `EmpleadoAdminService`, `ProductoService`, `BeneficioService`,
+   `ReglaAcumulacionService`, `PuntosService`, `MovimientoService`,
+   `CanjeService`, `AuditoriaService`, `ReporteService`) + proyecto
+   `BusinessLogic.Tests` (xUnit + Moq), 53 tests cubriendo el flujo principal
+   y las excepciones típicas de cada servicio. `dotnet test` verificado en
+   verde.
+3. **Fase 3 (pendiente):** `API/` (controllers, uno por módulo del punto 4
+   del plan) + manejo de excepciones por controller (try/catch explícito, sin
+   middleware global genérico, según la adenda) + tests de integración
+   (`WebApplicationFactory`) + colección de requests Bruno.
 
-1. **Fase 1:** `Shared/` (DTOs + 21 excepciones) + `DataAccess/` (8 entidades,
-   `DbContext` con `DeleteBehavior.Restrict`, migración inicial, `DbInitializer`
-   con datos de prueba).
-2. **Fase 2:** `BusinessLogic/` (interfaces + servicios) + tests xUnit/Moq.
-3. **Fase 3:** `API/` (controllers) + tests de integración + colección Bruno.
-
-Cada fase espera revisión antes de pasar a la siguiente, según la
-metodología de la adenda.
+Cada fase se implementó y se validó (build/test) antes de pasar a la
+siguiente, según la metodología de la adenda.

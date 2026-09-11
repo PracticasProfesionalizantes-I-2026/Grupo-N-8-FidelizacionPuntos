@@ -8,4 +8,5 @@ public class ReglaAcumulacionResponseDTO
     public DateTime VigenciaDesde { get; set; }
     public DateTime? VigenciaHasta { get; set; }
     public bool Activa { get; set; }
+    public int DiasVigenciaPuntos { get; set; }
 }

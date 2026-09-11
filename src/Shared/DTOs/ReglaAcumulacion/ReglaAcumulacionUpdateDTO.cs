@@ -6,4 +6,5 @@ public class ReglaAcumulacionUpdateDTO
     public decimal? PuntosPorMonto { get; set; }
     public DateTime? VigenciaDesde { get; set; }
     public DateTime? VigenciaHasta { get; set; }
+    public int? DiasVigenciaPuntos { get; set; }
 }

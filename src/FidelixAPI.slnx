@@ -2,6 +2,9 @@
   <Folder Name="/API/">
     <Project Path="API/FidelixAPI.API.csproj" />
   </Folder>
+  <Folder Name="/BusinessLogic.Tests/">
+    <Project Path="BusinessLogic.Tests/FidelixAPI.BusinessLogic.Tests.csproj" />
+  </Folder>
   <Folder Name="/BusinessLogic/">
     <Project Path="BusinessLogic/FidelixAPI.BusinessLogic.csproj" />
   </Folder>

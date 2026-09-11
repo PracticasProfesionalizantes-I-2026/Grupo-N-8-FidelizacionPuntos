@@ -5,22 +5,16 @@ namespace FidelixAPI.DataAccess.Entities;
 /// documento es inmutable (RN-04) y el email es único (RN-01); la baja es
 /// siempre lógica (RN-14), preservando el historial de movimientos y canjes.
 /// </summary>
-public class Cliente : EntidadBase
+public class Cliente : CuentaConCredenciales
 {
+    // PasswordHash (heredado) queda null cuando el cliente fue creado desde
+    // POS (CU-12) o por el admin (CU-15): recién define su contraseña
+    // mediante recuperación de contraseña (CU-25).
+
     public string Nombre { get; set; } = string.Empty;
     public string Documento { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Null cuando el cliente fue creado desde POS (CU-12) o por el admin
-    /// (CU-15): todavía no definió una contraseña propia y debe establecerla
-    /// mediante recuperación de contraseña (CU-25).
-    /// </summary>
-    public string? PasswordHash { get; set; }
-
     public string? Telefono { get; set; }
     public DateTime? FechaNacimiento { get; set; }
-    public bool Activo { get; set; } = true;
     public DateTime FechaRegistro { get; set; } = DateTime.UtcNow;
 
     public ICollection<Movimiento> Movimientos { get; set; } = [];

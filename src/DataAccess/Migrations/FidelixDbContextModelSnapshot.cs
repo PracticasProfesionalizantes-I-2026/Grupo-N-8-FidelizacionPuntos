@@ -26,16 +26,21 @@ namespace FidelixAPI.DataAccess.Migrations
                     b.Property<bool>("Activo")
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime?>("BloqueadoHasta")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("IntentosFallidos")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("PasswordHash")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -119,6 +124,9 @@ namespace FidelixAPI.DataAccess.Migrations
                     b.Property<bool>("Activo")
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime?>("BloqueadoHasta")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Documento")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -132,6 +140,9 @@ namespace FidelixAPI.DataAccess.Migrations
 
                     b.Property<DateTime>("FechaRegistro")
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("IntentosFallidos")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -202,6 +213,9 @@ namespace FidelixAPI.DataAccess.Migrations
                     b.Property<bool>("Activo")
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime?>("BloqueadoHasta")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Documento")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -212,6 +226,9 @@ namespace FidelixAPI.DataAccess.Migrations
 
                     b.Property<DateTime>("FechaAlta")
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("IntentosFallidos")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -256,6 +273,9 @@ namespace FidelixAPI.DataAccess.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Puntos")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PuntosDisponibles")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Tipo")
@@ -306,6 +326,9 @@ namespace FidelixAPI.DataAccess.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("Activa")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DiasVigenciaPuntos")
                         .HasColumnType("INTEGER");
 
                     b.Property<decimal>("PuntosPorMonto")

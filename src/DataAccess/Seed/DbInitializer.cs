@@ -78,6 +78,7 @@ public static class DbInitializer
             PuntosPorMonto = 1m, // 1 punto por cada unidad de moneda gastada.
             VigenciaDesde = DateTime.UtcNow.Date,
             VigenciaHasta = null,
+            DiasVigenciaPuntos = 365, // RF-22: valor de ejemplo, configurable por el admin.
             Activa = true
         };
 

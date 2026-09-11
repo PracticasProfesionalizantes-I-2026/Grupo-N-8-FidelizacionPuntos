@@ -17,8 +17,18 @@ public class Movimiento : EntidadBase
 
     public TipoMovimiento Tipo { get; set; }
 
-    /// <summary>Positivo en acumulación/bono; negativo en canje/vencimiento.</summary>
+    /// <summary>Monto original del movimiento: positivo en acumulación/bono; negativo en canje/vencimiento (histórico, nunca cambia).</summary>
     public int Puntos { get; set; }
+
+    /// <summary>
+    /// Solo aplica a lotes (`Acumulacion`/`BonoCumpleanos`): cuánto de
+    /// <see cref="Puntos"/> queda todavía sin consumir por un canje o sin
+    /// dar de baja por vencimiento. Arranca igual a <see cref="Puntos"/> y se
+    /// va descontando (RN-09, FIFO) — es lo que permite que el saldo
+    /// disponible (RN-05) y el consumo FIFO sepan cuánto le queda a cada
+    /// lote sin tener que recorrer los canjes posteriores.
+    /// </summary>
+    public int PuntosDisponibles { get; set; }
 
     public DateTime Fecha { get; set; } = DateTime.UtcNow;
 
