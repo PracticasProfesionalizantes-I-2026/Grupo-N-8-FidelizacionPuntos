@@ -1,0 +1,26 @@
+meta {
+  name: Registrar Cliente - Duplicado
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/clientes/registro
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "nombre": "Cliente Demo",
+    "documento": "40333444",
+    "email": "cliente.demo@fidelix.local",
+    "password": "Password123!"
+  }
+}
+
+tests {
+  test("409 Conflict", function () {
+    expect(res.status).to.equal(409);
+  });
+}

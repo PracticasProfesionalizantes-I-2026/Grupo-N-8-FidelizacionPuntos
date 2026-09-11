@@ -1,0 +1,25 @@
+meta {
+  name: Dar de Baja
+  type: http
+  seq: 99
+}
+
+delete {
+  url: {{baseUrl}}/api/clientes/me
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenCliente}}
+}
+
+docs {
+  Baja lógica de la cuenta (RN-14). Dejar como último request de la carpeta:
+  desactiva al cliente demo y afecta al resto de las requests que lo usan.
+}
+
+tests {
+  test("204 No Content", function () {
+    expect(res.status).to.equal(204);
+  });
+}

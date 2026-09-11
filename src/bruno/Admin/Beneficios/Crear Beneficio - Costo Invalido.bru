@@ -1,0 +1,28 @@
+meta {
+  name: Crear Beneficio - Costo Invalido
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/admin/beneficios
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenAdmin}}
+}
+
+body:json {
+  {
+    "nombre": "Beneficio Invalido",
+    "costoPuntos": 0
+  }
+}
+
+tests {
+  test("400 Bad Request", function () {
+    expect(res.status).to.equal(400);
+  });
+}

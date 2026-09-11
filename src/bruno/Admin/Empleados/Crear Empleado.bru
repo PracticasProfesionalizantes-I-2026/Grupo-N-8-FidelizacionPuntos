@@ -1,0 +1,35 @@
+meta {
+  name: Crear Empleado
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/admin/empleados
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenAdmin}}
+}
+
+body:json {
+  {
+    "nombre": "Nuevo Empleado",
+    "documento": "45333444",
+    "email": "nuevo.empleado@fidelix.local"
+  }
+}
+
+script:post-response {
+  if (res.status === 201) {
+    bru.setVar("empleadoAdminId", res.body.id);
+  }
+}
+
+tests {
+  test("201 Created", function () {
+    expect(res.status).to.equal(201);
+  });
+}

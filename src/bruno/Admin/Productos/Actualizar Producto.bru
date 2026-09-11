@@ -1,0 +1,27 @@
+meta {
+  name: Actualizar Producto
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{baseUrl}}/api/admin/productos/{{productoAdminId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenAdmin}}
+}
+
+body:json {
+  {
+    "precio": 1500
+  }
+}
+
+tests {
+  test("200 OK", function () {
+    expect(res.status).to.equal(200);
+  });
+}

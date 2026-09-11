@@ -1,0 +1,28 @@
+meta {
+  name: Crear Canje Presencial Empleado
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/canjes
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenEmpleado}}
+}
+
+body:json {
+  {
+    "beneficioId": "{{beneficioIdDescuento}}",
+    "clienteDocumento": "40333444"
+  }
+}
+
+tests {
+  test("201 Created", function () {
+    expect(res.status).to.equal(201);
+  });
+}

@@ -1,0 +1,21 @@
+meta {
+  name: Consultar Saldo
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/api/clientes/me/saldo
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenCliente}}
+}
+
+tests {
+  test("200 OK", function () {
+    expect(res.status).to.equal(200);
+    expect(res.body.puntosDisponibles).to.be.a("number");
+  });
+}

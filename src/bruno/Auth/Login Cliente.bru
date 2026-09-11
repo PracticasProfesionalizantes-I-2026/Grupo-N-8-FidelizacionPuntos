@@ -1,0 +1,32 @@
+meta {
+  name: Login Cliente
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/auth/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "cliente.demo@fidelix.local",
+    "password": "Cliente123!"
+  }
+}
+
+script:post-response {
+  if (res.status === 200) {
+    bru.setVar("tokenCliente", res.body.token);
+  }
+}
+
+tests {
+  test("200 OK con token", function () {
+    expect(res.status).to.equal(200);
+    expect(res.body.token).to.be.a("string");
+    expect(res.body.rol).to.equal(0); // RolUsuario.Cliente
+  });
+}

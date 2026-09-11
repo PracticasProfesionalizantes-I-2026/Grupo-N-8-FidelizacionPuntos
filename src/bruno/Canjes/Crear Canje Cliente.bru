@@ -1,0 +1,33 @@
+meta {
+  name: Crear Canje Cliente
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/canjes
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenCliente}}
+}
+
+body:json {
+  {
+    "beneficioId": "{{beneficioIdDescuento}}"
+  }
+}
+
+docs {
+  Requiere haber corrido antes "Beneficios/Consultar Beneficios Activos" (para
+  tener {{beneficioIdDescuento}}) y "Movimientos/Registrar Acumulacion" (para
+  tener saldo suficiente).
+}
+
+tests {
+  test("201 Created", function () {
+    expect(res.status).to.equal(201);
+  });
+}

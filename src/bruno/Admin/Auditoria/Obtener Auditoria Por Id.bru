@@ -1,0 +1,24 @@
+meta {
+  name: Obtener Auditoria Por Id
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/admin/auditoria/{{auditoriaId}}
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenAdmin}}
+}
+
+docs {
+  Requiere haber corrido antes "Consultar Auditoria" para tener {{auditoriaId}}.
+}
+
+tests {
+  test("200 OK", function () {
+    expect(res.status).to.equal(200);
+  });
+}

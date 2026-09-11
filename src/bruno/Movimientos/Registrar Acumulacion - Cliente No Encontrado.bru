@@ -1,0 +1,30 @@
+meta {
+  name: Registrar Acumulacion - Cliente No Encontrado
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/movimientos/acumulaciones
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenEmpleado}}
+}
+
+body:json {
+  {
+    "clienteDocumento": "00000000",
+    "items": [
+      { "producto": "X", "cantidad": 1, "monto": 100 }
+    ]
+  }
+}
+
+tests {
+  test("404 Not Found", function () {
+    expect(res.status).to.equal(404);
+  });
+}

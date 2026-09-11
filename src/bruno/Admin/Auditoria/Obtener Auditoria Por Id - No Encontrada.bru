@@ -1,0 +1,20 @@
+meta {
+  name: Obtener Auditoria Por Id - No Encontrada
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/admin/auditoria/00000000-0000-0000-0000-000000000000
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenAdmin}}
+}
+
+tests {
+  test("404 Not Found", function () {
+    expect(res.status).to.equal(404);
+  });
+}

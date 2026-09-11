@@ -1,0 +1,20 @@
+meta {
+  name: Consultar Movimientos
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/admin/movimientos
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenAdmin}}
+}
+
+tests {
+  test("200 OK", function () {
+    expect(res.status).to.equal(200);
+  });
+}

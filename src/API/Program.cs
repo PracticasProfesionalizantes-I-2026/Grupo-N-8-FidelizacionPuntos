@@ -94,3 +94,7 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+// Expone el Program implícito de los top-level statements para que
+// `WebApplicationFactory<Program>` (tests de integración) pueda referenciarlo.
+public partial class Program;

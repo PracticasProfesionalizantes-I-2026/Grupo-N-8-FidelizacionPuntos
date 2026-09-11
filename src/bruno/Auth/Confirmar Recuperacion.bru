@@ -1,0 +1,31 @@
+meta {
+  name: Confirmar Recuperacion
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/api/auth/recuperar-contrasena/confirmar
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "identificador": "cliente.demo@fidelix.local",
+    "codigo": "REEMPLAZAR",
+    "nuevaPassword": "NuevaPassword1!"
+  }
+}
+
+docs {
+  Correr primero "Solicitar Recuperacion" y copiar el código de 6 dígitos
+  que `LoggingEmailSender` imprime en la consola de la API (todavía no hay
+  un proveedor de email real, ver BusinessLogic/Services/LoggingEmailSender.cs).
+}
+
+tests {
+  test("200 OK con código válido", function () {
+    expect(res.status).to.equal(200);
+  });
+}

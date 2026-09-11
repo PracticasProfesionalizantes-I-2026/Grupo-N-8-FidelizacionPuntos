@@ -1,0 +1,32 @@
+meta {
+  name: Actualizar Regla
+  type: http
+  seq: 6
+}
+
+put {
+  url: {{baseUrl}}/api/admin/reglas-acumulacion/{{reglaAcumulacionNuevaId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenAdmin}}
+}
+
+body:json {
+  {
+    "puntosPorMonto": 3
+  }
+}
+
+docs {
+  Requiere haber corrido antes "Crear Regla" (usa el mismo rango de vigencia
+  pasado, por lo que sigue sin solapar con la regla sembrada).
+}
+
+tests {
+  test("200 OK", function () {
+    expect(res.status).to.equal(200);
+  });
+}

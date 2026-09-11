@@ -69,7 +69,11 @@ public static class DbInitializer
         var beneficios = new List<Beneficio>
         {
             new() { Id = Guid.NewGuid(), Nombre = "Descuento 10%", Descripcion = "10% de descuento en la próxima compra", CostoPuntos = 100, Categoria = CategoriaBeneficio.Descuento, Activo = true },
-            new() { Id = Guid.NewGuid(), Nombre = "Producto Gratis Demo", Descripcion = "Un producto gratis de regalo", CostoPuntos = 300, Categoria = CategoriaBeneficio.ProductoGratis, Activo = true }
+            new() { Id = Guid.NewGuid(), Nombre = "Producto Gratis Demo", Descripcion = "Un producto gratis de regalo", CostoPuntos = 300, Categoria = CategoriaBeneficio.ProductoGratis, Activo = true },
+            // Costo deliberadamente altísimo: sirve para probar el 409 de RN-08
+            // (saldo insuficiente) sin depender de cuánto saldo dejaron otras
+            // pruebas ya corridas (colección Bruno, tests de integración).
+            new() { Id = Guid.NewGuid(), Nombre = "Beneficio Costo Alto (uso en pruebas)", Descripcion = "Beneficio de costo alto para probar RN-08", CostoPuntos = 999_999, Categoria = CategoriaBeneficio.Otro, Activo = true }
         };
 
         var reglaAcumulacion = new ReglaAcumulacion

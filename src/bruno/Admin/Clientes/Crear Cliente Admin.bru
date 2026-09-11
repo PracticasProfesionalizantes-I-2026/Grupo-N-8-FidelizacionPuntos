@@ -1,0 +1,35 @@
+meta {
+  name: Crear Cliente Admin
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/admin/clientes
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenAdmin}}
+}
+
+body:json {
+  {
+    "nombre": "Cliente Creado Por Admin",
+    "documento": "45222333",
+    "email": "admin.cliente@fidelix.local"
+  }
+}
+
+script:post-response {
+  if (res.status === 201) {
+    bru.setVar("clienteAdminId", res.body.id);
+  }
+}
+
+tests {
+  test("201 Created", function () {
+    expect(res.status).to.equal(201);
+  });
+}

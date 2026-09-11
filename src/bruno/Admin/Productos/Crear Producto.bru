@@ -1,0 +1,35 @@
+meta {
+  name: Crear Producto
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/admin/productos
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenAdmin}}
+}
+
+body:json {
+  {
+    "nombre": "Producto Nuevo",
+    "descripcion": "Creado desde Bruno",
+    "precio": 1200
+  }
+}
+
+script:post-response {
+  if (res.status === 201) {
+    bru.setVar("productoAdminId", res.body.id);
+  }
+}
+
+tests {
+  test("201 Created", function () {
+    expect(res.status).to.equal(201);
+  });
+}

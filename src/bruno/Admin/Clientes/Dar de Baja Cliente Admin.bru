@@ -1,0 +1,20 @@
+meta {
+  name: Dar de Baja Cliente Admin
+  type: http
+  seq: 4
+}
+
+delete {
+  url: {{baseUrl}}/api/admin/clientes/{{clienteAdminId}}
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenAdmin}}
+}
+
+tests {
+  test("204 No Content", function () {
+    expect(res.status).to.equal(204);
+  });
+}

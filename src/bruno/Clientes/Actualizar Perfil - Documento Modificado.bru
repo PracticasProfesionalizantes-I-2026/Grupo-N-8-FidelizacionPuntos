@@ -1,0 +1,27 @@
+meta {
+  name: Actualizar Perfil - Documento Modificado
+  type: http
+  seq: 6
+}
+
+put {
+  url: {{baseUrl}}/api/clientes/me
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenCliente}}
+}
+
+body:json {
+  {
+    "documento": "99999999"
+  }
+}
+
+tests {
+  test("400 Bad Request (RN-04: documento inmutable)", function () {
+    expect(res.status).to.equal(400);
+  });
+}

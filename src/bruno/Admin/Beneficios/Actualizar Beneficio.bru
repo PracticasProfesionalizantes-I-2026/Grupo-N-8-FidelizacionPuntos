@@ -1,0 +1,27 @@
+meta {
+  name: Actualizar Beneficio
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{baseUrl}}/api/admin/beneficios/{{beneficioAdminId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenAdmin}}
+}
+
+body:json {
+  {
+    "descripcion": "Descripción actualizada"
+  }
+}
+
+tests {
+  test("200 OK", function () {
+    expect(res.status).to.equal(200);
+  });
+}

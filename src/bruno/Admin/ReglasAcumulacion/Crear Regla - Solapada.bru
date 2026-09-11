@@ -1,0 +1,34 @@
+meta {
+  name: Crear Regla - Solapada
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/api/admin/reglas-acumulacion
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenAdmin}}
+}
+
+body:json {
+  {
+    "puntosPorMonto": 2,
+    "vigenciaDesde": "2026-01-01",
+    "diasVigenciaPuntos": 180
+  }
+}
+
+docs {
+  Se solapa a propósito con la regla sembrada (vigente desde hoy, sin fecha
+  de fin) para mostrar el 400 de RN-18.
+}
+
+tests {
+  test("400 Bad Request", function () {
+    expect(res.status).to.equal(400);
+  });
+}

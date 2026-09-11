@@ -1,0 +1,20 @@
+meta {
+  name: Consultar Canjes Propios
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{baseUrl}}/api/clientes/me/canjes
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenCliente}}
+}
+
+tests {
+  test("200 OK", function () {
+    expect(res.status).to.equal(200);
+  });
+}

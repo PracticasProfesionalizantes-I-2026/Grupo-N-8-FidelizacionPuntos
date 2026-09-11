@@ -1,0 +1,42 @@
+meta {
+  name: Crear Regla
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/admin/reglas-acumulacion
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenAdmin}}
+}
+
+body:json {
+  {
+    "puntosPorMonto": 2,
+    "vigenciaDesde": "2020-01-01",
+    "vigenciaHasta": "2020-12-31",
+    "diasVigenciaPuntos": 180
+  }
+}
+
+docs {
+  Usa un rango de vigencia en el pasado (2020) para no solapar con la regla
+  sembrada por DbInitializer, que está activa desde hoy y sin fecha de fin
+  (RN-18: no puede haber dos reglas activas con vigencias que se crucen).
+}
+
+script:post-response {
+  if (res.status === 201) {
+    bru.setVar("reglaAcumulacionNuevaId", res.body.id);
+  }
+}
+
+tests {
+  test("201 Created", function () {
+    expect(res.status).to.equal(201);
+  });
+}

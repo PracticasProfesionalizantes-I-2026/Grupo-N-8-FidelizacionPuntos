@@ -1,0 +1,29 @@
+meta {
+  name: Crear Cliente Desde POS
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/clientes
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenEmpleado}}
+}
+
+body:json {
+  {
+    "nombre": "Cliente Desde POS",
+    "documento": "45999888",
+    "email": "pos.cliente@fidelix.local"
+  }
+}
+
+tests {
+  test("201 Created", function () {
+    expect(res.status).to.equal(201);
+  });
+}

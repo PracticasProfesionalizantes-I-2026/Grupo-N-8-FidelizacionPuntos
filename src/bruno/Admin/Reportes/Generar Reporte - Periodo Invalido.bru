@@ -1,0 +1,30 @@
+meta {
+  name: Generar Reporte - Periodo Invalido
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/admin/reportes?tipo=Acumulaciones&periodoDesde=2026-12-31&periodoHasta=2026-01-01
+  auth: bearer
+}
+
+params:query {
+  tipo: Acumulaciones
+  periodoDesde: 2026-12-31
+  periodoHasta: 2026-01-01
+}
+
+auth:bearer {
+  token: {{tokenAdmin}}
+}
+
+docs {
+  `periodoDesde` posterior a `periodoHasta` (2a).
+}
+
+tests {
+  test("400 Bad Request", function () {
+    expect(res.status).to.equal(400);
+  });
+}

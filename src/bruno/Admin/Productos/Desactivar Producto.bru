@@ -1,0 +1,21 @@
+meta {
+  name: Desactivar Producto
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/api/admin/productos/{{productoAdminId}}/desactivar
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenAdmin}}
+}
+
+tests {
+  test("200 OK", function () {
+    expect(res.status).to.equal(200);
+    expect(res.body.activo).to.equal(false);
+  });
+}

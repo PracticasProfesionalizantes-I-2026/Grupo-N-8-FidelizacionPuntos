@@ -1,0 +1,20 @@
+meta {
+  name: Obtener Regla Por Id
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/admin/reglas-acumulacion/{{reglaAcumulacionId}}
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenAdmin}}
+}
+
+tests {
+  test("200 OK", function () {
+    expect(res.status).to.equal(200);
+  });
+}

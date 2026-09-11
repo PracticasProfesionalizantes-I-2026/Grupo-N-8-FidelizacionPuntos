@@ -1,0 +1,27 @@
+meta {
+  name: Actualizar Empleado
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{baseUrl}}/api/admin/empleados/{{empleadoAdminId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenAdmin}}
+}
+
+body:json {
+  {
+    "nombre": "Empleado Actualizado"
+  }
+}
+
+tests {
+  test("200 OK", function () {
+    expect(res.status).to.equal(200);
+  });
+}

@@ -171,10 +171,18 @@ los procesos batch de Sistema (CU-22, CU-26); en CU-10 y CU-11 es obligatorio.
    `BusinessLogic.Tests` (xUnit + Moq), 53 tests cubriendo el flujo principal
    y las excepciones típicas de cada servicio. `dotnet test` verificado en
    verde.
-3. **Fase 3 (pendiente):** `API/` (controllers, uno por módulo del punto 4
-   del plan) + manejo de excepciones por controller (try/catch explícito, sin
-   middleware global genérico, según la adenda) + tests de integración
-   (`WebApplicationFactory`) + colección de requests Bruno.
+3. **Fase 3 (completa):** `API/` — 13 controllers (uno por módulo del punto 4
+   del plan), autorización por rol (`[Authorize(Roles = "...")]`) y manejo
+   de excepciones por controller (try/catch explícito, sin middleware
+   global genérico, según la adenda) + proyecto `API.IntegrationTests`
+   (`WebApplicationFactory`, SQLite en memoria), 15 tests + colección Bruno
+   en `bruno/` (53 requests, un endpoint por request con su caso de éxito y
+   al menos un caso de error). Verificado end-to-end con `dotnet run` +
+   `curl` (login de los 3 roles, acumulación → saldo → canje con
+   descuento FIFO, autorización por rol) y con la colección Bruno completa
+   vía `@usebruno/cli` (52/53 — el único "fallo" es un placeholder de
+   código de recuperación documentado a propósito, ya que ese código solo
+   existe en el log de la consola).
 
 Cada fase se implementó y se validó (build/test) antes de pasar a la
 siguiente, según la metodología de la adenda.

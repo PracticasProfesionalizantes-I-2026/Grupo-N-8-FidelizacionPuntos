@@ -1,0 +1,33 @@
+meta {
+  name: Crear Canje - Saldo Insuficiente
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/canjes
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenCliente}}
+}
+
+body:json {
+  {
+    "beneficioId": "{{beneficioIdCostoAlto}}"
+  }
+}
+
+docs {
+  Usa el beneficio de costo altísimo sembrado a propósito para esto (999.999
+  puntos): siempre da 409 sin importar cuánto saldo hayan dejado otras
+  requests ya corridas en la misma sesión (RN-08).
+}
+
+tests {
+  test("409 Conflict", function () {
+    expect(res.status).to.equal(409);
+  });
+}

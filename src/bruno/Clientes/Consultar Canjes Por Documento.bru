@@ -1,0 +1,20 @@
+meta {
+  name: Consultar Canjes Por Documento
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{baseUrl}}/api/clientes/40333444/canjes
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenEmpleado}}
+}
+
+tests {
+  test("200 OK", function () {
+    expect(res.status).to.equal(200);
+  });
+}

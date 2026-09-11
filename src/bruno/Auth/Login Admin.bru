@@ -1,0 +1,31 @@
+meta {
+  name: Login Admin
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/auth/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "admin@fidelix.local",
+    "password": "Admin123!"
+  }
+}
+
+script:post-response {
+  if (res.status === 200) {
+    bru.setVar("tokenAdmin", res.body.token);
+  }
+}
+
+tests {
+  test("200 OK con token", function () {
+    expect(res.status).to.equal(200);
+    expect(res.body.rol).to.equal(2); // RolUsuario.Admin
+  });
+}

@@ -1,0 +1,27 @@
+meta {
+  name: Registrar Cliente
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/clientes/registro
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "nombre": "Nuevo Cliente",
+    "documento": "45111222",
+    "email": "nuevo.cliente@fidelix.local",
+    "password": "Password123!",
+    "fechaNacimiento": "1998-03-20"
+  }
+}
+
+tests {
+  test("201 Created", function () {
+    expect(res.status).to.equal(201);
+  });
+}

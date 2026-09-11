@@ -1,0 +1,26 @@
+meta {
+  name: Generar Reporte
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/admin/reportes?tipo=Acumulaciones&periodoDesde=2026-01-01&periodoHasta=2026-12-31
+  auth: bearer
+}
+
+params:query {
+  tipo: Acumulaciones
+  periodoDesde: 2026-01-01
+  periodoHasta: 2026-12-31
+}
+
+auth:bearer {
+  token: {{tokenAdmin}}
+}
+
+tests {
+  test("200 OK", function () {
+    expect(res.status).to.equal(200);
+  });
+}

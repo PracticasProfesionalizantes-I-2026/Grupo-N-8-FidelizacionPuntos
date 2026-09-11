@@ -1,0 +1,27 @@
+meta {
+  name: Actualizar Cliente Admin - No Encontrado
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{baseUrl}}/api/admin/clientes/00000000-0000-0000-0000-000000000000
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenAdmin}}
+}
+
+body:json {
+  {
+    "nombre": "No Existe"
+  }
+}
+
+tests {
+  test("404 Not Found", function () {
+    expect(res.status).to.equal(404);
+  });
+}

@@ -1,0 +1,28 @@
+meta {
+  name: Crear Producto - Precio Invalido
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/admin/productos
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenAdmin}}
+}
+
+body:json {
+  {
+    "nombre": "Producto Invalido",
+    "precio": 0
+  }
+}
+
+tests {
+  test("400 Bad Request", function () {
+    expect(res.status).to.equal(400);
+  });
+}

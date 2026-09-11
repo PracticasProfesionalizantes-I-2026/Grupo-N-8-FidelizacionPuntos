@@ -1,0 +1,29 @@
+meta {
+  name: Crear Empleado - Duplicado
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/admin/empleados
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenAdmin}}
+}
+
+body:json {
+  {
+    "nombre": "Empleado Demo",
+    "documento": "30111222",
+    "email": "empleado.demo@fidelix.local"
+  }
+}
+
+tests {
+  test("409 Conflict", function () {
+    expect(res.status).to.equal(409);
+  });
+}
