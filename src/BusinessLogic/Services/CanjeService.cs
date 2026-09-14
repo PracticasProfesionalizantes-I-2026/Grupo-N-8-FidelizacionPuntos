@@ -102,6 +102,7 @@ public class CanjeService(
         return await ConsultarPorClienteIdAsync(cliente.Id);
     }
 
+    /// <summary>Traduce el movimiento de tipo Canje al DTO público.</summary>
     private static CanjeResponseDTO MapToResponseDTO(Movimiento m) => new()
     {
         Id = m.Id,

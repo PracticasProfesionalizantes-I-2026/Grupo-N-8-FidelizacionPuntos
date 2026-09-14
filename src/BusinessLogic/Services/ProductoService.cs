@@ -35,6 +35,7 @@ public class ProductoService(IProductoRepository productoRepository, IAuditoriaS
         return MapToResponseDTO(producto);
     }
 
+    /// <summary>Modifica solo los campos presentes; valida precio positivo (RN-25) y nombre único si cambió (RN-24).</summary>
     public async Task<ProductoResponseDTO> ActualizarAsync(Guid id, ProductoUpdateDTO dto)
     {
         var producto = await productoRepository.GetByIdAsync(id)
@@ -76,6 +77,7 @@ public class ProductoService(IProductoRepository productoRepository, IAuditoriaS
         return MapToResponseDTO(producto);
     }
 
+    /// <summary>Traduce la entidad al DTO público.</summary>
     private static ProductoResponseDTO MapToResponseDTO(Producto p) => new()
     {
         Id = p.Id,

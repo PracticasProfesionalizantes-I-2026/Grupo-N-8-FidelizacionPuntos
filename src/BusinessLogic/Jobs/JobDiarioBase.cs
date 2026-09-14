@@ -23,6 +23,7 @@ public abstract class JobDiarioBase(IServiceScopeFactory scopeFactory, ILogger l
     /// <summary>Una corrida del job, con acceso al `IServiceProvider` del scope creado para ella.</summary>
     protected abstract Task EjecutarAsync(IServiceProvider services, CancellationToken cancellationToken);
 
+    /// <summary>Bucle del `BackgroundService`: corre una vez y espera el siguiente tick del timer, hasta que la app se apague.</summary>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         using var timer = new PeriodicTimer(Intervalo);
@@ -42,6 +43,7 @@ public abstract class JobDiarioBase(IServiceScopeFactory scopeFactory, ILogger l
         }
     }
 
+    /// <summary>Crea el scope de la corrida y delega en <see cref="EjecutarAsync"/>, conteniendo cualquier error.</summary>
     private async Task EjecutarUnaCorridaAsync(CancellationToken stoppingToken)
     {
         try

@@ -13,6 +13,7 @@ public class VencimientoPuntosJob(IServiceScopeFactory scopeFactory, ILogger<Ven
 {
     protected override string NombreJob => "VencimientoPuntosJob (CU-22)";
 
+    /// <summary>Resuelve <see cref="IPuntosService"/> del scope de la corrida y aplica el vencimiento.</summary>
     protected override Task EjecutarAsync(IServiceProvider services, CancellationToken cancellationToken) =>
         services.GetRequiredService<IPuntosService>().AplicarVencimientoAsync();
 }

@@ -68,6 +68,7 @@ public class ClienteAdminService(IClienteRepository clienteRepository, IAuditori
         await auditoriaService.RegistrarAsync("DarDeBajaClienteAdmin", ActorTipo.Admin, null, "Cliente", id);
     }
 
+    /// <summary>Traduce la entidad al DTO público, sin exponer `PasswordHash`.</summary>
     private static ClienteResponseDTO MapToResponseDTO(Cliente c) => new()
     {
         Id = c.Id,

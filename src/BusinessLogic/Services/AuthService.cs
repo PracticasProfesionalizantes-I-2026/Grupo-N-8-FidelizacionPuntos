@@ -228,9 +228,11 @@ public class AuthService(
             clienteId ?? empleadoId ?? adminId);
     }
 
+    /// <summary>Busca un cliente por el identificador de CU-25 (documento o email).</summary>
     private Task<Cliente?> BuscarClientePorIdentificadorAsync(string identificador) =>
         BuscarPorDocumentoOEmailAsync(clienteRepository.GetByDocumentoAsync, clienteRepository.GetByEmailAsync, identificador);
 
+    /// <summary>Busca un empleado por el identificador de CU-25 (documento o email).</summary>
     private Task<Empleado?> BuscarEmpleadoPorIdentificadorAsync(string identificador) =>
         BuscarPorDocumentoOEmailAsync(empleadoRepository.GetByDocumentoAsync, empleadoRepository.GetByEmailAsync, identificador);
 

@@ -9,9 +9,11 @@ namespace FidelixAPI.DataAccess.Repositories;
 /// <summary>Implementación EF Core de <see cref="IMovimientoRepository"/>.</summary>
 public class MovimientoRepository(FidelixDbContext context) : IMovimientoRepository
 {
+    /// <summary>Busca un movimiento por Id, con tracking (permite modificarlo y guardarlo después).</summary>
     public Task<Movimiento?> GetByIdAsync(Guid id) =>
         context.Movimientos.FirstOrDefaultAsync(m => m.Id == id);
 
+    /// <summary>Lista todos los movimientos en modo solo lectura.</summary>
     public async Task<IReadOnlyList<Movimiento>> GetAllAsync() =>
         await context.Movimientos.AsNoTracking().ToListAsync();
 
@@ -62,6 +64,7 @@ public class MovimientoRepository(FidelixDbContext context) : IMovimientoReposit
                      && m.FechaVencimiento != null && m.FechaVencimiento < fechaReferencia)
             .ToListAsync();
 
+    /// <summary>Asigna un nuevo Id y persiste el movimiento.</summary>
     public async Task<Movimiento> CreateAsync(Movimiento entity)
     {
         entity.Id = Guid.NewGuid();
@@ -70,5 +73,6 @@ public class MovimientoRepository(FidelixDbContext context) : IMovimientoReposit
         return entity;
     }
 
+    /// <summary>Persiste los cambios sobre un movimiento (o lote) ya trackeado.</summary>
     public Task UpdateAsync(Movimiento entity) => context.SaveChangesAsync();
 }

@@ -81,6 +81,7 @@ public class MovimientoService(
         return movimientos.Select(MapToResponseDTO).ToList();
     }
 
+    /// <summary>Traduce la entidad al DTO público.</summary>
     private static MovimientoResponseDTO MapToResponseDTO(Movimiento m) => new()
     {
         Id = m.Id,

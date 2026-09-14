@@ -10,12 +10,14 @@ namespace FidelixAPI.BusinessLogic.Services;
 /// <summary>Implementación de <see cref="IReglaAcumulacionService"/> (CU-19).</summary>
 public class ReglaAcumulacionService(IReglaAcumulacionRepository reglaAcumulacionRepository, IAuditoriaService auditoriaService) : IReglaAcumulacionService
 {
+    /// <summary>Lista todas las reglas registradas (cierre del gap de lectura detectado en el plan técnico).</summary>
     public async Task<IReadOnlyList<ReglaAcumulacionResponseDTO>> ObtenerTodasAsync()
     {
         var reglas = await reglaAcumulacionRepository.GetAllAsync();
         return reglas.Select(MapToResponseDTO).ToList();
     }
 
+    /// <summary>Detalle de una regla puntual (CU-19).</summary>
     public async Task<ReglaAcumulacionResponseDTO> ObtenerPorIdAsync(Guid id)
     {
         var regla = await reglaAcumulacionRepository.GetByIdAsync(id)
@@ -80,6 +82,7 @@ public class ReglaAcumulacionService(IReglaAcumulacionRepository reglaAcumulacio
         }
     }
 
+    /// <summary>Traduce la entidad al DTO público.</summary>
     private static ReglaAcumulacionResponseDTO MapToResponseDTO(ReglaAcumulacion r) => new()
     {
         Id = r.Id,

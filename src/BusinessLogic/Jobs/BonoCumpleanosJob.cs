@@ -13,6 +13,7 @@ public class BonoCumpleanosJob(IServiceScopeFactory scopeFactory, ILogger<BonoCu
 {
     protected override string NombreJob => "BonoCumpleanosJob (CU-26)";
 
+    /// <summary>Resuelve <see cref="IPuntosService"/> del scope de la corrida y acredita los bonos del día.</summary>
     protected override Task EjecutarAsync(IServiceProvider services, CancellationToken cancellationToken) =>
         services.GetRequiredService<IPuntosService>().AplicarBonoCumpleanosAsync();
 }

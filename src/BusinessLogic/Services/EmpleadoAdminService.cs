@@ -31,6 +31,7 @@ public class EmpleadoAdminService(IEmpleadoRepository empleadoRepository, IAudit
         return MapToResponseDTO(empleado);
     }
 
+    /// <summary>Modifica solo los campos presentes; valida unicidad de email si cambió (RN-01).</summary>
     public async Task<EmpleadoResponseDTO> ActualizarAsync(Guid id, EmpleadoUpdateDTO dto)
     {
         var empleado = await empleadoRepository.GetByIdAsync(id)
@@ -65,6 +66,7 @@ public class EmpleadoAdminService(IEmpleadoRepository empleadoRepository, IAudit
         await auditoriaService.RegistrarAsync("DarDeBajaEmpleado", ActorTipo.Admin, null, "Empleado", id);
     }
 
+    /// <summary>Traduce la entidad al DTO público, sin exponer `PasswordHash`.</summary>
     private static EmpleadoResponseDTO MapToResponseDTO(Empleado e) => new()
     {
         Id = e.Id,

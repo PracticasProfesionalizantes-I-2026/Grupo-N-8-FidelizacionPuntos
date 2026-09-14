@@ -33,6 +33,7 @@ public class ReporteService(IMovimientoRepository movimientoRepository, ICliente
         return reporte;
     }
 
+    /// <summary>Cuenta y suma los movimientos del tipo indicado (acumulación o canje) en el período.</summary>
     private async Task<ReporteResponseDTO> GenerarReporteDeMovimientosAsync(TipoMovimiento tipoMovimiento, DateTime desde, DateTime hasta)
     {
         var movimientos = await movimientoRepository.ConsultarAsync(clienteId: null, tipoMovimiento, desde, hasta);
@@ -46,6 +47,7 @@ public class ReporteService(IMovimientoRepository movimientoRepository, ICliente
         };
     }
 
+    /// <summary>Cuenta los clientes activos registrados dentro del período.</summary>
     private async Task<ReporteResponseDTO> GenerarReporteDeClientesActivosAsync(DateTime desde, DateTime hasta)
     {
         var clientes = await clienteRepository.GetAllAsync();

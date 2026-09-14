@@ -42,6 +42,7 @@ public class BeneficioService(IBeneficioRepository beneficioRepository, IAuditor
         return MapToResponseDTO(beneficio);
     }
 
+    /// <summary>Modifica solo los campos presentes; valida costo positivo (RN-16) y nombre único si cambió (RN-23).</summary>
     public async Task<BeneficioResponseDTO> ActualizarAsync(Guid id, BeneficioUpdateDTO dto)
     {
         var beneficio = await beneficioRepository.GetByIdAsync(id)
@@ -84,6 +85,7 @@ public class BeneficioService(IBeneficioRepository beneficioRepository, IAuditor
         return MapToResponseDTO(beneficio);
     }
 
+    /// <summary>Traduce la entidad al DTO público.</summary>
     private static BeneficioResponseDTO MapToResponseDTO(Beneficio b) => new()
     {
         Id = b.Id,
