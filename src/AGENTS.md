@@ -95,11 +95,19 @@ Los requests encadenan tokens/IDs entre sí vía `bru.setVar` — ver
 `bruno/README.md` para el orden de ejecución. Al agregar un endpoint
 nuevo, agregar también su request (y su caso de error más relevante) acá.
 
+## Jobs de Sistema (CU-22, CU-26)
+
+`BusinessLogic/Jobs/VencimientoPuntosJob` y `BonoCumpleanosJob` son
+`BackgroundService` (heredan `JobDiarioBase`) registrados en `Program.cs`
+con `AddHostedService<T>()`: corren una vez al arrancar la API y luego
+cada 24hs, cada uno en su propio `IServiceScope` (los services son
+Scoped). Un error no controlado en una corrida se loguea y no tumba el
+host — se reintenta en la corrida siguiente. `FidelixApiFactory`
+(`API.IntegrationTests`) los remueve del contenedor (`RemoveAll<IHostedService>()`)
+para que los tests de integración no disparen trabajo real de fondo.
+
 ## Pendiente para una fase posterior
 
-- Programar los jobs de Sistema (`PuntosService.AplicarVencimientoAsync`
-  CU-22, `AplicarBonoCumpleanosAsync` CU-26) con un scheduler real
-  (`IHostedService` + `PeriodicTimer`, o Hangfire/Quartz).
 - Reemplazar `LoggingEmailSender` (solo loguea) por un proveedor de email
   real para CU-25, implementando `IEmailSender`.
 - Paginación en las consultas admin (`CU-20`, `CU-21`) si el volumen de

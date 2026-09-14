@@ -111,10 +111,10 @@ sus acciones con `[Authorize(Roles = "...")]`.
 | GET/GET{id} | `/api/admin/auditoria` | Admin | CU-21 |
 | GET | `/api/admin/reportes` | Admin | CU-24 |
 
-Sin endpoint HTTP (procesos batch de Sistema, invocables desde
-`IPuntosService`): `AplicarVencimientoAsync` (CU-22) y
-`AplicarBonoCumpleanosAsync` (CU-26). Quedan pendientes de programar con un
-scheduler (`IHostedService`/Hangfire/cron) en una fase posterior.
+Sin endpoint HTTP (procesos batch de Sistema): `AplicarVencimientoAsync`
+(CU-22) y `AplicarBonoCumpleanosAsync` (CU-26), en `IPuntosService`.
+Corren solos, programados como `BackgroundService` (`BusinessLogic/Jobs/`):
+una vez al arrancar la API y luego cada 24hs.
 
 ### Ejemplo: registrar una compra y consultar el saldo
 

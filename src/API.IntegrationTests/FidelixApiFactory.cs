@@ -6,6 +6,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 
 namespace FidelixAPI.API.IntegrationTests;
 
@@ -29,6 +30,11 @@ public class FidelixApiFactory : WebApplicationFactory<Program>
         {
             services.RemoveAll<DbContextOptions<FidelixDbContext>>();
             services.AddDbContext<FidelixDbContext>(options => options.UseSqlite(_connection));
+
+            // Los jobs de Sistema (CU-22, CU-26) corren en segundo plano y
+            // arrancan solos al levantar el host: en tests no queremos ese
+            // trabajo real ejecutándose de fondo contra la base de prueba.
+            services.RemoveAll<IHostedService>();
         });
     }
 

@@ -1,5 +1,6 @@
 using System.Text;
 using FidelixAPI.BusinessLogic.Interfaces;
+using FidelixAPI.BusinessLogic.Jobs;
 using FidelixAPI.BusinessLogic.Services;
 using FidelixAPI.DataAccess.Context;
 using FidelixAPI.DataAccess.Repositories;
@@ -48,6 +49,12 @@ builder.Services.AddScoped<IMovimientoService, MovimientoService>();
 builder.Services.AddScoped<ICanjeService, CanjeService>();
 builder.Services.AddScoped<IReporteService, ReporteService>();
 builder.Services.AddScoped<IEmailSender, LoggingEmailSender>();
+
+// Jobs de Sistema (CU-22, CU-26): corren en segundo plano, una vez por día.
+// FidelixApiFactory (tests de integración) los remueve para no correr
+// trabajo real en cada arranque de la suite.
+builder.Services.AddHostedService<VencimientoPuntosJob>();
+builder.Services.AddHostedService<BonoCumpleanosJob>();
 
 // JWT: configuración fuertemente tipada + autenticación (login unificado, ver AuthService).
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
