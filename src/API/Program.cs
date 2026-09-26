@@ -1,3 +1,5 @@
+using FidelixAPI.BusinessLogic.Interfaces;
+using FidelixAPI.BusinessLogic.Services;
 using FidelixAPI.DataAccess.Context;
 using FidelixAPI.DataAccess.Repositories;
 using FidelixAPI.DataAccess.Repositories.Interfaces;
@@ -18,6 +20,10 @@ builder.Services.AddDbContext<FidelixDbContext>(options =>
 builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
 builder.Services.AddScoped<IBeneficioRepository, BeneficioRepository>();
 builder.Services.AddScoped<IMovimientoRepository, MovimientoRepository>();
+
+// Servicios (BusinessLogic): inyectados por interfaz en los controllers.
+builder.Services.AddScoped<IClienteService, ClienteService>();
+builder.Services.AddScoped<IBeneficioService, BeneficioService>();
 
 var app = builder.Build();
 
