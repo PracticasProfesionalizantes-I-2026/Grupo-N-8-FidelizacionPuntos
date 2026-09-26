@@ -26,7 +26,9 @@ alcanzaron su fecha de vencimiento, siguiendo el orden FIFO.
 
 ### 2. PRECONDICIONES
 1. Existen lotes de puntos acumulados con fecha de vencimiento definida en la
-   Capa de Persistencia.
+   Capa de Persistencia (calculada al acreditarse, como fecha de acreditación
+   más el `diasVigenciaPuntos` de la regla de acumulación vigente en ese
+   momento — CU-19, RF-22).
 
 ### 3. FLUJO PRINCIPAL (Camino Feliz - Proceso interno)
 > Nota: este CU no expone un endpoint HTTP público; se ejecuta como *job*
