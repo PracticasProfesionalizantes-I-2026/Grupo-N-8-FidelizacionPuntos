@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/API.IntegrationTests/">
+    <Project Path="API.IntegrationTests/FidelixAPI.API.IntegrationTests.csproj" />
+  </Folder>
   <Folder Name="/API/">
     <Project Path="API/FidelixAPI.API.csproj" />
   </Folder>

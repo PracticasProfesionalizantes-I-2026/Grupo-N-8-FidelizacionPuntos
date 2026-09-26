@@ -1,0 +1,22 @@
+meta {
+  name: Actualizar Beneficio - No Encontrado
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/api/admin/beneficios/00000000-0000-0000-0000-000000000000
+  body: json
+}
+
+body:json {
+  {
+    "costoPuntos": 150
+  }
+}
+
+tests {
+  test("404 Not Found", function () {
+    expect(res.status).to.equal(404);
+  });
+}

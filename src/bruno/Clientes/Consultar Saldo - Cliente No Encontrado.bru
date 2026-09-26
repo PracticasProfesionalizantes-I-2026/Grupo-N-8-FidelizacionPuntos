@@ -1,0 +1,15 @@
+meta {
+  name: Consultar Saldo - Cliente No Encontrado
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/api/clientes/00000000-0000-0000-0000-000000000000/saldo
+}
+
+tests {
+  test("404 Not Found", function () {
+    expect(res.status).to.equal(404);
+  });
+}
