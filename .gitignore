@@ -1,0 +1,15 @@
+# .NET
+src/**/bin/
+src/**/obj/
+*.db
+*.db-shm
+*.db-wal
+
+# Rider / VS / VS Code
+.vs/
+.vscode/
+*.user
+*.suo
+
+# macOS
+.DS_Store
