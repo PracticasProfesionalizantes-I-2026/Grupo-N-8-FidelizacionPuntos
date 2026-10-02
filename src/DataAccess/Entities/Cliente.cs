@@ -19,5 +19,11 @@ public class Cliente : EntidadBase
     public DateTime FechaRegistro { get; set; } = DateTime.UtcNow;
     public bool Activo { get; set; } = true;
 
+    /// <summary>Cantidad de intentos fallidos consecutivos de login (RN-03). Vuelve a 0 con un login exitoso.</summary>
+    public int IntentosFallidos { get; set; }
+
+    /// <summary>Momento en el que finaliza el bloqueo temporal (la hora está en UTC).</summary>
+    public DateTime? BloqueadoHasta { get; set; }
+
     public ICollection<Movimiento> Movimientos { get; set; } = [];
 }
