@@ -1,0 +1,30 @@
+meta {
+  name: Login Cliente - Cuenta Inactiva
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/auth/login
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "email": "Cliente.Inactivo@fidelix.local",
+    "password": "Cliente123!"
+  }
+}
+
+tests {
+  test("403 Forbidden", function (){
+    expect(res.status).to.equal(403);
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  forwardAuthorizationHeader: false
+}
