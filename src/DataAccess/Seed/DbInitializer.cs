@@ -43,6 +43,18 @@ public static class DbInitializer
             Activo = true
         };
 
+        var clienteInactivo = new Cliente
+        {
+            Id = Guid.NewGuid(),
+            Nombre = "Cliente Inactivo",
+            Documento = "54433304",
+            Email = "cliente.inactivo@fidelix.local",
+            PasswordHash = PasswordHasher.Hash("Inactivo123!"),
+            Telefono = "1125550000",
+            FechaNacimiento = new DateTime(2000, 4, 10, 0, 0, 0, DateTimeKind.Utc),
+            Activo = false
+        };
+
         var beneficios = new List<Beneficio>
         {
             new() { Id = Guid.NewGuid(), Nombre = "Descuento 10%", Descripcion = "10% de descuento en la próxima compra", CostoPuntos = 100, Categoria = CategoriaBeneficio.Descuento, Activo = true },
@@ -60,6 +72,7 @@ public static class DbInitializer
         };
 
         context.Clientes.Add(cliente);
+        context.Clientes.Add(clienteInactivo);
         context.Beneficios.AddRange(beneficios);
         context.Movimientos.AddRange(movimientos);
 
