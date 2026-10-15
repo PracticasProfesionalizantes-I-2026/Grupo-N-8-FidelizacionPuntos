@@ -24,6 +24,8 @@ builder.Services.AddScoped<IMovimientoRepository, MovimientoRepository>();
 // Servicios (BusinessLogic): inyectados por interfaz en los controllers.
 builder.Services.AddScoped<IClienteService, ClienteService>();
 builder.Services.AddScoped<IBeneficioService, BeneficioService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ITokenService, JwtTokenService>();
 
 var app = builder.Build();
 
