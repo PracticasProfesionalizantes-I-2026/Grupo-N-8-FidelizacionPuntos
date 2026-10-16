@@ -2,9 +2,9 @@
 
 > Especificación elaborada siguiendo la guía
 > `GUIA-Especificacion-Casos-de-Uso.md` (sección 3).
-> Regla de negocio RN-03 (bloqueo temporal por intentos fallidos) **a implementar**;
-> cada caso borde debe contar con su test unitario e integración (ver matriz de
-> trazabilidad).
+> Regla de negocio RN-03 (bloqueo temporal por intentos fallidos) **implementada**
+> (ver sección 7); cada caso borde cuenta con su test unitario e integración (ver
+> matriz de trazabilidad).
 
 | Campo | Valor |
 | --- | --- |
@@ -15,7 +15,8 @@
 | **Stakeholders e intereses** | Cliente → acceder a sus funcionalidades (saldo, canjes); Sistema → garantizar que solo cuentas válidas y activas obtengan un token |
 | **Disparador (Trigger)** | El cliente solicita iniciar sesión |
 | **Prioridad / Frecuencia** | Alta; uso muy frecuente (cada sesión) |
-| **Reglas de negocio relacionadas** | RN-03 (bloqueo temporal tras intentos fallidos) |
+| **Reglas de negocio relacionadas** | RN-03 (bloqueo temporal tras intentos fallidos), RN-14 (baja lógica) |
+| **Requerimientos no funcionales** | RNF-01 (la contraseña se almacena como hash PBKDF2-SHA256 con salt; el login la verifica contra ese hash, nunca en texto plano) |
 
 ---
 
@@ -31,32 +32,41 @@ contraseña) para obtener un token de acceso (JWT) y acceder a sus funcionalidad
    contiene sus credenciales (`email`, `password`).
 2. La **Capa de Presentación** (`AuthController.LoginCliente`) valida que el JSON
    sea estructuralmente correcto y que los campos requeridos estén presentes.
-3. La **Capa de Negocio** (`AuthService.LoginClienteAsync`) valida las credenciales
-   contra el hash almacenado y verifica que la cuenta no esté bloqueada ni inactiva.
-4. El Sistema genera un token JWT firmado con los claims del cliente (Id, rol
-   `Cliente`) y reinicia el contador de intentos fallidos.
+3. La **Capa de Negocio** (`AuthService.LoginClienteAsync`) verifica, en este orden:
+   que el email exista, que la cuenta esté activa, que no esté bloqueada (RN-03) y
+   que la contraseña coincida con el hash almacenado (RNF-01). Las cuentas inactivas
+   o bloqueadas se rechazan antes de mirar la contraseña, para no modificar su
+   contador de intentos.
+4. El Sistema reinicia el contador de intentos fallidos y limpia el bloqueo, y
+   genera un token JWT firmado (HS256) con los claims del cliente (Id, rol
+   `Cliente`) y su fecha de expiración.
 5. El Sistema devuelve un código **200 OK** con el token y los datos básicos del
    cliente.
 
 ### 4. FLUJOS ALTERNATIVOS (Caminos Tristes / Excepciones)
 
 * **2a. Dato obligatorio faltante (HTTP 400 Bad Request):**
-  1. El sisteam detecta que en el Paso 2 el JSON no incluye `email` o `password`.
+  1. El Sistema detecta que en el Paso 2 el JSON no incluye `email` o `password`.
   2. El Sistema (Capa de Presentación) rechaza la petición por error de validación.
   3. El Sistema devuelve un código **400 Bad Request**. Fin del caso de uso.
 
 * **3a. Credenciales incorrectas (HTTP 401 Unauthorized):**
-  1. El sistema detecta que en el Paso 3 el email no existe o la contraseña no coincide con el hash
+  1. El Sistema detecta que en el Paso 3 el email no existe o la contraseña no coincide con el hash
      almacenado.
-  2. El Sistema (Capa de Negocio) incrementa el contador de intentos fallidos y
-     evalúa la regla **RN-03**; lanza la excepción de dominio
+  2. Si el email existe y la contraseña es incorrecta, el Sistema (Capa de Negocio)
+     incrementa el contador de intentos fallidos, evalúa la regla **RN-03** (ver
+     sección 7) y guarda el cambio. En ambos casos lanza la excepción de dominio
      `CredencialesInvalidasException`.
-  3. El Sistema devuelve un código **401 Unauthorized** con el mensaje: "Usuario o
+  3. Por seguridad, el mensaje es el mismo si el email no existe o si la contraseña
+     es incorrecta, para no revelar qué emails están registrados (enumeración de
+     usuarios).
+  4. El Sistema devuelve un código **401 Unauthorized** con el mensaje: "Usuario o
      contraseña incorrectos". Fin del caso de uso.
 
 * **3b. Cuenta bloqueada por intentos fallidos (HTTP 403 Forbidden):**
-  1. El sistema detecta que en el Paso 3 el contador de intentos fallidos alcanzó el umbral configurado
-     (**RN-03**) y la cuenta quedó bloqueada temporalmente.
+  1. El Sistema detecta que en el Paso 3 la cuenta tiene un bloqueo temporal vigente
+     (`BloqueadoHasta` posterior a la hora actual, **RN-03**). El intento no suma
+     fallos ni extiende el bloqueo.
   2. El Sistema (Capa de Negocio) lanza la excepción de dominio
      `CuentaBloqueadaException`.
   3. El Sistema devuelve un código **403 Forbidden** con el mensaje: "La cuenta se
@@ -64,7 +74,7 @@ contraseña) para obtener un token de acceso (JWT) y acceder a sus funcionalidad
      de uso.
 
 * **3c. Cuenta inactiva (HTTP 403 Forbidden):**
-  1. EL sistema detecta que en el Paso 3 el Sistema detecta que la cuenta del cliente fue dada de baja
+  1. El Sistema detecta que en el Paso 3 la cuenta del cliente fue dada de baja
      (CU-15, **RN-14**).
   2. El Sistema (Capa de Negocio) lanza la excepción de dominio
      `CuentaInactivaException`.
@@ -72,12 +82,27 @@ contraseña) para obtener un token de acceso (JWT) y acceder a sus funcionalidad
      encuentra inactiva. Contacte al administrador". Fin del caso de uso.
 
 ### 5. SUB-VARIACIONES (opcional)
-1. El actor puede iniciar sesión desde la app web en este casos el
+1. El actor puede iniciar sesión desde la app web en este caso el
    esquema del cuerpo y el resultado (`200 OK` con token JWT) son idénticos.
 
 ### 6. POSTCONDICIONES
 1. El cliente queda autenticado en el sistema y en posesión de un token JWT válido.
-2. El contador de intentos fallidos de la cuenta queda reiniciado en cero.
+2. El contador de intentos fallidos de la cuenta queda reiniciado en cero y el
+   bloqueo temporal (`BloqueadoHasta`) queda limpio.
+
+### 7. DETALLE DE LA REGLA RN-03 (bloqueo temporal)
+
+| Parámetro | Valor |
+| --- | --- |
+| Umbral de bloqueo | A partir del **3.er** intento fallido consecutivo |
+| Espera | **30 s × 2^(fallos − 3)** (se duplica con cada fallo) |
+| Tope de espera | **15 minutos** |
+| Intentos durante el bloqueo | Se rechazan con 403 y **no suman** fallos |
+| Reinicio del contador | Solo con un login exitoso |
+
+| Fallos acumulados | 1-2 | 3 | 4 | 5 | 6 | 7 | 8 o más |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Bloqueo | — | 30 s | 1 min | 2 min | 4 min | 8 min | 15 min (tope) |
 
 ---
 
