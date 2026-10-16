@@ -68,7 +68,23 @@ La versión 1.0 del sistema incluirá la gestión de clientes, el registro de co
 
 ## **4.2 Limitaciones y exclusiones (Out of Scope)**
 
-En esta entrega NO se incluirá: 1\) Sistemas de notificaciones automáticas. 2\) Integración con sistemas externos (plataformas de pagos o gestión). 3\) Aplicación móvil. 4\) Reportes avanzados o análisis de comportamiento de clientes.
+En esta entrega NO se incluirá: 1\) Sistemas de notificaciones automáticas. 2\) Integración con sistemas externos (plataformas de pagos o gestión). 3\) Aplicación móvil. 4\) Reportes avanzados o análisis de comportamiento de clientes. 5\) Pozo de puntos familiar (nivel de complejidad N3). 6\) Penalidad automática por inactividad (nivel de complejidad N4). Ver sección 4.3.
+
+## **4.3 Matriz de complejidad avanzada**
+
+El catálogo del sistema define cuatro niveles de complejidad sobre las reglas base (saldo insuficiente → error; descuento de puntos por método FIFO). Su estado en esta entrega es el siguiente:
+
+| Nivel | Regla | Casos de uso afectados | Estado |
+| --- | --- | --- | --- |
+| **N1** | Los clientes de categoría **Gold** acumulan puntos con un multiplicador **x1.5**. | CU-10 | En desarrollo (v1.0) |
+| **N2** | Los puntos acumulados quedan en estado **Pendiente** durante **15 días** antes de ser canjeables. | CU-10 (los registra como pendientes), CU-07 (solo canjea puntos disponibles) | En desarrollo (v1.0) |
+| **N3** | **Pozo familiar**: varios clientes comparten un saldo común y solo el **Titular** de la familia puede canjear. | Ninguno en la versión actual (requiere un nuevo CU y la entidad Familia) | Versión futura |
+| **N4** | **Penalidad por inactividad**: tras **6 meses** sin movimientos, el saldo se reduce un **10%**. | Ninguno en la versión actual | Versión futura |
+
+**Justificación de las versiones futuras:**
+
+* **N3** requiere modelar una nueva entidad (Familia) con su relación entre clientes y roles (Titular / miembro), y un caso de uso propio para administrarla; excede el alcance de la versión 1.0.
+* **N4** requiere un proceso automático en segundo plano (tarea programada) que recorra periódicamente las cuentas, componente que la arquitectura actual de la API todavía no incluye.
 
 # **5\. Requerimientos**
 
@@ -77,7 +93,7 @@ En esta entrega NO se incluirá: 1\) Sistemas de notificaciones automáticas. 2\
 **Clientes:**
 
 * **RF-01:** El sistema debe permitir el ABM de un cliente 
-* **RF-02:** El sistema debe permitir inisiar sesion al cliente  
+* **RF-02:** El sistema debe permitir iniciar sesión al cliente, con bloqueo temporal tras intentos fallidos (RN-03). *(CU-02)*  
 * **RF-03:** El sistema debe permitir gestionar el perfil de un cliente 
 * **RF-04:** El sistema debe permitir al cliente darse de baja voluntariamente de su cuenta (baja lógica), preservando su historial de movimientos y canjes (RN-14). *(CU-03)*
 * **RF-05:** El sistema debe permitir al cliente visualizar un dashboard con información sobre sus puntos, vencimientos y canjes realizados.
@@ -125,7 +141,7 @@ En esta entrega NO se incluirá: 1\) Sistemas de notificaciones automáticas. 2\
 
 ## **5.2 Requerimientos No Funcionales**
 
-* **RNF-01 (Seguridad):** Las contraseñas de los usuarios deben almacenarse encriptadas en la base de datos.  
+* **RNF-01 (Seguridad):** Las contraseñas de los usuarios deben almacenarse como hash irreversible (PBKDF2-SHA256 con salt) en la base de datos, nunca en texto plano ni con cifrado reversible.  
 * **RNF-02 (Rendimiento):** Las operaciones principales del sistema (registro de compras, consulta de puntos y canje) deben responder en menos de dos segundos.  
 * **RNF-03(Usabilidad):** El sistema debe contar con una interfaz simple e intuitiva para facilitar su uso por parte de los empleados.  
 * **RNF-04(Arquitectura):** El sistema debe desarrollarse bajo una estructura de 3 capas (presentación, lógica de negocio y acceso a datos).  
