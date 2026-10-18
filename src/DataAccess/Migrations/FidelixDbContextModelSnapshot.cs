@@ -136,6 +136,33 @@ namespace FidelixAPI.DataAccess.Migrations
                     b.ToTable("Movimientos");
                 });
 
+            modelBuilder.Entity("FidelixAPI.DataAccess.Entities.Producto", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Descripcion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("Precio")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique();
+
+                    b.ToTable("Productos");
+                });
+
             modelBuilder.Entity("FidelixAPI.DataAccess.Entities.Movimiento", b =>
                 {
                     b.HasOne("FidelixAPI.DataAccess.Entities.Beneficio", "Beneficio")
