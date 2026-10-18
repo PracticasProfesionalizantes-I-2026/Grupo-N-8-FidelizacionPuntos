@@ -14,4 +14,5 @@ public class ClienteResponseDTO
     public DateTime? FechaNacimiento { get; set; }
     public bool Activo { get; set; }
     public DateTime FechaRegistro { get; set; }
+    public string[] Roles { get; set; } = new string[0];
 }

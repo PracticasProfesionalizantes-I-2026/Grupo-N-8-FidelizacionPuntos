@@ -86,7 +86,8 @@ public class AuthService(ITokenService tokenService, IClienteRepository clienteR
             Telefono = c.Telefono,
             FechaNacimiento = c.FechaNacimiento,
             Activo = c.Activo,
-            FechaRegistro = c.FechaRegistro
+            FechaRegistro = c.FechaRegistro,
+            Roles = new string[] { RolCliente }
         }
     };
 }
