@@ -34,7 +34,7 @@ disponibles para los clientes.
    (modificar) o `PATCH /api/admin/beneficios/{id}/desactivar` (desactivar).
 2. La **Capa de Presentación** (`AdminBeneficiosController`) valida que el JSON
    (en alta/modificación) sea estructuralmente correcto.
-3. La **Capa de Negocio** (`BeneficioAdminService`) valida que el costo en puntos
+3. La **Capa de Negocio** (`BeneficioService`) valida que el costo en puntos
    sea mayor a 0 (**RN-16**) y que el nombre no esté ya registrado, en el alta
    (**RN-23**); y que el beneficio exista, en modificación o desactivación.
 4. La **Capa de Persistencia** registra los cambios en la tabla `Beneficios`.

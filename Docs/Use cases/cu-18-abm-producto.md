@@ -34,7 +34,7 @@ disponibles para ser registrados en las compras de los clientes.
    (modificar) o `PATCH /api/admin/productos/{id}/desactivar` (desactivar).
 2. La **Capa de Presentación** (`AdminProductosController`) valida que el JSON
    (en alta/modificación) sea estructuralmente correcto.
-3. La **Capa de Negocio** (`ProductoAdminService`) valida que el precio sea
+3. La **Capa de Negocio** (`ProductoService`) valida que el precio sea
    mayor a 0 (**RN-25**) y que el nombre no esté ya registrado, en el alta
    (**RN-24**); y que el producto exista, en modificación o desactivación.
 4. La **Capa de Persistencia** registra los cambios en la tabla `Productos`.
