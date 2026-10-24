@@ -1,0 +1,29 @@
+meta {
+  name: Actualizar Producto - No Encontrado
+  type: http
+  seq: 5
+}
+
+put {
+  url: {{baseUrl}}/api/admin/productos/00000000-0000-0000-0000-000000000000
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "precio": 150
+  }
+}
+
+tests {
+  test("404 Not Found", function () {
+    expect(res.status).to.equal(404);
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  forwardAuthorizationHeader: false
+}

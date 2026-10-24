@@ -1,0 +1,30 @@
+meta {
+  name: Crear Producto - Duplicado
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/admin/productos
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "nombre": "Producto Nuevo",
+    "precio": 300
+  }
+}
+
+tests {
+  test("409 Conflict", function () {
+    expect(res.status).to.equal(409);
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  forwardAuthorizationHeader: false
+}

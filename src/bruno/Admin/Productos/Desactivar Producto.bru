@@ -1,0 +1,24 @@
+meta {
+  name: Desactivar Producto
+  type: http
+  seq: 6
+}
+
+patch {
+  url: {{baseUrl}}/api/admin/productos/{{productoAdminId}}/desactivar
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("200 OK", function () {
+    expect(res.status).to.equal(200);
+    expect(res.body.activo).to.equal(false);
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  forwardAuthorizationHeader: false
+}

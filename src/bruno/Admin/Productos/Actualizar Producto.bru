@@ -1,0 +1,29 @@
+meta {
+  name: Actualizar Producto
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/api/admin/productos/{{productoAdminId}}
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "precio": 200
+  }
+}
+
+tests {
+  test("200 OK", function () {
+    expect(res.status).to.equal(200);
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  forwardAuthorizationHeader: false
+}
