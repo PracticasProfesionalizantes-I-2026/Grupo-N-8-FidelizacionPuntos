@@ -6,6 +6,7 @@ namespace FidelixAPI.Shared.DTOs.Producto;
 public class ProductoUpdateDTO
 {
     [MaxLength(150)]
+    [RegularExpression(@".*\S.*", ErrorMessage = "El nombre no puede estar vacío.")]
     public string? Nombre { get; set; }
 
     [MaxLength(500)]

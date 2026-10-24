@@ -11,9 +11,11 @@ namespace FidelixAPI.Shared.DTOs.Auth;
 /// </summary>
 public class LoginRequestDTO
 {
-    [Required, MaxLength(150), EmailAddress]
+    [Required(ErrorMessage = "El email no puede estar vacío.")]
+    [EmailAddress(ErrorMessage = "El email no es válido.")]
+    [MaxLength(150)]
     public string Email { get; set; } = string.Empty;
 
-    [Required]
+    [Required(ErrorMessage = "La contraseña no puede estar vacía.")]
     public string Password { get; set; } = string.Empty;
 }
