@@ -121,7 +121,7 @@ El catálogo del sistema define cuatro niveles de complejidad sobre las reglas b
 * **RF-16:** El sistema debe permitir al administrador visualizar y filtrar el historial de ventas, incluyendo comparaciones entre distintos períodos.  
 * **RF-17:** El sistema debe permitir al administrador crear y eliminar un empleado.  
 * **RF-18:** El sistema debe permitir al administrador crear y eliminar un cliente.  
-* **RF-19:** El sistema debe permitir al administrador gestionar productos y beneficios.
+* **RF-19:** El sistema debe permitir al administrador gestionar productos y beneficios (RN-16, RN-17, RN-23, RN-24, RN-25, RN-26). *(CU-17, CU-18)*
 * **RF-20:** El sistema debe permitir al administrador crear o modificar reglas de acumulacion de puntos
 * **RF-21:** El sistema debe permitir al administrador realizar auditorias de operaciones
 * **RF-22:** El sistema debe permitir al administrador aplicar lapso de vencimiento a los puntos
