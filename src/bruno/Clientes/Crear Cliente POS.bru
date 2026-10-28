@@ -1,0 +1,33 @@
+meta {
+  name: Crear Cliente POS
+  type: http
+  seq: 12
+}
+
+post {
+  url: {{baseUrl}}/api/clientes
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenEmpleado}}
+}
+
+body:json {
+  {
+    "nombre": "Cliente Mostrador",
+    "documento": "{{docPos}}",
+    "email": "pos.{{docPos}}@fidelix.local"
+  }
+}
+
+script:pre-request {
+  bru.setVar("docPos", String(Math.floor(100000000 + Math.random() * 900000000)));
+}
+
+tests {
+  test("201 Created sin contraseña (CU-12)", function () {
+    expect(res.status).to.equal(201);
+  });
+}

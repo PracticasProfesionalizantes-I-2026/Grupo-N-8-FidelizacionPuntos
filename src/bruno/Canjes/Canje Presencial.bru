@@ -1,0 +1,29 @@
+meta {
+  name: Canje Presencial
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{baseUrl}}/api/canjes/presencial
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenEmpleado}}
+}
+
+body:json {
+  {
+    "clienteDocumento": "40333444",
+    "beneficioId": "{{beneficioBaratoId}}"
+  }
+}
+
+tests {
+  test("201 Created: entregado en el momento (CU-11)", function () {
+    expect(res.status).to.equal(201);
+    expect(res.body.estado).to.equal("Entregado");
+  });
+}

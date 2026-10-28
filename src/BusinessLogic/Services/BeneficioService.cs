@@ -2,11 +2,12 @@ using FidelixAPI.BusinessLogic.Interfaces;
 using FidelixAPI.DataAccess.Entities;
 using FidelixAPI.DataAccess.Repositories.Interfaces;
 using FidelixAPI.Shared.DTOs.Beneficio;
+using FidelixAPI.Shared.DTOs.Comun;
 using FidelixAPI.Shared.Exceptions;
 
 namespace FidelixAPI.BusinessLogic.Services;
 
-/// <summary>Implementación de <see cref="IBeneficioService"/> (CU-17).</summary>
+/// <summary>Implementación de <see cref="IBeneficioService"/> (CU-06, CU-17).</summary>
 public class BeneficioService(IBeneficioRepository beneficioRepository) : IBeneficioService
 {
     /// <summary>Alta: nombre único (RN-23) y costo en puntos positivo (RN-16).</summary>
@@ -73,6 +74,14 @@ public class BeneficioService(IBeneficioRepository beneficioRepository) : IBenef
         beneficio.Activo = false;
         await beneficioRepository.UpdateAsync(beneficio);
         return MapToResponseDTO(beneficio);
+    }
+
+    /// <summary>Catálogo del cliente: filtra los activos (RN-07) y los ordena por costo; vacío no es error (4a).</summary>
+    public async Task<ListadoResponseDTO<BeneficioResponseDTO>> ListarBeneficiosAsync()
+    {
+        var beneficios = await beneficioRepository.GetAllAsync();
+        var activos = beneficios.Where(b => b.Activo).OrderBy(b => b.CostoPuntos).Select(MapToResponseDTO).ToList();
+        return ListadoResponseDTO<BeneficioResponseDTO>.Crear(activos, "No hay beneficios disponibles");
     }
 
     /// <summary>Traduce la entidad al DTO público.</summary>

@@ -112,6 +112,7 @@ disponibles para ser registrados en las compras de los clientes.
 * **Validación vs. verificación:** los formatos del dato (campos obligatorios, en
   blanco, longitud) se validan en la Capa de Presentación; las reglas de negocio
   (RN-24, RN-25, RN-26) se verifican en la Capa de Negocio.
+* **Autenticación:** los endpoints exigen el token del login de admin (CU-14, RN-11); cada operación queda en la auditoría (CU-21).
 * **Colección Bruno:** `bruno/Admin/Productos/` cubre el alta, el precio inválido,
   el duplicado, la modificación, el id inexistente y la desactivación.
 

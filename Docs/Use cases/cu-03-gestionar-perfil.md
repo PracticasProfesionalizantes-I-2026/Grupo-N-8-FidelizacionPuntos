@@ -3,8 +3,8 @@
 > Especificación elaborada siguiendo la guía
 > `GUIA-Especificacion-Casos-de-Uso.md` (sección 3).
 > Reglas de negocio RN-04 (documento inmutable), RN-01 (email único) y RN-14
-> (cliente dado de baja no acumula ni canjea) **a implementar**; cada caso
-> borde debe contar con su test unitario e integración (ver matriz de
+> (cliente dado de baja no acumula ni canjea) **implementadas**; cada caso
+> borde cuenta con su test unitario e integración (ver matriz de
 > trazabilidad).
 
 | Campo | Valor |
@@ -58,7 +58,7 @@ identificador inmutable, y darse de baja voluntariamente del sistema.
 * **2b. Intento de modificar el documento (HTTP 400 Bad Request):**
   1. El sistema detecta que en el Paso 2 el JSON incluye un campo `documento` distinto al almacenado,
      violando **RN-04**.
-  2. El Sistema (Capa de Presentación) rechaza la petición.
+  2. El Sistema (Capa de Negocio) lanza `DocumentoNoModificableException`.
   3. El Sistema devuelve un código **400 Bad Request** con el mensaje: "El
      documento de identidad no puede ser modificado". Fin del caso de uso.
 
@@ -82,6 +82,18 @@ identificador inmutable, y darse de baja voluntariamente del sistema.
 3. Un cliente dado de baja queda inhabilitado para acumular (CU-10) y canjear
    (CU-07, CU-11) puntos (**RN-14**), pero su historial de movimientos y
    canjes se conserva sin cambios.
+
+### 7. DETALLE DE IMPLEMENTACIÓN
+
+| Endpoint | Rol (token JWT) | Controller → Service |
+| --- | --- | --- |
+| `GET /api/clientes/me` | Cliente | `ClientesController.ObtenerPerfil → ClienteService.ObtenerPerfilAsync` |
+| `PUT /api/clientes/me` | Cliente | `ClientesController.ActualizarPerfil → ClienteService.ActualizarPerfilAsync` |
+| `DELETE /api/clientes/me` | Cliente | `ClientesController.DarseDeBaja → ClienteService.DarseDeBajaAsync` |
+
+* La modificación es **parcial** (solo cambian los campos enviados). Si viene `password`, se valida con RN-02.
+* Después de la baja, el login responde 403 (cuenta inactiva) y el cliente ya no acumula ni canjea (RN-14).
+* **Colección Bruno:** `bruno/Clientes/`.
 
 ---
 

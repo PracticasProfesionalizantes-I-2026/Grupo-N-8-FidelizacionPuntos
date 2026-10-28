@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using FidelixAPI.Shared.DTOs.ReglaAcumulacion;
+using FidelixAPI.Shared.Security;
 using Xunit;
 
 namespace FidelixAPI.API.IntegrationTests.Controllers;
@@ -47,7 +48,7 @@ public class AdminReglasAcumulacionControllerTests : IClassFixture<FidelixApiFac
     [Fact]
     public async Task ConsultarReglasAcumulacion_Returns200OK()
     {
-        var client = _factory.CreateClient();
+        var client = _factory.CreateClientComo(Roles.Admin);
 
         var respuesta = await client.GetAsync(Url);
         var reglas = await respuesta.Content.ReadFromJsonAsync<List<ReglaAcumulacionResponseDTO>>();
@@ -60,7 +61,7 @@ public class AdminReglasAcumulacionControllerTests : IClassFixture<FidelixApiFac
     [Fact]
     public async Task ConsultarReglaAcumulacionPorId_WithExistingId_Returns200OK()
     {
-        var client = _factory.CreateClient();
+        var client = _factory.CreateClientComo(Roles.Admin);
         var regla = await CrearReglaAsync(client);
 
         var respuesta = await client.GetAsync($"{Url}/{regla.Id}");
@@ -74,7 +75,7 @@ public class AdminReglasAcumulacionControllerTests : IClassFixture<FidelixApiFac
     [Fact]
     public async Task ConsultarReglaAcumulacionPorId_WithUnknownId_Returns404NotFound()
     {
-        var client = _factory.CreateClient();
+        var client = _factory.CreateClientComo(Roles.Admin);
 
         var respuesta = await client.GetAsync($"{Url}/{Guid.NewGuid()}");
 
@@ -85,7 +86,7 @@ public class AdminReglasAcumulacionControllerTests : IClassFixture<FidelixApiFac
     [Fact]
     public async Task ConfigurarReglaAcumulacion_Create_WithValidData_Returns201Created()
     {
-        var client = _factory.CreateClient();
+        var client = _factory.CreateClientComo(Roles.Admin);
 
         var respuesta = await client.PostAsJsonAsync(Url, new ReglaAcumulacionCreateDTO
         {
@@ -103,7 +104,7 @@ public class AdminReglasAcumulacionControllerTests : IClassFixture<FidelixApiFac
     [Fact]
     public async Task ConfigurarReglaAcumulacion_Update_WithValidData_Returns200OK()
     {
-        var client = _factory.CreateClient();
+        var client = _factory.CreateClientComo(Roles.Admin);
         var regla = await CrearReglaAsync(client);
 
         var respuesta = await client.PutAsJsonAsync($"{Url}/{regla.Id}", new ReglaAcumulacionUpdateDTO { PuntosPorMonto = 0.5m });
@@ -118,7 +119,7 @@ public class AdminReglasAcumulacionControllerTests : IClassFixture<FidelixApiFac
     [Fact]
     public async Task ConfigurarReglaAcumulacion_WithOverlappingActiveRule_Returns400BadRequest()
     {
-        var client = _factory.CreateClient();
+        var client = _factory.CreateClientComo(Roles.Admin);
         var existente = await CrearReglaAsync(client);
 
         var respuesta = await client.PostAsJsonAsync(Url, new ReglaAcumulacionCreateDTO
@@ -135,7 +136,7 @@ public class AdminReglasAcumulacionControllerTests : IClassFixture<FidelixApiFac
     [Fact]
     public async Task ConfigurarReglaAcumulacion_WithMissingFields_Returns400BadRequest()
     {
-        var client = _factory.CreateClient();
+        var client = _factory.CreateClientComo(Roles.Admin);
 
         var respuesta = await client.PostAsJsonAsync(Url, new { puntosPorMonto = 0.1m });
 

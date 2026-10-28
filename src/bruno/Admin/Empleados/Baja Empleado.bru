@@ -1,0 +1,17 @@
+meta {
+  name: Baja Empleado
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{baseUrl}}/api/admin/empleados/{{empleadoAdminId}}
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("204 No Content (RN-15)", function () {
+    expect(res.status).to.equal(204);
+  });
+}

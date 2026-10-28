@@ -1,0 +1,17 @@
+meta {
+  name: Reporte Resumen
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/api/admin/reportes?tipo=Resumen&periodoDesde=2026-01-01&periodoHasta=2026-12-31
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("200 OK (CU-24)", function () {
+    expect(res.status).to.equal(200);
+  });
+}

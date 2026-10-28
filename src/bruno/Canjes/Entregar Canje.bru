@@ -1,0 +1,22 @@
+meta {
+  name: Entregar Canje
+  type: http
+  seq: 12
+}
+
+patch {
+  url: {{baseUrl}}/api/canjes/{{canjeOnlineId}}/entregar
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenEmpleado}}
+}
+
+tests {
+  test("200 OK: el canje pendiente pasa a Entregado (RN-10)", function () {
+    expect(res.status).to.equal(200);
+    expect(res.body.estado).to.equal("Entregado");
+  });
+}

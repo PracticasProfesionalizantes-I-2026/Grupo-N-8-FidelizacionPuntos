@@ -1,0 +1,35 @@
+meta {
+  name: Crear Cliente
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/admin/clientes
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "nombre": "Cliente Admin",
+    "documento": "{{docAdmin}}",
+    "email": "admin.{{docAdmin}}@fidelix.local"
+  }
+}
+
+script:pre-request {
+  bru.setVar("docAdmin", String(Math.floor(100000000 + Math.random() * 900000000)));
+}
+
+script:post-response {
+  if (res.status === 201) {
+    bru.setVar("clienteAdminId", res.body.id);
+  }
+}
+
+tests {
+  test("201 Created (CU-15)", function () {
+    expect(res.status).to.equal(201);
+  });
+}

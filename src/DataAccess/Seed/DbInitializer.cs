@@ -19,6 +19,12 @@ public static class DbInitializer
     /// </summary>
     public static readonly Guid ClienteDemoId = Guid.Parse("11111111-1111-1111-1111-111111111111");
 
+    /// <summary>Id fijo del admin de prueba (CU-14), usado también por los tests de integración.</summary>
+    public static readonly Guid AdminDemoId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+
+    /// <summary>Id fijo del empleado de prueba (CU-09), usado también por los tests de integración.</summary>
+    public static readonly Guid EmpleadoDemoId = Guid.Parse("33333333-3333-3333-3333-333333333333");
+
     /// <summary>Punto de entrada llamado desde `Program.cs` al arrancar la API.</summary>
     public static async Task InicializarAsync(FidelixDbContext context)
     {
@@ -97,6 +103,23 @@ public static class DbInitializer
             FechaCreacion = hoy
         };
 
+        // Personal de prueba: un admin (CU-14), un empleado activo (CU-09) y uno dado de baja (RN-15).
+        var admin = new Admin
+        {
+            Id = AdminDemoId,
+            Nombre = "Admin Demo",
+            Email = "admin@fidelix.local",
+            PasswordHash = PasswordHasher.Hash("Admin123!")
+        };
+
+        var empleados = new List<Empleado>
+        {
+            new() { Id = EmpleadoDemoId, Nombre = "Empleado Demo", Documento = "30111222", Email = "empleado@fidelix.local", PasswordHash = PasswordHasher.Hash("Empleado123!"), Activo = true },
+            new() { Id = Guid.NewGuid(), Nombre = "Empleado Inactivo", Documento = "30333444", Email = "empleado.inactivo@fidelix.local", PasswordHash = PasswordHasher.Hash("Inactivo123!"), Activo = false }
+        };
+
+        context.Admins.Add(admin);
+        context.Empleados.AddRange(empleados);
         context.Clientes.Add(cliente);
         context.Clientes.Add(clienteInactivo);
         context.Clientes.Add(clienteGold);

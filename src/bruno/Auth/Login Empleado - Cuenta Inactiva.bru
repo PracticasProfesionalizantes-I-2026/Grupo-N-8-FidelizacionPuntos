@@ -1,0 +1,24 @@
+meta {
+  name: Login Empleado - Cuenta Inactiva
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/api/auth/empleados/login
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "email": "empleado.inactivo@fidelix.local",
+    "password": "Inactivo123!"
+  }
+}
+
+tests {
+  test("403 Forbidden (RN-15)", function () {
+    expect(res.status).to.equal(403);
+  });
+}

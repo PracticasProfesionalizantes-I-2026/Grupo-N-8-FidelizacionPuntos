@@ -2,8 +2,8 @@
 
 > Especificación elaborada siguiendo la guía
 > `GUIA-Especificacion-Casos-de-Uso.md` (sección 3).
-> Regla de negocio RN-11 (control de acceso por rol) **a implementar**; cada caso
-> borde debe contar con su test unitario e integración (ver matriz de
+> Regla de negocio RN-11 (control de acceso por rol) **implementada**; cada caso
+> borde cuenta con su test unitario e integración (ver matriz de
 > trazabilidad).
 
 | Campo | Valor |
@@ -28,11 +28,11 @@ auditoría).
 1. El admin se encuentra registrado en el sistema.
 
 ### 3. FLUJO PRINCIPAL (Camino Feliz - HTTP 200)
-1. El Actor envía una petición al endpoint `POST /api/auth/login` con un JSON que
+1. El Actor envía una petición al endpoint `POST /api/auth/admin/login` con un JSON que
    contiene sus credenciales (`email`, `password`).
-2. La **Capa de Presentación** (`AuthController.LoginAdmin`) valida que el JSON
+2. La **Capa de Presentación** (`AuthPersonalController.LoginAdmin`) valida que el JSON
    sea estructuralmente correcto.
-3. La **Capa de Negocio** (`AuthService.LoginAdminAsync`) valida las credenciales
+3. La **Capa de Negocio** (`AuthPersonalService.LoginAdminAsync`) valida las credenciales
    contra el hash almacenado.
 4. El Sistema genera un token JWT firmado con los claims del admin (Id, rol
    `Admin`), habilitando el acceso a los módulos de configuración según **RN-11**.
@@ -60,6 +60,16 @@ administración web)._
 ### 6. POSTCONDICIONES
 1. El admin queda autenticado en el sistema, con un token JWT que habilita el
    acceso a los módulos de configuración.
+
+### 7. DETALLE DE IMPLEMENTACIÓN
+
+| Endpoint | Rol (token JWT) | Controller → Service |
+| --- | --- | --- |
+| `POST /api/auth/admin/login` | — (anónimo) | `AuthPersonalController.LoginAdmin → AuthPersonalService.LoginAdminAsync` |
+
+* El token lleva el rol `Admin`, que exigen todos los controllers `api/admin/*` con `[Authorize(Roles = "Admin")]` (RN-11): sin token, 401; con otro rol, 403.
+* El admin se crea desde el seed (no hay un CU para darlo de alta): `admin@fidelix.local` / `Admin123!`.
+* **Colección Bruno:** `bruno/Auth/ (Login Admin)`.
 
 ---
 

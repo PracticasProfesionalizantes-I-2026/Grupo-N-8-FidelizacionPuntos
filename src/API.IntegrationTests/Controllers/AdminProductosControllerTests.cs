@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using FidelixAPI.Shared.DTOs.Producto;
+using FidelixAPI.Shared.Security;
 using Xunit;
 
 namespace FidelixAPI.API.IntegrationTests.Controllers;
@@ -38,7 +39,7 @@ public class AdminProductosControllerTests : IClassFixture<FidelixApiFactory>, I
     [Fact]
     public async Task AbmProducto_Create_WithValidData_Returns201Created()
     {
-        var client = _factory.CreateClient();
+        var client = _factory.CreateClientComo(Roles.Admin);
 
         var respuesta = await client.PostAsJsonAsync("/api/admin/productos", new ProductoCreateDTO
         {
@@ -56,7 +57,7 @@ public class AdminProductosControllerTests : IClassFixture<FidelixApiFactory>, I
     [Fact]
     public async Task AbmProducto_WithInvalidData_Returns400BadRequest()
     {
-        var client = _factory.CreateClient();
+        var client = _factory.CreateClientComo(Roles.Admin);
 
         var respuesta = await client.PostAsJsonAsync("/api/admin/productos", new ProductoCreateDTO { Nombre = "", Precio = 100 });
 
@@ -67,7 +68,7 @@ public class AdminProductosControllerTests : IClassFixture<FidelixApiFactory>, I
     [Fact]
     public async Task AbmProducto_Create_WithNonPositivePrecio_Returns400BadRequest()
     {
-        var client = _factory.CreateClient();
+        var client = _factory.CreateClientComo(Roles.Admin);
 
         var respuesta = await client.PostAsJsonAsync("/api/admin/productos", new ProductoCreateDTO { Nombre = "Producto Precio Cero", Precio = 0 });
 
@@ -78,7 +79,7 @@ public class AdminProductosControllerTests : IClassFixture<FidelixApiFactory>, I
     [Fact]
     public async Task AbmProducto_Create_WhenNombreExists_Returns409Conflict()
     {
-        var client = _factory.CreateClient();
+        var client = _factory.CreateClientComo(Roles.Admin);
         var existente = await CrearProductoAsync(client);
 
         var respuesta = await client.PostAsJsonAsync("/api/admin/productos", new ProductoCreateDTO { Nombre = existente.Nombre, Precio = 100 });
@@ -90,7 +91,7 @@ public class AdminProductosControllerTests : IClassFixture<FidelixApiFactory>, I
     [Fact]
     public async Task AbmProducto_Update_WithValidData_Returns200OK()
     {
-        var client = _factory.CreateClient();
+        var client = _factory.CreateClientComo(Roles.Admin);
         var producto = await CrearProductoAsync(client);
 
         var respuesta = await client.PutAsJsonAsync($"/api/admin/productos/{producto.Id}", new ProductoUpdateDTO { Precio = 750 });
@@ -105,7 +106,7 @@ public class AdminProductosControllerTests : IClassFixture<FidelixApiFactory>, I
     [Fact]
     public async Task AbmProducto_Update_WithNonExistentId_Returns404NotFound()
     {
-        var client = _factory.CreateClient();
+        var client = _factory.CreateClientComo(Roles.Admin);
 
         var respuesta = await client.PutAsJsonAsync($"/api/admin/productos/{Guid.NewGuid()}", new ProductoUpdateDTO { Precio = 750 });
 
@@ -116,7 +117,7 @@ public class AdminProductosControllerTests : IClassFixture<FidelixApiFactory>, I
     [Fact]
     public async Task AbmProducto_Update_WhenNombreBelongsToOther_Returns409Conflict()
     {
-        var client = _factory.CreateClient();
+        var client = _factory.CreateClientComo(Roles.Admin);
         var producto = await CrearProductoAsync(client);
         var otro = await CrearProductoAsync(client);
 
@@ -129,7 +130,7 @@ public class AdminProductosControllerTests : IClassFixture<FidelixApiFactory>, I
     [Fact]
     public async Task AbmProducto_Update_WithBlankNombre_Returns400BadRequest()
     {
-        var client = _factory.CreateClient();
+        var client = _factory.CreateClientComo(Roles.Admin);
         var producto = await CrearProductoAsync(client);
 
         var respuesta = await client.PutAsJsonAsync($"/api/admin/productos/{producto.Id}", new ProductoUpdateDTO { Nombre = "   " });
@@ -141,7 +142,7 @@ public class AdminProductosControllerTests : IClassFixture<FidelixApiFactory>, I
     [Fact]
     public async Task AbmProducto_Deactivate_WithExistingId_Returns200OK()
     {
-        var client = _factory.CreateClient();
+        var client = _factory.CreateClientComo(Roles.Admin);
         var producto = await CrearProductoAsync(client);
 
         var respuesta = await client.PatchAsync($"/api/admin/productos/{producto.Id}/desactivar", null);

@@ -1,15 +1,17 @@
 using FidelixAPI.BusinessLogic.Interfaces;
 using FidelixAPI.Shared.DTOs.Producto;
 using FidelixAPI.Shared.Exceptions;
+using FidelixAPI.Shared.Security;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FidelixAPI.API.Controllers;
 
 /// <summary>
-/// ABM de productos por el admin (CU-18). Todavía sin autenticación: cuando
-/// se implemente el login (CU-14) hay que agregar `[Authorize(Roles = "Admin")]`.
+/// ABM de productos por el admin (CU-18). Exige el token del login de admin (CU-14, RN-11).
 /// </summary>
 [ApiController]
+[Authorize(Roles = Roles.Admin)]
 [Route("api/admin/productos")]
 public class AdminProductosController(IProductoService productoService) : ControllerBase
 {

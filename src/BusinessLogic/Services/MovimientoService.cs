@@ -2,13 +2,14 @@ using System.Text.RegularExpressions;
 using FidelixAPI.BusinessLogic.Interfaces;
 using FidelixAPI.DataAccess.Entities;
 using FidelixAPI.DataAccess.Repositories.Interfaces;
+using FidelixAPI.Shared.DTOs.Comun;
 using FidelixAPI.Shared.DTOs.Movimiento;
 using FidelixAPI.Shared.Enums;
 using FidelixAPI.Shared.Exceptions;
 
 namespace FidelixAPI.BusinessLogic.Services;
 
-/// <summary> Implementación de IMovimientoService (CU-10). </summary>
+/// <summary> Implementación de IMovimientoService (CU-10, CU-20). </summary>
 public class MovimientoService(
     IClienteRepository clienteRepository,
     IProductoRepository productoRepository,
@@ -27,7 +28,7 @@ public class MovimientoService(
     /// los precios de los productos (2a, RN-26), aplica la regla vigente (RN-12) con el
     /// multiplicador Gold (N1), guarda el lote como pendiente 15 días (N2) y devuelve el saldo.
     /// </summary>
-    public async Task<AcumulacionResponseDTO> RegistrarAcumulacionAsync(AcumulacionCreateDTO dto)
+    public async Task<AcumulacionResponseDTO> RegistrarAcumulacionAsync(AcumulacionCreateDTO dto, Guid? empleadoId = null)
     {
         // 1. Formato del documento, antes de ir a la base (fail fast, flujo 3b).
         if (!FormatoDocumento.IsMatch(dto.ClienteDocumento))
@@ -66,6 +67,7 @@ public class MovimientoService(
             Fecha = ahora,
             FechaDisponible = fechaDisponible,
             FechaVencimiento = fechaDisponible.AddDays(regla.DiasVigenciaPuntos),
+            EmpleadoId = empleadoId,
             // Invariant: el detalle se guarda igual sin importar la configuración regional del servidor.
             Detalle = FormattableString.Invariant($"Compra por ${montoTotal} ({regla.PuntosPorMonto} pts/$ x{multiplicador})")
         };
@@ -95,6 +97,14 @@ public class MovimientoService(
             FechaVencimiento = movimiento.FechaVencimiento!.Value,
             SaldoDisponible = saldoDisponible
         };
+    }
+
+    /// <summary> Consulta del admin (CU-20): todos los tipos de movimiento (RN-06); vacío no es error (4a). </summary>
+    public async Task<ListadoResponseDTO<MovimientoResponseDTO>> ConsultarMovimientosAsync(MovimientoFiltroDTO filtro)
+    {
+        var movimientos = await movimientoRepository.BuscarAsync(filtro.ClienteId, filtro.TipoMovimiento, filtro.FechaDesde, filtro.FechaHasta);
+        var items = movimientos.Select(MovimientoMapper.ToResponseDTO).ToList();
+        return ListadoResponseDTO<MovimientoResponseDTO>.Crear(items, "No existen resultados para los filtros seleccionados");
     }
 
     /// <summary>

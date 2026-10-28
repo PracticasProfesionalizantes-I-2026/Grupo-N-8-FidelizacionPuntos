@@ -20,6 +20,12 @@ body:json {
   }
 }
 
+script:post-response {
+  if (res.status === 201) {
+    bru.setVar("canjeOnlineId", res.body.id);
+  }
+}
+
 tests {
   test("201 Created: 150 - 100 = 50 (FIFO)", function () {
     expect(res.status).to.equal(201);

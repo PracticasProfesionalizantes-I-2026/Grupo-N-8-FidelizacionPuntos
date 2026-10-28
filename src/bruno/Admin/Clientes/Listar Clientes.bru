@@ -1,0 +1,17 @@
+meta {
+  name: Listar Clientes
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/admin/clientes
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("200 OK", function () {
+    expect(res.status).to.equal(200);
+  });
+}

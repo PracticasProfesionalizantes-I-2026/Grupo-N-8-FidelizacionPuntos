@@ -1,0 +1,34 @@
+meta {
+  name: Crear Beneficio Barato
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/api/admin/beneficios
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenAdmin}}
+}
+
+body:json {
+  {
+    "nombre": "Beneficio Barato {{$randomInt}}",
+    "costoPuntos": 10
+  }
+}
+
+script:post-response {
+  if (res.status === 201) {
+    bru.setVar("beneficioBaratoId", res.body.id);
+  }
+}
+
+tests {
+  test("201 Created", function () {
+    expect(res.status).to.equal(201);
+  });
+}

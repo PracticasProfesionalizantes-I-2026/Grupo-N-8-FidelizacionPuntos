@@ -2,8 +2,8 @@
 
 > Especificación elaborada siguiendo la guía
 > `GUIA-Especificacion-Casos-de-Uso.md` (sección 3).
-> Regla de negocio RN-19 (consistencia con auditoría) **a implementar**; cada caso
-> borde debe contar con su test unitario e integración (ver matriz de
+> Regla de negocio RN-19 (consistencia con auditoría) **implementada**; cada caso
+> borde cuenta con su test unitario e integración (ver matriz de
 > trazabilidad).
 
 | Campo | Valor |
@@ -63,6 +63,17 @@ Permite al administrador generar reportes sobre la actividad del sistema
 ### 6. POSTCONDICIONES
 1. El reporte queda generado y disponible para el admin (visualización o
    descarga), sin que se modifique ningún dato persistente de origen.
+
+### 7. DETALLE DE IMPLEMENTACIÓN
+
+| Endpoint | Rol (token JWT) | Controller → Service |
+| --- | --- | --- |
+| `GET /api/admin/reportes?tipo&periodoDesde&periodoHasta` | Admin | `AdminReportesController.Generar → ReporteService.GenerarReporteAsync` |
+
+* Tipos: `Resumen` (puntos acumulados, de bono, canjeados y vencidos; clientes con movimientos) y `BeneficiosMasCanjeados` (además, el ranking).
+* **RN-19:** se calcula sobre los movimientos registrados (inmutables) e informa cuántos registros de auditoría hay en el período, para poder contrastar.
+* Los parámetros se validan en el DTO (`ReporteQueryDTO`, `IValidatableObject`): tipo inexistente, faltante o período invertido → 400. Si `periodoHasta` no trae hora, se incluye el día completo.
+* **Colección Bruno:** `bruno/Admin/Consultas/`.
 
 ---
 

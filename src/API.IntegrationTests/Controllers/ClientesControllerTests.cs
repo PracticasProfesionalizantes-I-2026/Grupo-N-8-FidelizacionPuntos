@@ -6,6 +6,8 @@ using FidelixAPI.DataAccess.Repositories.Interfaces;
 using FidelixAPI.DataAccess.Seed;
 using FidelixAPI.Shared.DTOs.Cliente;
 using FidelixAPI.Shared.DTOs.Movimiento;
+using FidelixAPI.Shared.Enums;
+using FidelixAPI.Shared.Security;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -113,7 +115,7 @@ public class ClientesControllerTests : IClassFixture<FidelixApiFactory>, IAsyncL
     [Fact]
     public async Task ConsultarSaldo_WithExistingCliente_Returns200OK()
     {
-        var client = _factory.CreateClient();
+        var client = _factory.CreateClientComo(Roles.Empleado);
 
         var respuesta = await client.GetAsync($"/api/clientes/{DbInitializer.ClienteDemoId}/saldo");
         var saldo = await respuesta.Content.ReadFromJsonAsync<SaldoResponseDTO>();
@@ -126,7 +128,7 @@ public class ClientesControllerTests : IClassFixture<FidelixApiFactory>, IAsyncL
     [Fact]
     public async Task ConsultarSaldo_WithNonExistentCliente_Returns404NotFound()
     {
-        var client = _factory.CreateClient();
+        var client = _factory.CreateClientComo(Roles.Empleado);
 
         var respuesta = await client.GetAsync($"/api/clientes/{Guid.NewGuid()}/saldo");
 
@@ -142,6 +144,7 @@ public class ClientesControllerTests : IClassFixture<FidelixApiFactory>, IAsyncL
             builder.ConfigureTestServices(services =>
                 services.AddScoped<IMovimientoRepository, MovimientoRepositoryQueFalla>()))
             .CreateClient();
+        _factory.Autenticar(client, Roles.Empleado);
 
         var respuesta = await client.GetAsync($"/api/clientes/{DbInitializer.ClienteDemoId}/saldo");
 
@@ -170,5 +173,16 @@ public class ClientesControllerTests : IClassFixture<FidelixApiFactory>, IAsyncL
 
         /// <summary>Simula una falla de conexión.</summary>
         public Task UpdateAsync(Movimiento entity) => throw new InvalidOperationException("Falla de conexión simulada");
+        /// <summary>Simula una falla de conexión.</summary>
+        public Task<IReadOnlyList<Movimiento>> BuscarAsync(Guid? clienteId, TipoMovimiento? tipo, DateTime? fechaDesde, DateTime? fechaHasta) =>
+            throw new InvalidOperationException("Falla de conexión simulada");
+
+        /// <summary>Simula una falla de conexión.</summary>
+        public Task<IReadOnlyList<Movimiento>> GetLotesVencidosAsync(DateTime fechaReferencia) =>
+            throw new InvalidOperationException("Falla de conexión simulada");
+
+        /// <summary>Simula una falla de conexión.</summary>
+        public Task<bool> ExisteBonoEnAnioAsync(Guid clienteId, int anio) =>
+            throw new InvalidOperationException("Falla de conexión simulada");
     }
 }

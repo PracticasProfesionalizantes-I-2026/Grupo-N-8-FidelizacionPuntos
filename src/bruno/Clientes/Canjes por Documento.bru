@@ -1,0 +1,21 @@
+meta {
+  name: Canjes por Documento
+  type: http
+  seq: 13
+}
+
+get {
+  url: {{baseUrl}}/api/clientes/40333444/canjes
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenEmpleado}}
+}
+
+tests {
+  test("200 OK (CU-13)", function () {
+    expect(res.status).to.equal(200);
+  });
+}

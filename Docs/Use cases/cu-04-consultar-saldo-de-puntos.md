@@ -2,8 +2,8 @@
 
 > Especificación elaborada siguiendo la guía
 > `GUIA-Especificacion-Casos-de-Uso.md` (sección 3).
-> Regla de negocio RN-05 (saldo neto, descontando vencidos) **a implementar**;
-> cada caso borde debe contar con su test unitario e integración (ver matriz de
+> Regla de negocio RN-05 (saldo neto, descontando vencidos) **implementada**;
+> cada caso borde cuenta con su test unitario e integración (ver matriz de
 > trazabilidad).
 
 | Campo | Valor |
@@ -51,6 +51,17 @@ _No aplica: consulta de lectura simple, sin variantes de mecanismo relevantes._
 
 ### 6. POSTCONDICIONES
 1. El cliente visualiza su saldo de puntos vigente y actualizado.
+
+### 7. DETALLE DE IMPLEMENTACIÓN
+
+| Endpoint | Rol (token JWT) | Controller → Service |
+| --- | --- | --- |
+| `GET /api/clientes/me/saldo` | Cliente | `ClientesController.ConsultarMiSaldo → ClienteService.ConsultarSaldoAsync` |
+| `GET /api/clientes/{id}/saldo` | Empleado, Admin | `ClientesController.ConsultarSaldo → ClienteService.ConsultarSaldoAsync` |
+
+* El cliente consulta su saldo con su propio token (el id sale del claim, no de la URL). La ruta por id quedó para el personal.
+* El saldo no incluye los puntos **pendientes** (N2, CU-10) ni los vencidos (RN-05).
+* **Colección Bruno:** `bruno/Clientes/`.
 
 ---
 

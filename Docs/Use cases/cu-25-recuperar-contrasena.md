@@ -6,7 +6,7 @@
 > en vez de triplicar el archivo.
 > Reglas de negocio RN-27 (código de recuperación de un solo uso y con
 > vencimiento corto) y RN-28 (la recuperación del empleado se envía al correo
-> del admin) **a implementar**; cada caso borde debe contar con su test
+> del admin) **implementadas**; cada caso borde cuenta con su test
 > unitario e integración (ver matriz de trazabilidad).
 
 | Campo | Valor |
@@ -33,16 +33,16 @@ contraseña.
 ### 3. FLUJO PRINCIPAL (Camino Feliz - HTTP 200)
 1. El Actor envía una petición `POST /api/auth/recuperar-contrasena` con su
    email (o documento, según el rol).
-2. La **Capa de Presentación** (`AuthController.SolicitarRecuperacion`) valida
+2. La **Capa de Presentación** (`AuthPersonalController.SolicitarRecuperacion`) valida
    que el JSON sea estructuralmente correcto.
-3. La **Capa de Negocio** (`AuthService.SolicitarRecuperacionAsync`) genera un
+3. La **Capa de Negocio** (`RecuperacionService.SolicitarRecuperacionAsync`) genera un
    código temporal de un solo uso, válido por un plazo corto (**RN-27**), y lo
    envía por email al destinatario que corresponda según el rol (ver
    Sub-variaciones).
 4. El Actor envía una segunda petición `POST
    /api/auth/recuperar-contrasena/confirmar` con el email, el código recibido
    y la nueva contraseña.
-5. La **Capa de Negocio** (`AuthService.ConfirmarRecuperacionAsync`) valida el
+5. La **Capa de Negocio** (`RecuperacionService.ConfirmarRecuperacionAsync`) valida el
    código (vigente, no usado previamente) y actualiza la contraseña.
 6. El Sistema devuelve un código **200 OK** confirmando el cambio de
    contraseña.
@@ -85,6 +85,19 @@ contraseña.
 ### 6. POSTCONDICIONES
 1. La contraseña de la cuenta queda actualizada.
 2. El código utilizado queda invalidado y no puede reutilizarse.
+
+### 7. DETALLE DE IMPLEMENTACIÓN
+
+| Endpoint | Rol (token JWT) | Controller → Service |
+| --- | --- | --- |
+| `POST /api/auth/recuperar-contrasena` | — (anónimo) | `AuthPersonalController.SolicitarRecuperacion → RecuperacionService.SolicitarRecuperacionAsync` |
+| `POST /api/auth/recuperar-contrasena/confirmar` | — (anónimo) | `AuthPersonalController.ConfirmarRecuperacion → RecuperacionService.ConfirmarRecuperacionAsync` |
+
+* **RN-27:** código de 6 dígitos (generador criptográfico), guardado **hasheado**, vence a los 15 minutos y es de un solo uso (al confirmar se invalidan todos los vigentes del email).
+* **RN-28:** si la cuenta es de un empleado, el código se envía a los admins.
+* El email se envía con `IEmailSender`; en desarrollo `LoggingEmailSender` lo escribe en la consola de la API (ahí se lee el código para la demo).
+* Al cambiar la contraseña de un cliente también se le quita el bloqueo por intentos fallidos (RN-03).
+* **Colección Bruno:** `bruno/Auth/`.
 
 ---
 

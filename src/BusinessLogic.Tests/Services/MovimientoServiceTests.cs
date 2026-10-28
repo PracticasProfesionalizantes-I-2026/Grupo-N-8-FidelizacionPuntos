@@ -120,4 +120,43 @@ public class MovimientoServiceTests
 
         await Assert.ThrowsAsync<PersistenceException>(() => _sut.RegistrarAcumulacionAsync(Compra()));
     }
+
+    /// <summary> CU-20: la consulta del admin devuelve acumulaciones y canjes (RN-06) con los filtros aplicados. </summary>
+    [Fact]
+    public async Task ConsultarMovimientosAsync_WithFilters_ReturnsAcumulacionesAndCanjes()
+    {
+        var desde = new DateTime(2026, 1, 1);
+        _movimientoRepo.Setup(r => r.BuscarAsync(_cliente.Id, null, desde, null)).ReturnsAsync([
+            new Movimiento { Tipo = TipoMovimiento.Acumulacion, Puntos = 100 },
+            new Movimiento { Tipo = TipoMovimiento.Canje, Puntos = -50 }
+        ]);
+
+        var resultado = await _sut.ConsultarMovimientosAsync(new MovimientoFiltroDTO { ClienteId = _cliente.Id, FechaDesde = desde });
+
+        Assert.Equal(["Acumulacion", "Canje"], resultado.Items.Select(m => m.Tipo));
+    }
+
+    /// <summary> CU-20, flujo 4a: sin resultados devuelve una lista vacía con mensaje. </summary>
+    [Fact]
+    public async Task ConsultarMovimientosAsync_WithNoMatches_ReturnsEmptyList()
+    {
+        _movimientoRepo.Setup(r => r.BuscarAsync(It.IsAny<Guid?>(), It.IsAny<TipoMovimiento?>(), It.IsAny<DateTime?>(), It.IsAny<DateTime?>()))
+            .ReturnsAsync([]);
+
+        var resultado = await _sut.ConsultarMovimientosAsync(new MovimientoFiltroDTO());
+
+        Assert.Empty(resultado.Items);
+        Assert.Equal("No existen resultados para los filtros seleccionados", resultado.Mensaje);
+    }
+
+    /// <summary> RF-28: la acumulación guarda qué empleado la registró. </summary>
+    [Fact]
+    public async Task RegistrarAcumulacionAsync_WithEmpleado_StoresEmpleadoId()
+    {
+        var empleadoId = Guid.NewGuid();
+
+        await _sut.RegistrarAcumulacionAsync(Compra(), empleadoId);
+
+        _movimientoRepo.Verify(r => r.CreateAsync(It.Is<Movimiento>(m => m.EmpleadoId == empleadoId)), Times.Once);
+    }
 }

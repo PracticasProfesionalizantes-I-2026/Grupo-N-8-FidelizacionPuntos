@@ -1,0 +1,17 @@
+meta {
+  name: Reporte - Periodo Invalido
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/api/admin/reportes?tipo=Resumen&periodoDesde=2026-12-31&periodoHasta=2026-01-01
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("400 Bad Request", function () {
+    expect(res.status).to.equal(400);
+  });
+}

@@ -2,8 +2,8 @@
 
 > Especificación elaborada siguiendo la guía
 > `GUIA-Especificacion-Casos-de-Uso.md` (sección 3).
-> Regla de negocio RN-11 (control de acceso por rol) **a implementar**; cada caso
-> borde debe contar con su test unitario e integración (ver matriz de
+> Regla de negocio RN-11 (control de acceso por rol) **implementada**; cada caso
+> borde cuenta con su test unitario e integración (ver matriz de
 > trazabilidad).
 
 | Campo | Valor |
@@ -27,11 +27,11 @@ operativas (acumulación de puntos, canje presencial, alta de clientes).
 1. El empleado se encuentra registrado en el sistema (CU-16) y activo.
 
 ### 3. FLUJO PRINCIPAL (Camino Feliz - HTTP 200)
-1. El Actor envía una petición al endpoint `POST /api/auth/login` con un JSON que
+1. El Actor envía una petición al endpoint `POST /api/auth/empleados/login` con un JSON que
    contiene sus credenciales (`email`, `password`).
-2. La **Capa de Presentación** (`AuthController.LoginEmpleado`) valida que el JSON
+2. La **Capa de Presentación** (`AuthPersonalController.LoginEmpleado`) valida que el JSON
    sea estructuralmente correcto.
-3. La **Capa de Negocio** (`AuthService.LoginEmpleadoAsync`) valida las
+3. La **Capa de Negocio** (`AuthPersonalService.LoginEmpleadoAsync`) valida las
    credenciales y verifica que la cuenta esté activa.
 4. El Sistema genera un token JWT firmado con los claims del empleado (Id, rol
    `Empleado`), limitando su alcance según **RN-11**.
@@ -67,6 +67,17 @@ de venta / panel operativo)._
 ### 6. POSTCONDICIONES
 1. El empleado queda autenticado en el sistema, con un token JWT cuyo alcance está
    restringido a las funcionalidades de su rol.
+
+### 7. DETALLE DE IMPLEMENTACIÓN
+
+| Endpoint | Rol (token JWT) | Controller → Service |
+| --- | --- | --- |
+| `POST /api/auth/empleados/login` | — (anónimo) | `AuthPersonalController.LoginEmpleado → AuthPersonalService.LoginEmpleadoAsync` |
+
+* Cada actor tiene su propio endpoint de login porque está en su propia tabla (`Clientes`, `Empleados`, `Admins`); el del cliente sigue siendo `POST /api/auth/login` (CU-02).
+* El token lleva el rol `Empleado`: habilita CU-10, CU-11, CU-12 y CU-13 y rechaza con 403 los endpoints de admin (RN-11).
+* Datos de prueba: `empleado@fidelix.local` / `Empleado123!` (activo) y `empleado.inactivo@fidelix.local` / `Inactivo123!` (dado de baja).
+* **Colección Bruno:** `bruno/Auth/`.
 
 ---
 

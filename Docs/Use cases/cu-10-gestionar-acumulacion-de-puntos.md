@@ -140,8 +140,9 @@ venta operado por el empleado)._
   pendientes 15 días.
 * **Datos de prueba:** el seed incluye un cliente Gold (`40111222`,
   `cliente.gold@fidelix.local` / `Gold1234!`).
-* **Versión futura:** registrar qué empleado hizo la acumulación (RN-13, RF-28)
-  cuando exista el login de empleado (CU-09).
+* **Autenticación y RF-28:** el endpoint exige el token del login de empleado (CU-09,
+  `[Authorize(Roles = "Empleado")]`); el movimiento guarda el `EmpleadoId` del token, y la
+  operación queda además en la auditoría (CU-21).
 * **Colección Bruno:** `bruno/Movimientos/`.
 
 ---

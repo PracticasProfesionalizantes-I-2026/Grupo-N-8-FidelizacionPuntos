@@ -2,8 +2,8 @@
 
 > Especificación elaborada siguiendo la guía
 > `GUIA-Especificacion-Casos-de-Uso.md` (sección 3).
-> Regla de negocio RN-06 (incluir acumulaciones y canjes) **a implementar**; cada
-> caso borde debe contar con su test unitario e integración (ver matriz de
+> Regla de negocio RN-06 (incluir acumulaciones y canjes) **implementada**; cada
+> caso borde cuenta con su test unitario e integración (ver matriz de
 > trazabilidad).
 
 | Campo | Valor |
@@ -60,6 +60,15 @@ _No aplica: consulta de lectura simple, sin variantes de mecanismo relevantes._
 ### 6. POSTCONDICIONES
 1. El admin visualiza los movimientos solicitados, sin que se modifique ningún
    dato persistente.
+
+### 7. DETALLE DE IMPLEMENTACIÓN
+
+| Endpoint | Rol (token JWT) | Controller → Service |
+| --- | --- | --- |
+| `GET /api/admin/movimientos?clienteId&tipoMovimiento&fechaDesde&fechaHasta` | Admin | `AdminMovimientosController.Consultar → MovimientoService.ConsultarMovimientosAsync` |
+
+* Usa el mismo método de repositorio que el historial del cliente (`MovimientoRepository.BuscarAsync`), sin fijar el cliente. Cada movimiento muestra, si corresponde, el empleado que lo registró (RF-28).
+* **Colección Bruno:** `bruno/Admin/Consultas/`.
 
 ---
 

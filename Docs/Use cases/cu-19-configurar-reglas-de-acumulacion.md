@@ -107,8 +107,8 @@ administración web)._
   rechazan (400), con un índice único en `VigenciaDesde` como respaldo en la base.
 * **Auditoría (RN-13):** el historial de versiones más `FechaCreacion` y
   `FechaModificacion` deja registrado qué regla regía en cada momento. Registrar
-  **qué admin** hizo el cambio queda para una versión futura, cuando exista el
-  login de admin (CU-14).
+  **qué admin** hizo el cambio lo registra la auditoría (CU-21): los endpoints exigen el
+  token del login de admin (CU-14) y cada alta o modificación queda con el id del admin.
 * **Datos iniciales:** el seed carga una regla vigente desde hace 30 días
   (`0.1` puntos por $1 y 180 días de vigencia), que es la que usa CU-10.
 * **Colección Bruno:** `bruno/Admin/Reglas Acumulacion/` (alta con fecha al azar,

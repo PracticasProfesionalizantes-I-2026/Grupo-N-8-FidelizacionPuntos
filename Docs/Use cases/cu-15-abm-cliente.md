@@ -3,7 +3,7 @@
 > Especificación elaborada siguiendo la guía
 > `GUIA-Especificacion-Casos-de-Uso.md` (sección 3).
 > Reglas de negocio RN-01 (documento/email único) y RN-14 (cliente inactivo sin
-> acumulación/canje) **a implementar**; cada caso borde debe contar con su test
+> acumulación/canje) **implementadas**; cada caso borde cuenta con su test
 > unitario e integración (ver matriz de trazabilidad).
 
 | Campo | Valor |
@@ -76,6 +76,19 @@ panel de administración.
    según la operación realizada.
 2. Un cliente dado de baja queda inhabilitado para acumular (CU-10) y canjear
    (CU-07, CU-11) puntos (**RN-14**).
+
+### 7. DETALLE DE IMPLEMENTACIÓN
+
+| Endpoint | Rol (token JWT) | Controller → Service |
+| --- | --- | --- |
+| `GET /api/admin/clientes` | Admin | `AdminClientesController.Listar → ClienteAdminService.ListarClientesAsync` |
+| `POST /api/admin/clientes` | Admin | `AdminClientesController.Crear → ClienteAdminService.CrearClienteAsync` |
+| `PUT /api/admin/clientes/{id}` | Admin | `AdminClientesController.Actualizar → ClienteAdminService.ActualizarClienteAsync` |
+| `DELETE /api/admin/clientes/{id}` | Admin | `AdminClientesController.Baja → ClienteAdminService.BajaClienteAsync` |
+
+* En la modificación el admin puede cambiar la **categoría** (`0` = Estándar, `1` = Gold): así un cliente pasa a acumular x1.5 (N1, CU-10).
+* La baja es lógica (RN-14): el historial de movimientos se conserva.
+* **Colección Bruno:** `bruno/Admin/Clientes/`.
 
 ---
 

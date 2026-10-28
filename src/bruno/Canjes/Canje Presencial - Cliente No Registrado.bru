@@ -1,0 +1,28 @@
+meta {
+  name: Canje Presencial - Cliente No Registrado
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{baseUrl}}/api/canjes/presencial
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenEmpleado}}
+}
+
+body:json {
+  {
+    "clienteDocumento": "99999999",
+    "beneficioId": "{{beneficioBaratoId}}"
+  }
+}
+
+tests {
+  test("404 Not Found", function () {
+    expect(res.status).to.equal(404);
+  });
+}

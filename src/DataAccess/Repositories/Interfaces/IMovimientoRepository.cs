@@ -1,4 +1,5 @@
 using FidelixAPI.DataAccess.Entities;
+using FidelixAPI.Shared.Enums;
 
 namespace FidelixAPI.DataAccess.Repositories.Interfaces;
 
@@ -17,4 +18,18 @@ public interface IMovimientoRepository : IRepositorioBase<Movimiento>
     /// el canje (CU-07) les descuenta puntos por FIFO y los guarda en la misma transacción.
     /// </summary>
     Task<IReadOnlyList<Movimiento>> GetLotesParaCanjeAsync(Guid clienteId, DateTime fechaReferencia);
+
+    /// <summary>
+    /// Movimientos que cumplen todos los filtros informados (los `null` no filtran), en orden
+    /// cronológico (RN-06), con el beneficio cargado para mostrar su nombre en los canjes.
+    /// Solo lectura: lo usan el historial (CU-05), los canjes (CU-08, CU-13), la consulta del
+    /// admin (CU-20) y los reportes (CU-24).
+    /// </summary>
+    Task<IReadOnlyList<Movimiento>> BuscarAsync(Guid? clienteId, TipoMovimiento? tipo, DateTime? fechaDesde, DateTime? fechaHasta);
+
+    /// <summary>Lotes con puntos sin consumir cuya fecha de vencimiento ya pasó, con tracking (CU-22 los deja en 0).</summary>
+    Task<IReadOnlyList<Movimiento>> GetLotesVencidosAsync(DateTime fechaReferencia);
+
+    /// <summary>Indica si el cliente ya recibió el bono de cumpleaños en ese año (RN-29, CU-26).</summary>
+    Task<bool> ExisteBonoEnAnioAsync(Guid clienteId, int anio);
 }

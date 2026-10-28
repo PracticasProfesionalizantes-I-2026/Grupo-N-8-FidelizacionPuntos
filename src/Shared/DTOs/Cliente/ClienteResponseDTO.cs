@@ -1,3 +1,5 @@
+using FidelixAPI.Shared.Enums;
+
 namespace FidelixAPI.Shared.DTOs.Cliente;
 
 /// <summary>
@@ -15,4 +17,7 @@ public class ClienteResponseDTO
     public bool Activo { get; set; }
     public DateTime FechaRegistro { get; set; }
     public string[] Roles { get; set; } = new string[0];
+
+    /// <summary>Categoría del cliente (N1: Gold acumula x1.5).</summary>
+    public CategoriaCliente Categoria { get; set; }
 }

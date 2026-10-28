@@ -1,0 +1,25 @@
+meta {
+  name: Crear Cliente - Duplicado
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/admin/clientes
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "nombre": "Repetido",
+    "documento": "40333444",
+    "email": "repetido@fidelix.local"
+  }
+}
+
+tests {
+  test("409 Conflict (RN-01)", function () {
+    expect(res.status).to.equal(409);
+  });
+}

@@ -2,8 +2,7 @@
 
 > Especificación elaborada siguiendo la guía
 > `GUIA-Especificacion-Casos-de-Uso.md` (sección 3).
-> Regla de negocio RN-01 (documento único) **a implementar**; cada caso borde debe
-> contar con su test unitario e integración (ver matriz de trazabilidad).
+> Regla de negocio RN-01 (documento único) **implementada**; cada caso borde cuenta con su test unitario e integración (ver matriz de trazabilidad).
 
 | Campo | Valor |
 | --- | --- |
@@ -62,6 +61,15 @@ _No aplica: el alta desde el punto de venta se realiza por un único canal
 ### 6. POSTCONDICIONES
 1. El cliente queda registrado en el sistema con saldo de puntos inicial en cero,
    disponible de inmediato para acumular puntos (CU-10).
+
+### 7. DETALLE DE IMPLEMENTACIÓN
+
+| Endpoint | Rol (token JWT) | Controller → Service |
+| --- | --- | --- |
+| `POST /api/clientes` | Empleado | `ClientesController.CrearDesdePOS → ClienteService.CrearClienteDesdePOSAsync` |
+
+* El cliente se crea **sin contraseña**: la define después con la recuperación de contraseña (CU-25). Hasta entonces el login le responde 401.
+* **Colección Bruno:** `bruno/Clientes/ (Crear Cliente POS)`.
 
 ---
 

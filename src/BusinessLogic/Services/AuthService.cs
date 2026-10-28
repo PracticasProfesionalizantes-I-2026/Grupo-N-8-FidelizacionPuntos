@@ -87,7 +87,8 @@ public class AuthService(ITokenService tokenService, IClienteRepository clienteR
             FechaNacimiento = c.FechaNacimiento,
             Activo = c.Activo,
             FechaRegistro = c.FechaRegistro,
-            Roles = new string[] { RolCliente }
+            Roles = new string[] { RolCliente },
+            Categoria = c.Categoria
         }
     };
 }
