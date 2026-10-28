@@ -1,0 +1,23 @@
+meta {
+  name: Canjear Beneficio - Sin Token
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/api/canjes
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "beneficioId": "{{beneficioCanjeId}}"
+  }
+}
+
+tests {
+  test("401 Unauthorized", function () {
+    expect(res.status).to.equal(401);
+  });
+}

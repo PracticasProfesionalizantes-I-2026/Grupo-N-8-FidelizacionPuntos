@@ -55,6 +55,21 @@ public static class DbInitializer
             Activo = false
         };
 
+        // Cliente Gold (N1): acumula x1.5. Sin movimientos, para ver en la demo que
+        // sus puntos nuevos quedan pendientes 15 días (N2) y todavía no se pueden canjear.
+        var clienteGold = new Cliente
+        {
+            Id = Guid.NewGuid(),
+            Nombre = "Cliente Gold",
+            Documento = "40111222",
+            Email = "cliente.gold@fidelix.local",
+            PasswordHash = PasswordHasher.Hash("Gold1234!"),
+            Telefono = "1135550000",
+            FechaNacimiento = new DateTime(1990, 2, 20, 0, 0, 0, DateTimeKind.Utc),
+            Activo = true,
+            Categoria = CategoriaCliente.Gold
+        };
+
         var beneficios = new List<Beneficio>
         {
             new() { Id = Guid.NewGuid(), Nombre = "Descuento 10%", Descripcion = "10% de descuento en la próxima compra", CostoPuntos = 100, Categoria = CategoriaBeneficio.Descuento, Activo = true },
@@ -84,6 +99,7 @@ public static class DbInitializer
 
         context.Clientes.Add(cliente);
         context.Clientes.Add(clienteInactivo);
+        context.Clientes.Add(clienteGold);
         context.Beneficios.AddRange(beneficios);
         context.Movimientos.AddRange(movimientos);
         context.ReglasAcumulacion.Add(regla);

@@ -1,0 +1,27 @@
+meta {
+  name: Canjear Beneficio - No Encontrado
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/api/canjes
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenCliente}}
+}
+
+body:json {
+  {
+    "beneficioId": "00000000-0000-0000-0000-000000000000"
+  }
+}
+
+tests {
+  test("404 Not Found", function () {
+    expect(res.status).to.equal(404);
+  });
+}

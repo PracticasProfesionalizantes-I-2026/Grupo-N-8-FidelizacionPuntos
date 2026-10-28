@@ -1,0 +1,26 @@
+meta {
+  name: Registrar Acumulacion - Documento Invalido
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/movimientos/acumulaciones
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "clienteDocumento": "abc123",
+    "items": [
+      { "productoId": "{{productoCompraId}}", "cantidad": 2 }
+    ]
+  }
+}
+
+tests {
+  test("400 Bad Request", function () {
+    expect(res.status).to.equal(400);
+  });
+}

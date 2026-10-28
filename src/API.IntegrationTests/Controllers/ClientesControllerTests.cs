@@ -156,6 +156,10 @@ public class ClientesControllerTests : IClassFixture<FidelixApiFactory>, IAsyncL
             throw new InvalidOperationException("Falla de conexión simulada");
 
         /// <summary>Simula una falla de conexión.</summary>
+        public Task<IReadOnlyList<Movimiento>> GetLotesParaCanjeAsync(Guid clienteId, DateTime fechaReferencia) =>
+            throw new InvalidOperationException("Falla de conexión simulada");
+
+        /// <summary>Simula una falla de conexión.</summary>
         public Task<Movimiento?> GetByIdAsync(Guid id) => throw new InvalidOperationException("Falla de conexión simulada");
 
         /// <summary>Simula una falla de conexión.</summary>

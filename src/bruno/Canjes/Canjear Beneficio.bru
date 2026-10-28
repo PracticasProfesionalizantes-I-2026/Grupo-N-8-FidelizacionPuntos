@@ -1,0 +1,29 @@
+meta {
+  name: Canjear Beneficio
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/canjes
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenCliente}}
+}
+
+body:json {
+  {
+    "beneficioId": "{{beneficioCanjeId}}"
+  }
+}
+
+tests {
+  test("201 Created: 150 - 100 = 50 (FIFO)", function () {
+    expect(res.status).to.equal(201);
+    expect(res.body.saldoRestante).to.equal(50);
+    expect(res.body.estado).to.equal("Pendiente");
+  });
+}

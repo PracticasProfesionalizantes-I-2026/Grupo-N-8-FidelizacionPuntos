@@ -7,4 +7,7 @@ public interface IReglaAcumulacionRepository : IRepositorioBase<ReglaAcumulacion
 {
     /// <summary>Busca la versión que empieza exactamente en esa fecha (RN-18, superposición).</summary>
     Task<ReglaAcumulacion?> GetByVigenciaDesdeAsync(DateTime vigenciaDesde);
+
+    /// <summary>Versión vigente en una fecha: la de `VigenciaDesde` más reciente que ya empezó (RN-12, RN-18). `null` si no hay ninguna.</summary>
+    Task<ReglaAcumulacion?> GetVigenteAsync(DateTime fecha);
 }

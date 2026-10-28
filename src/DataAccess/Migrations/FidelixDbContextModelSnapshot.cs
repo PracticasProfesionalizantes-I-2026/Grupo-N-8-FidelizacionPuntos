@@ -59,6 +59,9 @@ namespace FidelixAPI.DataAccess.Migrations
                     b.Property<DateTime?>("BloqueadoHasta")
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("Categoria")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Documento")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -113,6 +116,9 @@ namespace FidelixAPI.DataAccess.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("Fecha")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("FechaDisponible")
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("FechaVencimiento")

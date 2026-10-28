@@ -76,8 +76,8 @@ El catálogo del sistema define cuatro niveles de complejidad sobre las reglas b
 
 | Nivel | Regla | Casos de uso afectados | Estado |
 | --- | --- | --- | --- |
-| **N1** | Los clientes de categoría **Gold** acumulan puntos con un multiplicador **x1.5**. | CU-10 | En desarrollo (v1.0) |
-| **N2** | Los puntos acumulados quedan en estado **Pendiente** durante **15 días** antes de ser canjeables. | CU-10 (los registra como pendientes), CU-07 (solo canjea puntos disponibles) | En desarrollo (v1.0) |
+| **N1** | Los clientes de categoría **Gold** acumulan puntos con un multiplicador **x1.5**. | CU-10 | **Implementado (v1.0)**: `MovimientoService`, categoría `Gold` en `Cliente` |
+| **N2** | Los puntos acumulados quedan en estado **Pendiente** durante **15 días** antes de ser canjeables. | CU-10 (los registra como pendientes), CU-07 (solo canjea puntos disponibles) | **Implementado (v1.0)**: `Movimiento.FechaDisponible`; el saldo y el FIFO ignoran los lotes pendientes |
 | **N3** | **Pozo familiar**: varios clientes comparten un saldo común y solo el **Titular** de la familia puede canjear. | Ninguno en la versión actual (requiere un nuevo CU y la entidad Familia) | Versión futura |
 | **N4** | **Penalidad por inactividad**: tras **6 meses** sin movimientos, el saldo se reduce un **10%**. | Ninguno en la versión actual | Versión futura |
 
@@ -101,20 +101,20 @@ El catálogo del sistema define cuatro niveles de complejidad sobre las reglas b
 
 **Compras:**
 
-* **RF-07:** El sistema debe permitir registrar compras asociadas a clientes mediante carga manual
-* **RF-08:** El sistema debe acreditar automáticamente los puntos correspondientes según la compra realizada.
+* **RF-07:** El sistema debe permitir registrar compras asociadas a clientes mediante carga manual. *(CU-10)*
+* **RF-08:** El sistema debe acreditar automáticamente los puntos correspondientes según la compra realizada (RN-12, RN-13). *(CU-10)*
 
 **Puntos:**
 
 * **RF-09:** El sistema debe gestionar el historial y disponibilidad de puntos de cada cliente.  
 * **RF-10:** El sistema debe acreditar automáticamente un bono de puntos a los clientes activos en la fecha de su cumpleaños, una vez por año, mediante un proceso batch programado (RN-29). *(CU-26)*
-* **RF-11:** El sistema debe validar las reglas de negocio correspondientes al canje de puntos.
+* **RF-11:** El sistema debe validar las reglas de negocio correspondientes al canje de puntos (RN-08, RN-17). *(CU-07)*
 
 **Canje:**
 
-* **RF-12:** El sistema debe permitir el canje de puntos por beneficios definidos.  
-* **RF-13:** El sistema debe gestionar automáticamente las validaciones y registros correspondientes al proceso de canje.
-* **RF-14:** El sistema debe aplicar metodo FIFO en los canjes respecto
+* **RF-12:** El sistema debe permitir el canje de puntos por beneficios definidos. *(CU-07)*  
+* **RF-13:** El sistema debe gestionar automáticamente las validaciones y registros correspondientes al proceso de canje. *(CU-07)*
+* **RF-14:** El sistema debe aplicar metodo FIFO en los canjes respecto de la antigüedad de los lotes de puntos (RN-09). *(CU-07, CU-23)*
 
 **Admin:**
 * **RF-15:** El sistema debe permitir iniciar sesion al admin  

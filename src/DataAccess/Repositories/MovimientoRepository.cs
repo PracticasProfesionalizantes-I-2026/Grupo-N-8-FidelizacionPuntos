@@ -18,18 +18,31 @@ public class MovimientoRepository(FidelixDbContext context) : IMovimientoReposit
         await context.Movimientos.AsNoTracking().ToListAsync();
 
     /// <summary>
-    /// Lotes de acumulación/bono no vencidos y con saldo propio sin agotar,
-    /// del más antiguo al más nuevo (RN-09). Solo lectura (`AsNoTracking`):
-    /// hoy solo se usa para calcular el saldo (CU-04), no para modificar lotes.
+    /// Lotes de acumulación/bono no vencidos, ya disponibles (N2) y con saldo propio
+    /// sin agotar, del más antiguo al más nuevo (RN-09). Solo lectura (`AsNoTracking`):
+    /// se usa para calcular el saldo (CU-04, CU-10).
     /// </summary>
     public async Task<IReadOnlyList<Movimiento>> GetLotesVigentesPorClienteAsync(Guid clienteId, DateTime fechaReferencia) =>
-        await context.Movimientos.AsNoTracking()
+        await LotesVigentes(clienteId, fechaReferencia).AsNoTracking().ToListAsync();
+
+    /// <summary>Mismos lotes, con tracking: el canje (CU-07) los modifica por FIFO y los guarda junto con el canje.</summary>
+    public async Task<IReadOnlyList<Movimiento>> GetLotesParaCanjeAsync(Guid clienteId, DateTime fechaReferencia) =>
+        await LotesVigentes(clienteId, fechaReferencia).ToListAsync();
+
+    /// <summary>
+    /// Consulta común a los dos métodos de lotes (se arma una sola vez para que el saldo
+    /// y el canje usen exactamente el mismo criterio): lotes del cliente, de tipo
+    /// acumulación/bono, con puntos sin consumir, no vencidos (RN-05/RN-21) y ya
+    /// disponibles (N2), ordenados del más antiguo al más nuevo (FIFO, RN-09).
+    /// </summary>
+    private IQueryable<Movimiento> LotesVigentes(Guid clienteId, DateTime fechaReferencia) =>
+        context.Movimientos
             .Where(m => m.ClienteId == clienteId
                      && (m.Tipo == TipoMovimiento.Acumulacion || m.Tipo == TipoMovimiento.BonoCumpleanos)
                      && m.PuntosDisponibles > 0
-                     && (m.FechaVencimiento == null || m.FechaVencimiento >= fechaReferencia))
-            .OrderBy(m => m.Fecha)
-            .ToListAsync();
+                     && (m.FechaVencimiento == null || m.FechaVencimiento >= fechaReferencia)
+                     && (m.FechaDisponible == null || m.FechaDisponible <= fechaReferencia))
+            .OrderBy(m => m.Fecha);
 
     /// <summary>Asigna un nuevo Id y persiste el movimiento.</summary>
     public async Task<Movimiento> CreateAsync(Movimiento entity)

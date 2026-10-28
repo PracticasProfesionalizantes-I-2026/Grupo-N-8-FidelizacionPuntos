@@ -1,0 +1,28 @@
+meta {
+  name: Registrar Acumulacion - Cliente Gold
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/movimientos/acumulaciones
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "clienteDocumento": "40111222",
+    "items": [
+      { "productoId": "{{productoCompraId}}", "cantidad": 2 }
+    ]
+  }
+}
+
+tests {
+  test("201 Created: Gold x1.5 = 300 puntos (N1)", function () {
+    expect(res.status).to.equal(201);
+    expect(res.body.multiplicador).to.equal(1.5);
+    expect(res.body.puntosAcreditados).to.equal(300);
+  });
+}

@@ -1,0 +1,30 @@
+meta {
+  name: Crear Beneficio para Canje
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/admin/beneficios
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "nombre": "Beneficio Canje {{$randomInt}}",
+    "costoPuntos": 100
+  }
+}
+
+script:post-response {
+  if (res.status === 201) {
+    bru.setVar("beneficioCanjeId", res.body.id);
+  }
+}
+
+tests {
+  test("201 Created", function () {
+    expect(res.status).to.equal(201);
+  });
+}

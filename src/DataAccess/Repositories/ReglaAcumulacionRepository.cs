@@ -20,6 +20,13 @@ public class ReglaAcumulacionRepository(FidelixDbContext context) : IReglaAcumul
     public Task<ReglaAcumulacion?> GetByVigenciaDesdeAsync(DateTime vigenciaDesde) =>
         context.ReglasAcumulacion.AsNoTracking().FirstOrDefaultAsync(r => r.VigenciaDesde == vigenciaDesde);
 
+    /// <summary>Versión vigente en esa fecha, en modo solo lectura (la usa CU-10 para calcular los puntos).</summary>
+    public Task<ReglaAcumulacion?> GetVigenteAsync(DateTime fecha) =>
+        context.ReglasAcumulacion.AsNoTracking()
+            .Where(r => r.VigenciaDesde <= fecha)
+            .OrderByDescending(r => r.VigenciaDesde)
+            .FirstOrDefaultAsync();
+
     /// <summary>Asigna un nuevo Id y persiste la regla.</summary>
     public async Task<ReglaAcumulacion> CreateAsync(ReglaAcumulacion entity)
     {

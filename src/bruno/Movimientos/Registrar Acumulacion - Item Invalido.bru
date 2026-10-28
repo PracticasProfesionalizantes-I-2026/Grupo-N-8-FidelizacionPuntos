@@ -1,0 +1,26 @@
+meta {
+  name: Registrar Acumulacion - Item Invalido
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/api/movimientos/acumulaciones
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "clienteDocumento": "40333444",
+    "items": [
+      { "productoId": "00000000-0000-0000-0000-000000000000", "cantidad": 2 }
+    ]
+  }
+}
+
+tests {
+  test("400 Bad Request", function () {
+    expect(res.status).to.equal(400);
+  });
+}

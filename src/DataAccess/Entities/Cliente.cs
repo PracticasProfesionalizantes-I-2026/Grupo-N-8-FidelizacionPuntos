@@ -1,3 +1,5 @@
+using FidelixAPI.Shared.Enums;
+
 namespace FidelixAPI.DataAccess.Entities;
 
 /// <summary>
@@ -18,6 +20,9 @@ public class Cliente : EntidadBase
     public DateTime? FechaNacimiento { get; set; }
     public DateTime FechaRegistro { get; set; } = DateTime.UtcNow;
     public bool Activo { get; set; } = true;
+
+    /// <summary>Categoría del cliente: define el multiplicador al acumular puntos (N1: Gold x1.5, CU-10).</summary>
+    public CategoriaCliente Categoria { get; set; } = CategoriaCliente.Estandar;
 
     /// <summary>Cantidad de intentos fallidos consecutivos de login (RN-03). Vuelve a 0 con un login exitoso.</summary>
     public int IntentosFallidos { get; set; }

@@ -1,0 +1,27 @@
+meta {
+  name: Canjear Beneficio - Datos Faltantes
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/api/canjes
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenCliente}}
+}
+
+body:json {
+  {
+
+  }
+}
+
+tests {
+  test("400 Bad Request", function () {
+    expect(res.status).to.equal(400);
+  });
+}

@@ -1,0 +1,27 @@
+meta {
+  name: Canjear Beneficio - Saldo Insuficiente
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/canjes
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenCliente}}
+}
+
+body:json {
+  {
+    "beneficioId": "{{beneficioCanjeId}}"
+  }
+}
+
+tests {
+  test("409 Conflict (RN-08)", function () {
+    expect(res.status).to.equal(409);
+  });
+}

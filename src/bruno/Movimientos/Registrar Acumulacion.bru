@@ -1,0 +1,27 @@
+meta {
+  name: Registrar Acumulacion
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/movimientos/acumulaciones
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "clienteDocumento": "40333444",
+    "items": [
+      { "productoId": "{{productoCompraId}}", "cantidad": 2 }
+    ]
+  }
+}
+
+tests {
+  test("201 Created: $2000 x 0.1 = 200 puntos", function () {
+    expect(res.status).to.equal(201);
+    expect(res.body.puntosAcreditados).to.equal(200);
+  });
+}
