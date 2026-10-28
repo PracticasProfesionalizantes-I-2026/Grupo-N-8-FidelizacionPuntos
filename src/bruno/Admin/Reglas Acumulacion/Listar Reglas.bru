@@ -1,0 +1,17 @@
+meta {
+  name: Listar Reglas
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/api/admin/reglas-acumulacion
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("200 OK", function () {
+    expect(res.status).to.equal(200);
+  });
+}

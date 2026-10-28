@@ -1,0 +1,38 @@
+meta {
+  name: Crear Regla
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/admin/reglas-acumulacion
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "puntosPorMonto": 0.2,
+    "vigenciaDesde": "{{vigenciaDesde}}",
+    "diasVigenciaPuntos": 90
+  }
+}
+
+script:pre-request {
+  // Fecha futura al azar: así se puede correr la carpeta varias veces sin chocar con RN-18.
+  const fecha = new Date();
+  fecha.setDate(fecha.getDate() + 1 + Math.floor(Math.random() * 36500));
+  bru.setVar("vigenciaDesde", fecha.toISOString().slice(0, 10));
+}
+
+script:post-response {
+  if (res.status === 201) {
+    bru.setVar("reglaAdminId", res.body.id);
+  }
+}
+
+tests {
+  test("201 Created", function () {
+    expect(res.status).to.equal(201);
+  });
+}

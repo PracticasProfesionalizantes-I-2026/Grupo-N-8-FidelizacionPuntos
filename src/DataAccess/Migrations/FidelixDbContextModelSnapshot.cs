@@ -163,6 +163,35 @@ namespace FidelixAPI.DataAccess.Migrations
                     b.ToTable("Productos");
                 });
 
+            modelBuilder.Entity("FidelixAPI.DataAccess.Entities.ReglaAcumulacion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("DiasVigenciaPuntos")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("FechaModificacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("PuntosPorMonto")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("VigenciaDesde")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VigenciaDesde")
+                        .IsUnique();
+
+                    b.ToTable("ReglasAcumulacion");
+                });
+
             modelBuilder.Entity("FidelixAPI.DataAccess.Entities.Movimiento", b =>
                 {
                     b.HasOne("FidelixAPI.DataAccess.Entities.Beneficio", "Beneficio")

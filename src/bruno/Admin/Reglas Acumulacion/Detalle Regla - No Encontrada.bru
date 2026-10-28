@@ -1,0 +1,17 @@
+meta {
+  name: Detalle Regla - No Encontrada
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/api/admin/reglas-acumulacion/00000000-0000-0000-0000-000000000000
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("404 Not Found", function () {
+    expect(res.status).to.equal(404);
+  });
+}

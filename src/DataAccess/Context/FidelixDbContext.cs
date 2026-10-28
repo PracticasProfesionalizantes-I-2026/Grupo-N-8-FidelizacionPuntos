@@ -15,8 +15,9 @@ public class FidelixDbContext(DbContextOptions<FidelixDbContext> options) : DbCo
     public DbSet<Beneficio> Beneficios => Set<Beneficio>();
     public DbSet<Movimiento> Movimientos => Set<Movimiento>();
     public DbSet<Producto> Productos => Set<Producto>();
+    public DbSet<ReglaAcumulacion> ReglasAcumulacion => Set<ReglaAcumulacion>();
 
-    /// <summary>Configura índices únicos (RN-01, RN-23, RN-24) y relaciones sin borrado en cascada.</summary>
+    /// <summary>Configura índices únicos (RN-01, RN-18, RN-23, RN-24) y relaciones sin borrado en cascada.</summary>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -26,6 +27,9 @@ public class FidelixDbContext(DbContextOptions<FidelixDbContext> options) : DbCo
         modelBuilder.Entity<Cliente>().HasIndex(c => c.Email).IsUnique();
         modelBuilder.Entity<Beneficio>().HasIndex(b => b.Nombre).IsUnique();
         modelBuilder.Entity<Producto>().HasIndex(p => p.Nombre).IsUnique();
+
+        // --- RN-18: una sola versión de la regla de acumulación por fecha de inicio ---
+        modelBuilder.Entity<ReglaAcumulacion>().HasIndex(r => r.VigenciaDesde).IsUnique();
 
         // --- Movimiento: hijo de Cliente y Beneficio, nunca los arrastra en su baja ---
         modelBuilder.Entity<Movimiento>()

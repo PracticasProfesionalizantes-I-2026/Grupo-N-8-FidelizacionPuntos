@@ -71,10 +71,22 @@ public static class DbInitializer
             new() { Id = Guid.NewGuid(), ClienteId = ClienteDemoId, Tipo = TipoMovimiento.Acumulacion, Puntos = 80, PuntosDisponibles = 80, Fecha = hoy.AddDays(-10), FechaVencimiento = hoy.AddDays(-3), Detalle = "Compra de prueba (lote vencido)" }
         };
 
+        // Regla de acumulación vigente desde hace un mes (CU-19): 1 punto cada $10 y
+        // los puntos vencen a los 180 días. Es la que va a usar CU-10 al acumular.
+        var regla = new ReglaAcumulacion
+        {
+            Id = Guid.NewGuid(),
+            PuntosPorMonto = 0.1m,
+            VigenciaDesde = hoy.Date.AddDays(-30),
+            DiasVigenciaPuntos = 180,
+            FechaCreacion = hoy
+        };
+
         context.Clientes.Add(cliente);
         context.Clientes.Add(clienteInactivo);
         context.Beneficios.AddRange(beneficios);
         context.Movimientos.AddRange(movimientos);
+        context.ReglasAcumulacion.Add(regla);
 
         await context.SaveChangesAsync();
     }

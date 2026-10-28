@@ -21,6 +21,7 @@ builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
 builder.Services.AddScoped<IBeneficioRepository, BeneficioRepository>();
 builder.Services.AddScoped<IMovimientoRepository, MovimientoRepository>();
 builder.Services.AddScoped<IProductoRepository, ProductoRepository>();
+builder.Services.AddScoped<IReglaAcumulacionRepository, ReglaAcumulacionRepository>();
 
 // Servicios (BusinessLogic): inyectados por interfaz en los controllers.
 builder.Services.AddScoped<IClienteService, ClienteService>();
@@ -28,6 +29,7 @@ builder.Services.AddScoped<IBeneficioService, BeneficioService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenService, JwtTokenService>();
 builder.Services.AddScoped<IProductoService, ProductoService>();
+builder.Services.AddScoped<IReglaAcumulacionService, ReglaAcumulacionService>();
 
 var app = builder.Build();
 

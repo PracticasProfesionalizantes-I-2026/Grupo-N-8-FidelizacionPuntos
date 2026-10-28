@@ -3,8 +3,8 @@
 > Especificación elaborada siguiendo la guía
 > `GUIA-Especificacion-Casos-de-Uso.md` (sección 3).
 > Reglas de negocio RN-18 (versión activa única) y RN-13 (trazabilidad para
-> auditoría) **a implementar**; cada caso borde debe contar con su test unitario e
-> integración (ver matriz de trazabilidad).
+> auditoría) **implementadas** (ver sección 7); cada caso borde cuenta con su test
+> unitario e integración (ver matriz de trazabilidad).
 > RF-22 ("el admin aplica lapso de vencimiento a los puntos") no tenía un caso
 > de uso propio en la documentación original; se decidió incorporar ese lapso
 > (`diasVigenciaPuntos`) como un campo más de esta misma regla en vez de crear
@@ -41,41 +41,49 @@ calcular la cantidad de puntos que recibe el cliente por sus compras.
    /api/admin/reglas-acumulacion/{id}` (modificar). Las operaciones de creación y
    modificación reciben un JSON con el criterio (`puntosPorMonto`,
    `vigenciaDesde`, `diasVigenciaPuntos` — RF-22: cuántos días tarda en vencer
-   un lote acreditado bajo esta regla, RN-21).
+   un lote acreditado bajo esta regla, RN-21). `puntosPorMonto` son los puntos
+   otorgados por cada $1 de compra (ej.: `0.1` = 1 punto cada $10).
 2. La **Capa de Presentación** (`AdminReglasAcumulacionController`) valida que el
-   JSON sea estructuralmente correcto (en creación/modificación).
+   JSON sea estructuralmente correcto y, en la creación, que estén los tres campos
+   obligatorios (DataAnnotations del DTO).
 3. La **Capa de Negocio** (`ReglaAcumulacionService`) recupera la(s) regla(s)
-   solicitada(s) (en consulta) o, en creación/modificación, valida la
-   configuración y verifica que no exista ya otra versión activa de la misma
-   regla (**RN-18**).
+   solicitada(s) (en consulta) o, en creación/modificación, valida que los valores
+   sean mayores a 0 y verifica que ninguna otra versión empiece en la misma fecha
+   (**RN-18**). La modificación es parcial: solo cambian los campos enviados.
 4. La **Capa de Persistencia** consulta la tabla `ReglasAcumulacion` con
    `AsNoTracking()` (en lecturas), o guarda la regla y registra el cambio para
-   auditoría (**RN-13**, en creación/modificación).
+   auditoría (**RN-13**, en creación/modificación): `FechaCreacion` en el alta y
+   `FechaModificacion` en cada modificación.
 5. El Sistema devuelve un código **200 OK** (consulta o modificación) o **201
    Created** (alta) con la(s) regla(s) o la confirmación de la operación.
 
 ### 4. FLUJOS ALTERNATIVOS (Caminos Tristes / Excepciones)
 
 * **3a. Configuración inválida (HTTP 400 Bad Request):**
-  1. El sistema detecta que en el Paso 3 el Sistema detecta una inconsistencia en la configuración
-     (ej. valores negativos o rangos de vigencia superpuestos con una regla ya
-     activa, violando **RN-18**).
+  1. El sistema detecta que en el Paso 3 hay una inconsistencia en la configuración:
+     `puntosPorMonto` o `diasVigenciaPuntos` menores o iguales a 0, o una
+     `vigenciaDesde` igual a la de otra versión ya registrada (superposición,
+     violando **RN-18**).
   2. El Sistema (Capa de Negocio) lanza la excepción de dominio
      `ReglaAcumulacionInvalidaException`.
-  3. El Sistema informa el error. El flujo retorna al Paso 1.
+  3. El Sistema devuelve un código **400 Bad Request** con el motivo, por ejemplo:
+     "Ya existe una regla que entra en vigencia en esa fecha.". El flujo retorna
+     al Paso 1.
 
 * **3b. Falta de datos (HTTP 400 Bad Request):**
-  1. El sistema detecta que en el Paso 3 faltan datos obligatorios de la regla.
-  2. El Sistema (Capa de Negocio) detecta los campos sin completar.
-  3. El Sistema devuelve un código **400 Bad Request** con el mensaje: "Campos sin
-     rellenar". El flujo retorna al Paso 1.
+  1. El sistema detecta que en el Paso 2 (creación) faltan datos obligatorios de la regla.
+  2. El Sistema (Capa de Presentación, DataAnnotations) detecta los campos sin completar.
+  3. El Sistema devuelve un código **400 Bad Request** con el mensaje "Campos sin
+     rellenar: <campo> es obligatorio." por cada campo faltante. El flujo retorna
+     al Paso 1.
 
-* **3c. Regla inexistente al consultar el detalle (HTTP 404 Not Found):**
-  1. El sistema detecta que en el Paso 3 el `id` solicitado en `GET
+* **3c. Regla inexistente (HTTP 404 Not Found):**
+  1. El sistema detecta que en el Paso 3 el `id` solicitado en `GET` o `PUT
      /api/admin/reglas-acumulacion/{id}` no corresponde a ninguna regla
      registrada.
   2. La Capa de Negocio no encuentra la entidad correspondiente.
-  3. El Sistema devuelve un código **404 Not Found**. Fin del caso de uso.
+  3. El Sistema devuelve un código **404 Not Found** con el mensaje: "La regla de
+     acumulación no existe.". Fin del caso de uso.
 
 ### 5. SUB-VARIACIONES (opcional)
 _No aplica: la configuración se gestiona por un único canal (panel de
@@ -89,6 +97,31 @@ administración web)._
 3. La nueva regla queda disponible para ser aplicada en futuras acumulaciones
    (CU-10) y su creación/modificación queda registrada para auditoría (**RN-13**).
 
+### 7. DETALLE DE IMPLEMENTACIÓN
+
+* **Versiones (RN-18):** la regla no se pisa: cada alta crea una **versión nueva**
+  con su propia `vigenciaDesde` (se guarda solo la fecha, sin hora). La versión
+  vigente en un día dado es la de `vigenciaDesde` más reciente que ya empezó; así
+  se puede programar un cambio a futuro sin borrar la regla anterior. Dos versiones
+  con la misma fecha de inicio serían dos reglas vigentes el mismo día, por eso se
+  rechazan (400), con un índice único en `VigenciaDesde` como respaldo en la base.
+* **Auditoría (RN-13):** el historial de versiones más `FechaCreacion` y
+  `FechaModificacion` deja registrado qué regla regía en cada momento. Registrar
+  **qué admin** hizo el cambio queda para una versión futura, cuando exista el
+  login de admin (CU-14).
+* **Datos iniciales:** el seed carga una regla vigente desde hace 30 días
+  (`0.1` puntos por $1 y 180 días de vigencia), que es la que usa CU-10.
+* **Colección Bruno:** `bruno/Admin/Reglas Acumulacion/` (alta con fecha al azar,
+  superposición, datos faltantes, listado, detalle, id inexistente y modificación).
+
+| Regla / Validación | Dónde se aplica | Respuesta |
+| --- | --- | --- |
+| Campos obligatorios (alta) | DTO: `[Required]` sobre tipos nullable | 400 |
+| Valores mayores a 0 | `ReglaAcumulacionService` (antes de consultar la base) | 400 |
+| RN-18: sin superposición de fechas | `ReglaAcumulacionService` + índice único | 400 |
+| Regla existente | `ReglaAcumulacionService`: `GetByIdAsync` | 404 |
+| RN-13: fechas de auditoría | `ReglaAcumulacionService` | — |
+
 ---
 
 ## Anexo: matrices de referencia
@@ -99,8 +132,8 @@ administración web)._
 | --- | --- | --- |
 | `200` | OK | Éxito al listar, consultar el detalle o modificar una regla existente. |
 | `201` | Created | Confirmación de persistencia exitosa de la nueva regla. |
-| `400` | Bad Request | Configuración inválida (RN-18) o campos obligatorios faltantes. |
-| `404` | Not Found | El `id` de la regla consultada no existe. |
+| `400` | Bad Request | Configuración inválida (valores ≤ 0 o superposición, RN-18) o campos obligatorios faltantes. |
+| `404` | Not Found | El `id` de la regla consultada o modificada no existe. |
 
 ### Matriz de trazabilidad CU-19 → Test
 
@@ -110,8 +143,11 @@ administración web)._
 | Flujo principal (detalle) | `200 OK` | `ObtenerReglaAcumulacionPorIdAsync_WithExistingId_ReturnsRule` | `ConsultarReglaAcumulacionPorId_WithExistingId_Returns200OK` |
 | Flujo principal (alta) | `201 Created` | `CrearReglaAcumulacionAsync_WithValidData_CreatesAndLogsAudit` | `ConfigurarReglaAcumulacion_Create_WithValidData_Returns201Created` |
 | Flujo principal (modificación) | `200 OK` | `ActualizarReglaAcumulacionAsync_WithValidData_UpdatesAndLogsAudit` | `ConfigurarReglaAcumulacion_Update_WithValidData_Returns200OK` |
-| 3a. Configuración inválida | `400 Bad Request` | `CrearReglaAcumulacionAsync_WhenOverlappingActiveRule_ThrowsReglaAcumulacionInvalidaException` | `ConfigurarReglaAcumulacion_WithOverlappingActiveRule_Returns400BadRequest` |
+| 3a. Configuración inválida (superposición) | `400 Bad Request` | `CrearReglaAcumulacionAsync_WhenOverlappingActiveRule_ThrowsReglaAcumulacionInvalidaException` | `ConfigurarReglaAcumulacion_WithOverlappingActiveRule_Returns400BadRequest` |
+| 3a. Configuración inválida (valores ≤ 0) | `400 Bad Request` | `CrearReglaAcumulacionAsync_WithNonPositiveValues_ThrowsReglaAcumulacionInvalidaException` | — (cubierto por el unitario) |
+| 3a. Superposición en la modificación | `400 Bad Request` | `ActualizarReglaAcumulacionAsync_WhenOverlappingOtherRule_ThrowsReglaAcumulacionInvalidaException` | — (cubierto por el unitario) |
 | 3b. Falta de datos | `400 Bad Request` | — (validación de esquema) | `ConfigurarReglaAcumulacion_WithMissingFields_Returns400BadRequest` |
 | 3c. Regla inexistente (detalle) | `404 Not Found` | `ObtenerReglaAcumulacionPorIdAsync_WithUnknownId_ThrowsReglaAcumulacionNotFoundException` | `ConsultarReglaAcumulacionPorId_WithUnknownId_Returns404NotFound` |
+| 3c. Regla inexistente (modificación) | `404 Not Found` | `ActualizarReglaAcumulacionAsync_WithUnknownId_ThrowsReglaAcumulacionNotFoundException` | — (cubierto por el unitario) |
 
 > Regla de oro: cada flujo del caso de uso debe tener al menos un test.
