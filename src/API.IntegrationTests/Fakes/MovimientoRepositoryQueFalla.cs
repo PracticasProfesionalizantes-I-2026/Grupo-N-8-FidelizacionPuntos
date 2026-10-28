@@ -1,5 +1,6 @@
 using FidelixAPI.DataAccess.Entities;
 using FidelixAPI.DataAccess.Repositories.Interfaces;
+using FidelixAPI.Shared.Enums;
 
 namespace FidelixAPI.API.IntegrationTests.Fakes;
 
@@ -28,4 +29,16 @@ public class MovimientoRepositoryQueFalla : IMovimientoRepository
 
     /// <summary>Simula una falla de conexión.</summary>
     public Task UpdateAsync(Movimiento entity) => throw new InvalidOperationException("Falla de conexión simulada");
+
+    /// <summary>Simula una falla de conexión.</summary>
+    public Task<IReadOnlyList<Movimiento>> BuscarAsync(Guid? clienteId, TipoMovimiento? tipo, DateTime? fechaDesde, DateTime? fechaHasta) =>
+        throw new InvalidOperationException("Falla de conexión simulada");
+
+    /// <summary>Simula una falla de conexión.</summary>
+    public Task<IReadOnlyList<Movimiento>> GetLotesVencidosAsync(DateTime fechaReferencia) =>
+        throw new InvalidOperationException("Falla de conexión simulada");
+
+    /// <summary>Simula una falla de conexión.</summary>
+    public Task<bool> ExisteBonoEnAnioAsync(Guid clienteId, int anio) =>
+        throw new InvalidOperationException("Falla de conexión simulada");
 }

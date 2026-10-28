@@ -1,15 +1,17 @@
 using FidelixAPI.BusinessLogic.Interfaces;
 using FidelixAPI.Shared.DTOs.Beneficio;
 using FidelixAPI.Shared.Exceptions;
+using FidelixAPI.Shared.Security;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FidelixAPI.API.Controllers;
 
 /// <summary>
-/// ABM de beneficios por el admin (CU-17). Todavía sin autenticación: cuando
-/// se implemente el login (CU-14) hay que agregar `[Authorize(Roles = "Admin")]`.
+/// ABM de beneficios por el admin (CU-17). Exige el token del login de admin (CU-14, RN-11).
 /// </summary>
 [ApiController]
+[Authorize(Roles = Roles.Admin)]
 [Route("api/admin/beneficios")]
 public class AdminBeneficiosController(IBeneficioService beneficioService) : ControllerBase
 {

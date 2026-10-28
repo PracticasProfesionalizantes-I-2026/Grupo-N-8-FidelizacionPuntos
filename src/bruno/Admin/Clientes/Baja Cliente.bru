@@ -1,0 +1,17 @@
+meta {
+  name: Baja Cliente
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{baseUrl}}/api/admin/clientes/{{clienteAdminId}}
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("204 No Content (RN-14)", function () {
+    expect(res.status).to.equal(204);
+  });
+}

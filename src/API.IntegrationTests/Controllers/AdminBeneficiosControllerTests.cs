@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using FidelixAPI.Shared.DTOs.Beneficio;
+using FidelixAPI.Shared.Security;
 using Xunit;
 
 namespace FidelixAPI.API.IntegrationTests.Controllers;
@@ -34,7 +35,7 @@ public class AdminBeneficiosControllerTests : IClassFixture<FidelixApiFactory>, 
     [Fact]
     public async Task AbmBeneficio_Create_WithValidData_Returns201Created()
     {
-        var client = _factory.CreateClient();
+        var client = _factory.CreateClientComo(Roles.Admin);
 
         var respuesta = await client.PostAsJsonAsync("/api/admin/beneficios", new BeneficioCreateDTO
         {
@@ -50,7 +51,7 @@ public class AdminBeneficiosControllerTests : IClassFixture<FidelixApiFactory>, 
     [Fact]
     public async Task AbmBeneficio_WithInvalidData_Returns400BadRequest()
     {
-        var client = _factory.CreateClient();
+        var client = _factory.CreateClientComo(Roles.Admin);
 
         var respuesta = await client.PostAsJsonAsync("/api/admin/beneficios", new BeneficioCreateDTO { Nombre = "", CostoPuntos = 50 });
 
@@ -61,7 +62,7 @@ public class AdminBeneficiosControllerTests : IClassFixture<FidelixApiFactory>, 
     [Fact]
     public async Task AbmBeneficio_Create_WithNonPositiveCosto_Returns400BadRequest()
     {
-        var client = _factory.CreateClient();
+        var client = _factory.CreateClientComo(Roles.Admin);
 
         var respuesta = await client.PostAsJsonAsync("/api/admin/beneficios", new BeneficioCreateDTO { Nombre = "Costo Cero", CostoPuntos = 0 });
 
@@ -72,7 +73,7 @@ public class AdminBeneficiosControllerTests : IClassFixture<FidelixApiFactory>, 
     [Fact]
     public async Task AbmBeneficio_Create_WhenNombreExists_Returns409Conflict()
     {
-        var client = _factory.CreateClient();
+        var client = _factory.CreateClientComo(Roles.Admin);
 
         var respuesta = await client.PostAsJsonAsync("/api/admin/beneficios", new BeneficioCreateDTO { Nombre = "Descuento 10%", CostoPuntos = 100 });
 
@@ -83,7 +84,7 @@ public class AdminBeneficiosControllerTests : IClassFixture<FidelixApiFactory>, 
     [Fact]
     public async Task AbmBeneficio_Update_WithValidData_Returns200OK()
     {
-        var client = _factory.CreateClient();
+        var client = _factory.CreateClientComo(Roles.Admin);
         var beneficio = await CrearBeneficioAsync(client);
 
         var respuesta = await client.PutAsJsonAsync($"/api/admin/beneficios/{beneficio.Id}", new BeneficioUpdateDTO { CostoPuntos = 250 });
@@ -97,7 +98,7 @@ public class AdminBeneficiosControllerTests : IClassFixture<FidelixApiFactory>, 
     [Fact]
     public async Task AbmBeneficio_Update_WithNonExistentId_Returns404NotFound()
     {
-        var client = _factory.CreateClient();
+        var client = _factory.CreateClientComo(Roles.Admin);
 
         var respuesta = await client.PutAsJsonAsync($"/api/admin/beneficios/{Guid.NewGuid()}", new BeneficioUpdateDTO { CostoPuntos = 250 });
 
@@ -108,7 +109,7 @@ public class AdminBeneficiosControllerTests : IClassFixture<FidelixApiFactory>, 
     [Fact]
     public async Task AbmBeneficio_Deactivate_WithExistingId_Returns200OK()
     {
-        var client = _factory.CreateClient();
+        var client = _factory.CreateClientComo(Roles.Admin);
         var beneficio = await CrearBeneficioAsync(client);
 
         var respuesta = await client.PatchAsync($"/api/admin/beneficios/{beneficio.Id}/desactivar", null);

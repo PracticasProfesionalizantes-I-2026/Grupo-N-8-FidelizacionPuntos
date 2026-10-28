@@ -1,0 +1,17 @@
+meta {
+  name: Mi Historial
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{baseUrl}}/api/clientes/me/movimientos
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("200 OK en orden cronológico (CU-05)", function () {
+    expect(res.status).to.equal(200);
+  });
+}

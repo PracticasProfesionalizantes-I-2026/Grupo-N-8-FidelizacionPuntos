@@ -1,0 +1,17 @@
+meta {
+  name: Mi Perfil
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/api/clientes/me
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("200 OK (CU-03)", function () {
+    expect(res.status).to.equal(200);
+  });
+}

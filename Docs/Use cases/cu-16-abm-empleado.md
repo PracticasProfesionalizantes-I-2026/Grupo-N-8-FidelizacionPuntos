@@ -3,7 +3,7 @@
 > Especificación elaborada siguiendo la guía
 > `GUIA-Especificacion-Casos-de-Uso.md` (sección 3).
 > Reglas de negocio RN-01 (documento/email único) y RN-15 (empleado inactivo sin
-> acceso) **a implementar**; cada caso borde debe contar con su test unitario e
+> acceso) **implementadas**; cada caso borde cuenta con su test unitario e
 > integración (ver matriz de trazabilidad).
 
 | Campo | Valor |
@@ -75,6 +75,18 @@ panel de administración.
 1. El empleado queda creado, actualizado o dado de baja en la tabla `Empleados`
    según la operación realizada.
 2. Un empleado dado de baja no puede volver a iniciar sesión (**RN-15**, CU-09).
+
+### 7. DETALLE DE IMPLEMENTACIÓN
+
+| Endpoint | Rol (token JWT) | Controller → Service |
+| --- | --- | --- |
+| `GET /api/admin/empleados` | Admin | `AdminEmpleadosController.Listar → EmpleadoAdminService.ListarEmpleadosAsync` |
+| `POST /api/admin/empleados` | Admin | `AdminEmpleadosController.Crear → EmpleadoAdminService.CrearEmpleadoAsync` |
+| `PUT /api/admin/empleados/{id}` | Admin | `AdminEmpleadosController.Actualizar → EmpleadoAdminService.ActualizarEmpleadoAsync` |
+| `DELETE /api/admin/empleados/{id}` | Admin | `AdminEmpleadosController.Baja → EmpleadoAdminService.BajaEmpleadoAsync` |
+
+* La contraseña inicial se valida con RN-02 y se guarda hasheada (PBKDF2). Tras la baja, el login del empleado responde 403 (RN-15).
+* **Colección Bruno:** `bruno/Admin/Empleados/`.
 
 ---
 

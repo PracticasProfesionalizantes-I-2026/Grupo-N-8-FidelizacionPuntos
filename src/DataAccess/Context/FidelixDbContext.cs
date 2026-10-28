@@ -16,6 +16,10 @@ public class FidelixDbContext(DbContextOptions<FidelixDbContext> options) : DbCo
     public DbSet<Movimiento> Movimientos => Set<Movimiento>();
     public DbSet<Producto> Productos => Set<Producto>();
     public DbSet<ReglaAcumulacion> ReglasAcumulacion => Set<ReglaAcumulacion>();
+    public DbSet<Empleado> Empleados => Set<Empleado>();
+    public DbSet<Admin> Admins => Set<Admin>();
+    public DbSet<Auditoria> Auditorias => Set<Auditoria>();
+    public DbSet<CodigoRecuperacion> CodigosRecuperacion => Set<CodigoRecuperacion>();
 
     /// <summary>Configura índices únicos (RN-01, RN-18, RN-23, RN-24) y relaciones sin borrado en cascada.</summary>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -27,6 +31,15 @@ public class FidelixDbContext(DbContextOptions<FidelixDbContext> options) : DbCo
         modelBuilder.Entity<Cliente>().HasIndex(c => c.Email).IsUnique();
         modelBuilder.Entity<Beneficio>().HasIndex(b => b.Nombre).IsUnique();
         modelBuilder.Entity<Producto>().HasIndex(p => p.Nombre).IsUnique();
+
+        // --- RN-01 también para empleados y admins (cada uno en su tabla) ---
+        modelBuilder.Entity<Empleado>().HasIndex(e => e.Documento).IsUnique();
+        modelBuilder.Entity<Empleado>().HasIndex(e => e.Email).IsUnique();
+        modelBuilder.Entity<Admin>().HasIndex(a => a.Email).IsUnique();
+
+        // --- Búsquedas frecuentes: auditoría por fecha (CU-21) y códigos por email (CU-25) ---
+        modelBuilder.Entity<Auditoria>().HasIndex(a => a.Fecha);
+        modelBuilder.Entity<CodigoRecuperacion>().HasIndex(c => c.Email);
 
         // --- RN-18: una sola versión de la regla de acumulación por fecha de inicio ---
         modelBuilder.Entity<ReglaAcumulacion>().HasIndex(r => r.VigenciaDesde).IsUnique();

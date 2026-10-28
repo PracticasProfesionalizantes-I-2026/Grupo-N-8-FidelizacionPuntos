@@ -2,8 +2,8 @@
 
 > Especificación elaborada siguiendo la guía
 > `GUIA-Especificacion-Casos-de-Uso.md` (sección 3).
-> Regla de negocio RN-07 (solo beneficios activos) **a implementar**; cada caso
-> borde debe contar con su test unitario e integración (ver matriz de
+> Regla de negocio RN-07 (solo beneficios activos) **implementada**; cada caso
+> borde cuenta con su test unitario e integración (ver matriz de
 > trazabilidad).
 
 | Campo | Valor |
@@ -51,6 +51,15 @@ _No aplica: consulta de lectura simple, sin variantes de mecanismo relevantes._
 ### 6. POSTCONDICIONES
 1. El cliente visualiza el catálogo de beneficios vigente, sin que se modifique
    ningún dato persistente.
+
+### 7. DETALLE DE IMPLEMENTACIÓN
+
+| Endpoint | Rol (token JWT) | Controller → Service |
+| --- | --- | --- |
+| `GET /api/beneficios` | Cliente, Empleado | `BeneficiosController.Listar → BeneficioService.ListarBeneficiosAsync` |
+
+* El filtro de activos (RN-07) se aplica en el service, no en el repositorio: es una regla de negocio.
+* **Colección Bruno:** `bruno/Canjes/ (Ver Catalogo)`.
 
 ---
 

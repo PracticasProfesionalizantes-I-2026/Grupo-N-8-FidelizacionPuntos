@@ -1,0 +1,24 @@
+meta {
+  name: Modificar Perfil
+  type: http
+  seq: 6
+}
+
+put {
+  url: {{baseUrl}}/api/clientes/me
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "telefono": "1166667777"
+  }
+}
+
+tests {
+  test("200 OK con el teléfono nuevo (CU-03)", function () {
+    expect(res.status).to.equal(200);
+    expect(res.body.telefono).to.equal("1166667777");
+  });
+}

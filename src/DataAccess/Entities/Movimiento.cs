@@ -43,4 +43,10 @@ public class Movimiento : EntidadBase
     public Beneficio? Beneficio { get; set; }
 
     public string? Detalle { get; set; }
+
+    /// <summary>Estado de entrega (solo en movimientos de tipo `Canje`, RN-10).</summary>
+    public EstadoCanje? EstadoCanje { get; set; }
+
+    /// <summary>Empleado que registró el movimiento (acumulación o canje presencial), para auditoría (RN-13, RF-28).</summary>
+    public Guid? EmpleadoId { get; set; }
 }

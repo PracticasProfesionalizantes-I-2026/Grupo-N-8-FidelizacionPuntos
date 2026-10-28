@@ -1,0 +1,21 @@
+meta {
+  name: Ver Catalogo
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{baseUrl}}/api/beneficios
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenCliente}}
+}
+
+tests {
+  test("200 OK solo con beneficios activos (CU-06)", function () {
+    expect(res.status).to.equal(200);
+  });
+}

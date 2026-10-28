@@ -29,6 +29,38 @@ public class MovimientoRepository(FidelixDbContext context) : IMovimientoReposit
     public async Task<IReadOnlyList<Movimiento>> GetLotesParaCanjeAsync(Guid clienteId, DateTime fechaReferencia) =>
         await LotesVigentes(clienteId, fechaReferencia).ToListAsync();
 
+    /// <summary>Aplica solo los filtros informados, en orden cronológico (RN-06), incluyendo el beneficio.</summary>
+    public async Task<IReadOnlyList<Movimiento>> BuscarAsync(Guid? clienteId, TipoMovimiento? tipo, DateTime? fechaDesde, DateTime? fechaHasta)
+    {
+        var query = context.Movimientos.AsNoTracking().Include(m => m.Beneficio).AsQueryable();
+
+        if (clienteId is not null) query = query.Where(m => m.ClienteId == clienteId);
+        if (tipo is not null) query = query.Where(m => m.Tipo == tipo);
+        if (fechaDesde is not null) query = query.Where(m => m.Fecha >= fechaDesde);
+        if (fechaHasta is not null) query = query.Where(m => m.Fecha <= fechaHasta);
+
+        return await query.OrderBy(m => m.Fecha).ToListAsync();
+    }
+
+    /// <summary>Lotes de acumulación/bono con puntos sin consumir y ya vencidos, del más antiguo al más nuevo (FIFO, RN-09).</summary>
+    public async Task<IReadOnlyList<Movimiento>> GetLotesVencidosAsync(DateTime fechaReferencia) =>
+        await context.Movimientos
+            .Where(m => (m.Tipo == TipoMovimiento.Acumulacion || m.Tipo == TipoMovimiento.BonoCumpleanos)
+                     && m.PuntosDisponibles > 0
+                     && m.FechaVencimiento != null && m.FechaVencimiento < fechaReferencia)
+            .OrderBy(m => m.Fecha)
+            .ToListAsync();
+
+    /// <summary>Busca un bono de cumpleaños del cliente con fecha dentro del año indicado.</summary>
+    public Task<bool> ExisteBonoEnAnioAsync(Guid clienteId, int anio)
+    {
+        var desde = new DateTime(anio, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        var hasta = desde.AddYears(1);
+        return context.Movimientos.AnyAsync(m => m.ClienteId == clienteId
+                                              && m.Tipo == TipoMovimiento.BonoCumpleanos
+                                              && m.Fecha >= desde && m.Fecha < hasta);
+    }
+
     /// <summary>
     /// Consulta común a los dos métodos de lotes (se arma una sola vez para que el saldo
     /// y el canje usen exactamente el mismo criterio): lotes del cliente, de tipo

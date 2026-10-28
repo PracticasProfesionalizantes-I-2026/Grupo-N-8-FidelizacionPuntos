@@ -3,8 +3,8 @@
 > Especificación elaborada siguiendo la guía
 > `GUIA-Especificacion-Casos-de-Uso.md` (sección 3).
 > Reglas de negocio RN-08 (saldo suficiente), RN-09 (método FIFO), RN-17
-> (beneficio activo) y RN-13 (trazabilidad para auditoría) **a implementar**; cada
-> caso borde debe contar con su test unitario e integración (ver matriz de
+> (beneficio activo) y RN-13 (trazabilidad para auditoría) **implementadas**; cada
+> caso borde cuenta con su test unitario e integración (ver matriz de
 > trazabilidad).
 
 | Campo | Valor |
@@ -30,7 +30,7 @@ nombre de un cliente que se presenta físicamente en el local.
 3. El beneficio se encuentra activo (**RN-17**).
 
 ### 3. FLUJO PRINCIPAL (Camino Feliz - HTTP 201)
-1. El Actor envía una petición al endpoint `POST /api/canjes` con un JSON que
+1. El Actor envía una petición al endpoint `POST /api/canjes/presencial` con un JSON que
    contiene el documento del cliente y el beneficio elegido (`clienteDocumento`,
    `beneficioId`).
 2. La **Capa de Presentación** (`CanjesController.CrearCanjePresencial`) valida
@@ -85,6 +85,17 @@ de venta operado por el empleado)._
 1. El canje queda registrado en la tabla `Canjes`, disponible para auditoría
    (**RN-13**).
 2. El saldo de puntos del cliente queda actualizado según el consumo FIFO.
+
+### 7. DETALLE DE IMPLEMENTACIÓN
+
+| Endpoint | Rol (token JWT) | Controller → Service |
+| --- | --- | --- |
+| `POST /api/canjes/presencial` | Empleado | `CanjesController.CrearCanjePresencial → CanjeService.CrearCanjePresencialAsync` |
+| `PATCH /api/canjes/{id}/entregar` | Empleado | `CanjesController.MarcarEntregado → CanjeService.MarcarEntregadoAsync` |
+
+* El canje presencial comparte el núcleo con CU-07 (`EjecutarCanjeAsync`): mismas reglas RN-08, RN-09 (FIFO) y RN-17, y una sola transacción.
+* Queda con estado **Entregado** y con el `EmpleadoId` del token (RN-13). El segundo endpoint entrega un canje **Pendiente** hecho desde la app (RN-10); entregarlo dos veces da 409.
+* **Colección Bruno:** `bruno/Canjes/`.
 
 ---
 

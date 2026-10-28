@@ -4,13 +4,17 @@ using FidelixAPI.API.IntegrationTests.Fakes;
 using FidelixAPI.DataAccess.Repositories.Interfaces;
 using FidelixAPI.Shared.DTOs.Movimiento;
 using FidelixAPI.Shared.DTOs.Producto;
+using FidelixAPI.Shared.Security;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace FidelixAPI.API.IntegrationTests.Controllers;
 
-/// <summary>Tests de integración de `MovimientosController` (CU-10) a través del pipeline HTTP real.</summary>
+/// <summary>
+/// Tests de integración de `MovimientosController` (CU-10) a través del pipeline HTTP real.
+/// Los productos los da de alta el admin y las acumulaciones las registra el empleado.
+/// </summary>
 public class MovimientosControllerTests : IClassFixture<FidelixApiFactory>, IAsyncLifetime
 {
     private const string Url = "/api/movimientos/acumulaciones";
@@ -28,10 +32,10 @@ public class MovimientosControllerTests : IClassFixture<FidelixApiFactory>, IAsy
     /// <summary>No hay nada que limpiar: la base en memoria vive lo que vive la factory.</summary>
     public Task DisposeAsync() => Task.CompletedTask;
 
-    /// <summary>Da de alta un producto de $1000 con nombre único (CU-18) y devuelve su Id.</summary>
-    private static async Task<Guid> CrearProductoAsync(HttpClient client)
+    /// <summary>Da de alta (como admin) un producto de $1000 con nombre único (CU-18) y devuelve su Id.</summary>
+    private async Task<Guid> CrearProductoAsync()
     {
-        var respuesta = await client.PostAsJsonAsync("/api/admin/productos", new ProductoCreateDTO
+        var respuesta = await _factory.CreateClientComo(Roles.Admin).PostAsJsonAsync("/api/admin/productos", new ProductoCreateDTO
         {
             Nombre = $"Producto {Guid.NewGuid():N}",
             Precio = 1000
@@ -50,8 +54,8 @@ public class MovimientosControllerTests : IClassFixture<FidelixApiFactory>, IAsy
     [Fact]
     public async Task RegistrarAcumulacion_WithValidData_Returns201Created()
     {
-        var client = _factory.CreateClient();
-        var productoId = await CrearProductoAsync(client);
+        var client = _factory.CreateClientComo(Roles.Empleado);
+        var productoId = await CrearProductoAsync();
 
         var respuesta = await client.PostAsJsonAsync(Url, Compra(DocumentoDemo, productoId));
         var acumulacion = await respuesta.Content.ReadFromJsonAsync<AcumulacionResponseDTO>();
@@ -64,8 +68,8 @@ public class MovimientosControllerTests : IClassFixture<FidelixApiFactory>, IAsy
     [Fact]
     public async Task RegistrarAcumulacion_WithGoldCliente_AppliesMultiplier()
     {
-        var client = _factory.CreateClient();
-        var productoId = await CrearProductoAsync(client);
+        var client = _factory.CreateClientComo(Roles.Empleado);
+        var productoId = await CrearProductoAsync();
 
         var respuesta = await client.PostAsJsonAsync(Url, Compra(DocumentoGold, productoId));
         var acumulacion = await respuesta.Content.ReadFromJsonAsync<AcumulacionResponseDTO>();
@@ -78,8 +82,8 @@ public class MovimientosControllerTests : IClassFixture<FidelixApiFactory>, IAsy
     [Fact]
     public async Task RegistrarAcumulacion_WithInvalidItem_Returns400BadRequest()
     {
-        var client = _factory.CreateClient();
-        var productoId = await CrearProductoAsync(client);
+        var client = _factory.CreateClientComo(Roles.Empleado);
+        var productoId = await CrearProductoAsync();
 
         var respuesta = await client.PostAsJsonAsync(Url, Compra(DocumentoDemo, productoId, cantidad: 0));
 
@@ -90,8 +94,8 @@ public class MovimientosControllerTests : IClassFixture<FidelixApiFactory>, IAsy
     [Fact]
     public async Task RegistrarAcumulacion_WithUnknownDocumento_Returns404NotFound()
     {
-        var client = _factory.CreateClient();
-        var productoId = await CrearProductoAsync(client);
+        var client = _factory.CreateClientComo(Roles.Empleado);
+        var productoId = await CrearProductoAsync();
 
         var respuesta = await client.PostAsJsonAsync(Url, Compra("99999999", productoId));
 
@@ -102,8 +106,8 @@ public class MovimientosControllerTests : IClassFixture<FidelixApiFactory>, IAsy
     [Fact]
     public async Task RegistrarAcumulacion_WithMalformedDocumento_Returns400BadRequest()
     {
-        var client = _factory.CreateClient();
-        var productoId = await CrearProductoAsync(client);
+        var client = _factory.CreateClientComo(Roles.Empleado);
+        var productoId = await CrearProductoAsync();
 
         var respuesta = await client.PostAsJsonAsync(Url, Compra("abc123", productoId));
 
@@ -114,17 +118,39 @@ public class MovimientosControllerTests : IClassFixture<FidelixApiFactory>, IAsy
     [Fact]
     public async Task RegistrarAcumulacion_WhenPersistenceFails_Returns500InternalServerError()
     {
-        var clienteNormal = _factory.CreateClient();
-        var productoId = await CrearProductoAsync(clienteNormal);
+        var productoId = await CrearProductoAsync();
 
         // Reemplaza el repositorio real por uno que siempre falla, solo para este test.
         var client = _factory.WithWebHostBuilder(builder =>
             builder.ConfigureTestServices(services =>
                 services.AddScoped<IMovimientoRepository, MovimientoRepositoryQueFalla>()))
             .CreateClient();
+        _factory.Autenticar(client, Roles.Empleado);
 
         var respuesta = await client.PostAsJsonAsync(Url, Compra(DocumentoDemo, productoId));
 
         Assert.Equal(HttpStatusCode.InternalServerError, respuesta.StatusCode);
+    }
+
+    /// <summary>CU-10, precondición: sin el token de un empleado (CU-09) no se puede acumular (401 Unauthorized).</summary>
+    [Fact]
+    public async Task RegistrarAcumulacion_WithoutToken_Returns401Unauthorized()
+    {
+        var productoId = await CrearProductoAsync();
+
+        var respuesta = await _factory.CreateClient().PostAsJsonAsync(Url, Compra(DocumentoDemo, productoId));
+
+        Assert.Equal(HttpStatusCode.Unauthorized, respuesta.StatusCode);
+    }
+
+    /// <summary>RN-11: un cliente autenticado no puede registrar acumulaciones (403 Forbidden).</summary>
+    [Fact]
+    public async Task RegistrarAcumulacion_WithClienteToken_Returns403Forbidden()
+    {
+        var productoId = await CrearProductoAsync();
+
+        var respuesta = await _factory.CreateClientComo(Roles.Cliente).PostAsJsonAsync(Url, Compra(DocumentoDemo, productoId));
+
+        Assert.Equal(HttpStatusCode.Forbidden, respuesta.StatusCode);
     }
 }

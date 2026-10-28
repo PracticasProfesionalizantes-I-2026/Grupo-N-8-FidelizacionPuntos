@@ -9,6 +9,7 @@ using FidelixAPI.Shared.DTOs.Canje;
 using FidelixAPI.Shared.DTOs.Cliente;
 using FidelixAPI.Shared.DTOs.Movimiento;
 using FidelixAPI.Shared.DTOs.Producto;
+using FidelixAPI.Shared.Security;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -44,10 +45,10 @@ public class CanjesControllerTests : IClassFixture<FidelixApiFactory>, IAsyncLif
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", login!.Token);
     }
 
-    /// <summary>Da de alta un beneficio con nombre único (CU-17) y devuelve su Id.</summary>
-    private static async Task<Guid> CrearBeneficioAsync(HttpClient client, int costo)
+    /// <summary>Da de alta (como admin) un beneficio con nombre único (CU-17) y devuelve su Id.</summary>
+    private async Task<Guid> CrearBeneficioAsync(int costo)
     {
-        var respuesta = await client.PostAsJsonAsync("/api/admin/beneficios", new BeneficioCreateDTO
+        var respuesta = await _factory.CreateClientComo(Roles.Admin).PostAsJsonAsync("/api/admin/beneficios", new BeneficioCreateDTO
         {
             Nombre = $"Beneficio {Guid.NewGuid():N}",
             CostoPuntos = costo
@@ -76,7 +77,7 @@ public class CanjesControllerTests : IClassFixture<FidelixApiFactory>, IAsyncLif
     public async Task CrearCanje_WithValidData_Returns201Created()
     {
         var client = _factory.CreateClient();
-        var beneficioId = await CrearBeneficioAsync(client, costo: 100);
+        var beneficioId = await CrearBeneficioAsync(costo: 100);
         await AutenticarAsync(client, EmailDemo, PasswordDemo);
 
         var respuesta = await client.PostAsJsonAsync(Url, new CanjeCreateDTO { BeneficioId = beneficioId });
@@ -127,8 +128,8 @@ public class CanjesControllerTests : IClassFixture<FidelixApiFactory>, IAsyncLif
     public async Task CrearCanje_WithInactiveBeneficio_Returns409Conflict()
     {
         var client = _factory.CreateClient();
-        var beneficioId = await CrearBeneficioAsync(client, costo: 10);
-        await client.PatchAsync($"/api/admin/beneficios/{beneficioId}/desactivar", null);
+        var beneficioId = await CrearBeneficioAsync(costo: 10);
+        await _factory.CreateClientComo(Roles.Admin).PatchAsync($"/api/admin/beneficios/{beneficioId}/desactivar", null);
         await AutenticarAsync(client, EmailDemo, PasswordDemo);
 
         var respuesta = await client.PostAsJsonAsync(Url, new CanjeCreateDTO { BeneficioId = beneficioId });
@@ -141,7 +142,7 @@ public class CanjesControllerTests : IClassFixture<FidelixApiFactory>, IAsyncLif
     public async Task CrearCanje_WithInsufficientBalance_Returns409Conflict()
     {
         var client = _factory.CreateClient();
-        var beneficioId = await CrearBeneficioAsync(client, costo: 100);
+        var beneficioId = await CrearBeneficioAsync(costo: 100);
         await RegistrarYAutenticarClienteNuevoAsync(client);
 
         var respuesta = await client.PostAsJsonAsync(Url, new CanjeCreateDTO { BeneficioId = beneficioId });
@@ -157,16 +158,16 @@ public class CanjesControllerTests : IClassFixture<FidelixApiFactory>, IAsyncLif
     public async Task CrearCanje_WithOnlyPendingPoints_Returns409Conflict()
     {
         var client = _factory.CreateClient();
-        var beneficioId = await CrearBeneficioAsync(client, costo: 100);
+        var beneficioId = await CrearBeneficioAsync(costo: 100);
         var documento = await RegistrarYAutenticarClienteNuevoAsync(client);
 
         // Compra de $10000 → 1000 puntos, pero pendientes (N2).
-        var producto = await (await client.PostAsJsonAsync("/api/admin/productos", new ProductoCreateDTO
+        var producto = await (await _factory.CreateClientComo(Roles.Admin).PostAsJsonAsync("/api/admin/productos", new ProductoCreateDTO
         {
             Nombre = $"Producto {Guid.NewGuid():N}",
             Precio = 10000
         })).Content.ReadFromJsonAsync<ProductoResponseDTO>();
-        await client.PostAsJsonAsync("/api/movimientos/acumulaciones", new AcumulacionCreateDTO
+        await _factory.CreateClientComo(Roles.Empleado).PostAsJsonAsync("/api/movimientos/acumulaciones", new AcumulacionCreateDTO
         {
             ClienteDocumento = documento,
             Items = [new ItemCompraDTO { ProductoId = producto!.Id, Cantidad = 1 }]
@@ -181,8 +182,7 @@ public class CanjesControllerTests : IClassFixture<FidelixApiFactory>, IAsyncLif
     [Fact]
     public async Task CrearCanje_WhenPersistenceFails_Returns500InternalServerError()
     {
-        var clienteNormal = _factory.CreateClient();
-        var beneficioId = await CrearBeneficioAsync(clienteNormal, costo: 10);
+        var beneficioId = await CrearBeneficioAsync(costo: 10);
 
         // Reemplaza el repositorio real por uno que siempre falla, solo para este test.
         var client = _factory.WithWebHostBuilder(builder =>

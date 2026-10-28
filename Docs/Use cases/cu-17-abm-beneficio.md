@@ -3,8 +3,8 @@
 > Especificación elaborada siguiendo la guía
 > `GUIA-Especificacion-Casos-de-Uso.md` (sección 3).
 > Reglas de negocio RN-16 (costo mayor a 0), RN-17 (beneficio inactivo no
-> canjeable) y RN-23 (nombre de beneficio único) **a implementar**; cada caso
-> borde debe contar con su test unitario e integración (ver matriz de
+> canjeable) y RN-23 (nombre de beneficio único) **implementadas**; cada caso
+> borde cuenta con su test unitario e integración (ver matriz de
 > trazabilidad).
 
 | Campo | Valor |
@@ -84,6 +84,15 @@ disponibles para los clientes.
 1. El beneficio queda creado, actualizado o desactivado en la tabla `Beneficios`.
 2. Un beneficio desactivado no aparece en el catálogo público (**RN-07**) ni puede
    canjearse (**RN-17**).
+
+### 7. DETALLE DE IMPLEMENTACIÓN
+
+| Endpoint | Rol (token JWT) | Controller → Service |
+| --- | --- | --- |
+| `POST/PUT/PATCH /api/admin/beneficios…` | Admin | `AdminBeneficiosController → BeneficioService` |
+
+* Los endpoints exigen el token del login de admin (CU-14, RN-11); sin token responden 401.
+* **Colección Bruno:** `bruno/Admin/Beneficios/`.
 
 ---
 

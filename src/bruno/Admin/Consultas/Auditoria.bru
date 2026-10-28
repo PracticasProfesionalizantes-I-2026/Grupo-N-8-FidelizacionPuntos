@@ -1,0 +1,17 @@
+meta {
+  name: Auditoria
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/admin/auditoria?tipoOperacion=Admin
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("200 OK (CU-21)", function () {
+    expect(res.status).to.equal(200);
+  });
+}

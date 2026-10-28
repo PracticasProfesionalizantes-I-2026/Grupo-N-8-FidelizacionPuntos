@@ -1,0 +1,17 @@
+meta {
+  name: Mi Saldo
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{baseUrl}}/api/clientes/me/saldo
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("200 OK (CU-04)", function () {
+    expect(res.status).to.equal(200);
+  });
+}

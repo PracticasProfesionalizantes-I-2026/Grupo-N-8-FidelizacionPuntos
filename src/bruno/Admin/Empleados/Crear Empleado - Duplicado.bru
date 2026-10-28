@@ -1,0 +1,26 @@
+meta {
+  name: Crear Empleado - Duplicado
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/admin/empleados
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "nombre": "Repetido",
+    "documento": "30111222",
+    "email": "otro.empleado@fidelix.local",
+    "password": "Empleado123!"
+  }
+}
+
+tests {
+  test("409 Conflict (RN-01)", function () {
+    expect(res.status).to.equal(409);
+  });
+}

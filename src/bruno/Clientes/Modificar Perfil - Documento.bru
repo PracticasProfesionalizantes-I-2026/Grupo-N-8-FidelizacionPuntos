@@ -1,0 +1,23 @@
+meta {
+  name: Modificar Perfil - Documento
+  type: http
+  seq: 7
+}
+
+put {
+  url: {{baseUrl}}/api/clientes/me
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "documento": "11111111"
+  }
+}
+
+tests {
+  test("400 Bad Request (RN-04)", function () {
+    expect(res.status).to.equal(400);
+  });
+}

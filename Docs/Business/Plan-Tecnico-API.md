@@ -67,6 +67,27 @@ Sin autenticación en esta etapa: se incorpora con el login (CU-02/09/14).
 | RN-23: nombre de beneficio único | `BeneficioService` | `BeneficioDuplicadoException` | 409 |
 | Beneficio inexistente | `BeneficioService` | `BeneficioNotFoundException` | 404 |
 | RN-17: la desactivación es lógica | `BeneficioService` | — | — |
+| RN-03: bloqueo temporal por intentos fallidos | `AuthService` | `CuentaBloqueadaException` | 403 |
+| Login con credenciales incorrectas (CU-02, CU-09, CU-14) | `AuthService` / `AuthPersonalService` | `CredencialesInvalidasException` | 401 |
+| RN-14/RN-15: cuenta inactiva (login, acumulación, canje) | `AuthService` / `AuthPersonalService` / `MovimientoService` / `CanjeService` | `CuentaInactivaException` | 403 en login, 409 en operaciones |
+| RN-04: el documento no se modifica | `ClienteService` | `DocumentoNoModificableException` | 400 |
+| RN-01: email de otro cliente al editar el perfil | `ClienteService` | `EmailDuplicadoException` | 409 |
+| RN-01: empleado duplicado | `EmpleadoAdminService` | `EmpleadoDuplicadoException` | 409 |
+| Empleado inexistente | `EmpleadoAdminService` | `EmpleadoNotFoundException` | 404 |
+| RN-24: nombre de producto único | `ProductoService` | `ProductoDuplicadoException` | 409 |
+| RN-25: precio mayor a cero | `ProductoService` | `PrecioInvalidoException` | 400 |
+| Producto inexistente | `ProductoService` | `ProductoNotFoundException` | 404 |
+| RN-18: regla de acumulación inválida o superpuesta | `ReglaAcumulacionService` | `ReglaAcumulacionInvalidaException` | 400 |
+| Regla de acumulación inexistente | `ReglaAcumulacionService` | `ReglaAcumulacionNotFoundException` | 404 |
+| RN-12: sin regla vigente al acumular | `MovimientoService` | `ReglaAcumulacionNoVigenteException` | 409 |
+| CU-10 3b: documento con formato inválido | `MovimientoService` | `DocumentoInvalidoException` | 400 |
+| RN-26: ítem con producto inexistente o inactivo | `MovimientoService` | `ItemCompraInvalidoException` | 400 |
+| RN-17: beneficio inactivo al canjear | `CanjeService` | `BeneficioInactivoException` | 409 |
+| RN-08: saldo insuficiente | `CanjeService` | `SaldoInsuficienteException` | 409 |
+| RN-10: canje inexistente / ya entregado | `CanjeService` | `CanjeNotFoundException` / `CanjeYaEntregadoException` | 404 / 409 |
+| Registro de auditoría inexistente | `AuditoriaService` | `AuditoriaNotFoundException` | 404 |
+| RN-27: código de recuperación inválido o vencido | `RecuperacionService` | `CodigoRecuperacionInvalidoException` | 400 |
+| Sin token o token inválido / rol sin permiso (RN-11) | Middleware JWT + `[Authorize(Roles)]` | — | 401 / 403 |
 
 Errores de sintaxis del JSON o DataAnnotations: 400 automático de
 `[ApiController]`, antes de llegar al service.

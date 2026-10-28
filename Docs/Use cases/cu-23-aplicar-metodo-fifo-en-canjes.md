@@ -4,7 +4,7 @@
 > `GUIA-Especificacion-Casos-de-Uso.md` (sección 3), adaptada a un caso de uso de
 > **Sistema** (subrutina interna invocada por otros casos de uso, sin actor
 > humano ni endpoint HTTP propio). Reglas de negocio RN-09 (FIFO) y RN-21
-> (exclusión de lotes vencidos) **a implementar**; cada caso borde debe contar con
+> (exclusión de lotes vencidos) **implementadas**; cada caso borde cuenta con
 > su test unitario e integración (ver matriz de trazabilidad).
 
 | Campo | Valor |
@@ -30,7 +30,7 @@ un canje, priorizando siempre los puntos vigentes más antiguos.
 
 ### 3. FLUJO PRINCIPAL (Camino Feliz - Proceso interno)
 > Nota: este CU no expone un endpoint HTTP propio; es invocado internamente desde
-> la Capa de Negocio de CU-07 y CU-11 (`LotePuntosService.AplicarFifoAsync`), y
+> la Capa de Negocio de CU-07 y CU-11 (`LotePuntosService.AplicarFifo`), y
 > hereda el código de respuesta HTTP del caso de uso que lo invoca.
 1. El Sistema (Capa de Negocio) recupera los lotes de puntos vigentes del cliente,
    ordenados por fecha de acumulación (más antiguo primero), excluyendo los lotes
@@ -68,6 +68,11 @@ originó en CU-07 (cliente) o CU-11 (empleado)._
 1. Los lotes de puntos del cliente quedan actualizados según el consumo FIFO.
 2. Ningún lote vencido participa del descuento (**RN-21**).
 
+### 7. DETALLE DE IMPLEMENTACIÓN
+
+* `LotePuntosService.AplicarFifo` es un cálculo puro y sincrónico: recibe los lotes ya leídos (con tracking) y les descuenta puntos en memoria, del más antiguo al más nuevo. No guarda nada: el `SaveChanges` del canje persiste el canje y los lotes juntos, en una sola transacción.
+* Está en su propia clase (principio de responsabilidad única) y se testea sin mocks (`LotePuntosServiceTests`).
+
 ---
 
 ## Anexo: matrices de referencia
@@ -83,9 +88,10 @@ originó en CU-07 (cliente) o CU-11 (empleado)._
 
 | Paso del CU | Excepción / Resultado | Test unitario (BusinessLogic) | Test integración (HTTP, vía CU-07/11) |
 | --- | --- | --- | --- |
-| Flujo principal | `Éxito` | `AplicarFifoAsync_WithSingleSufficientLote_DiscountsOldestLoteFirst` | `CrearCanje_WithSingleSufficientLote_Returns201Created` |
-| 2a. Lote insuficiente, requiere múltiples lotes | `Éxito` (continúa) | `AplicarFifoAsync_WhenOldestLoteInsufficient_ContinuesWithNextLote` | `CrearCanje_WhenPointsSpanMultipleLotes_Returns201Created` |
-| — Exclusión de lotes vencidos | `Éxito` | `AplicarFifoAsync_ExcludesExpiredLotesFromCalculation` | *(cubierto indirectamente por los tests de CU-22)* |
-| 4a. Error interno de persistencia | `Error` (`500`) | `AplicarFifoAsync_WhenRepositoryFails_ThrowsPersistenceExceptionAndRollsBack` | `CrearCanje_WhenLoteUpdateFails_Returns500InternalServerError` |
+| Flujo principal | `Éxito` | `AplicarFifo_WhenFirstLotIsEnough_LeavesOthersIntact` | `CrearCanje_WithValidData_Returns201Created` |
+| 2a. Lote insuficiente, requiere múltiples lotes | `Éxito` (continúa) | `AplicarFifo_DiscountsOldestLotFirst`, `CrearCanjeAsync_WithSufficientBalance_CreatesCanjeAndUpdatesSaldo` | — (cubierto por los unitarios) |
+| — Exclusión de lotes vencidos y pendientes | `Éxito` | — (filtro de `MovimientoRepository.LotesVigentes`) | `ConsultarSaldo_WithExistingCliente_Returns200OK`, `CrearCanje_WithOnlyPendingPoints_Returns409Conflict` |
+| 4a. Error interno de persistencia | `Error` (`500`) | `CrearCanjeAsync_WhenRepositoryFails_ThrowsPersistenceException` | `CrearCanje_WhenPersistenceFails_Returns500InternalServerError` |
+| Defensa: los lotes no alcanzan | `InvalidOperationException` | `AplicarFifo_WhenLotsAreNotEnough_Throws` | — |
 
 > Regla de oro: cada flujo del caso de uso debe tener al menos un test.

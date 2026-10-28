@@ -2,8 +2,8 @@
 
 > Especificación elaborada siguiendo la guía
 > `GUIA-Especificacion-Casos-de-Uso.md` (sección 3).
-> Regla de negocio RN-10 (estado del canje visible) **a implementar**; cada caso
-> borde debe contar con su test unitario e integración (ver matriz de
+> Regla de negocio RN-10 (estado del canje visible) **implementada**; cada caso
+> borde cuenta con su test unitario e integración (ver matriz de
 > trazabilidad).
 
 | Campo | Valor |
@@ -34,7 +34,7 @@ listado de beneficios que canjeó previamente, con su fecha y estado.
 3. La **Capa de Negocio** (`ClienteService.ConsultarCanjesPorDocumentoAsync`)
    localiza al cliente por documento y recupera sus canjes, incluyendo el
    estado de cada uno (**RN-10**).
-4. La **Capa de Persistencia** recupera los registros (`Canjes`) del cliente
+4. La **Capa de Persistencia** recupera los movimientos de tipo `Canje` del cliente
    encontrado.
 5. El Sistema devuelve un código **200 OK** con el listado de beneficios
    canjeados, su fecha y estado.
@@ -63,6 +63,14 @@ empleado (punto de venta)._
 ### 6. POSTCONDICIONES
 1. El empleado visualiza el historial de canjes del cliente consultado, sin que
    se modifique ningún dato persistente.
+
+### 7. DETALLE DE IMPLEMENTACIÓN
+
+| Endpoint | Rol (token JWT) | Controller → Service |
+| --- | --- | --- |
+| `GET /api/clientes/{documento}/canjes` | Empleado | `ClientesController.ConsultarCanjesPorDocumento → ClienteService.ConsultarCanjesPorDocumentoAsync` |
+
+* **Colección Bruno:** `bruno/Clientes/ (Canjes por Documento)`.
 
 ---
 

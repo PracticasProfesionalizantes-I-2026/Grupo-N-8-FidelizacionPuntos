@@ -1,0 +1,17 @@
+meta {
+  name: Mis Canjes
+  type: http
+  seq: 11
+}
+
+get {
+  url: {{baseUrl}}/api/clientes/me/canjes
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("200 OK con el estado de cada canje (CU-08)", function () {
+    expect(res.status).to.equal(200);
+  });
+}

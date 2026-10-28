@@ -6,6 +6,11 @@ meta {
 
 get {
   url: {{baseUrl}}/api/clientes/{{clienteDemoId}}/saldo
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenEmpleado}}
 }
 
 tests {

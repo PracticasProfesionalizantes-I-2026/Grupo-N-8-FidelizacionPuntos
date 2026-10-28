@@ -1,4 +1,6 @@
 using System.Text;
+using FidelixAPI.API.Filters;
+using FidelixAPI.API.Jobs;
 using FidelixAPI.BusinessLogic.Interfaces;
 using FidelixAPI.BusinessLogic.Services;
 using FidelixAPI.DataAccess.Context;
@@ -12,7 +14,8 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+// El filtro de auditoría registra toda operación que modifica datos (RN-13, CU-21).
+builder.Services.AddControllers(options => options.Filters.Add<AuditoriaFilter>());
 builder.Services.AddOpenApi();
 
 // DataAccess: EF Core + SQLite (RNF-04: arquitectura en capas).
@@ -25,6 +28,10 @@ builder.Services.AddScoped<IBeneficioRepository, BeneficioRepository>();
 builder.Services.AddScoped<IMovimientoRepository, MovimientoRepository>();
 builder.Services.AddScoped<IProductoRepository, ProductoRepository>();
 builder.Services.AddScoped<IReglaAcumulacionRepository, ReglaAcumulacionRepository>();
+builder.Services.AddScoped<IEmpleadoRepository, EmpleadoRepository>();
+builder.Services.AddScoped<IAdminRepository, AdminRepository>();
+builder.Services.AddScoped<IAuditoriaRepository, AuditoriaRepository>();
+builder.Services.AddScoped<ICodigoRecuperacionRepository, CodigoRecuperacionRepository>();
 
 // Servicios (BusinessLogic): inyectados por interfaz en los controllers.
 builder.Services.AddScoped<IClienteService, ClienteService>();
@@ -36,6 +43,21 @@ builder.Services.AddScoped<IReglaAcumulacionService, ReglaAcumulacionService>();
 builder.Services.AddScoped<IMovimientoService, MovimientoService>();
 builder.Services.AddScoped<ICanjeService, CanjeService>();
 builder.Services.AddScoped<ILotePuntosService, LotePuntosService>();
+builder.Services.AddScoped<IAuthPersonalService, AuthPersonalService>();
+builder.Services.AddScoped<IRecuperacionService, RecuperacionService>();
+builder.Services.AddScoped<IClienteAdminService, ClienteAdminService>();
+builder.Services.AddScoped<IEmpleadoAdminService, EmpleadoAdminService>();
+builder.Services.AddScoped<IAuditoriaService, AuditoriaService>();
+builder.Services.AddScoped<IReporteService, ReporteService>();
+builder.Services.AddScoped<IPuntosService, PuntosService>();
+builder.Services.AddScoped<AuditoriaFilter>();
+
+// Emails: en desarrollo se escriben en la consola (no hay servidor SMTP configurado).
+builder.Services.AddSingleton<IEmailSender, LoggingEmailSender>();
+
+// Procesos automáticos diarios: vencimiento de puntos (CU-22) y bono de cumpleaños (CU-26).
+builder.Services.AddHostedService<PointsExpirationJob>();
+builder.Services.AddHostedService<BonoCumpleanosJob>();
 
 // Autenticación JWT (CU-02 emite el token; CU-07 lo exige). Valida firma, emisor,
 // audiencia y vencimiento con los mismos valores de `Jwt` que usa JwtTokenService.

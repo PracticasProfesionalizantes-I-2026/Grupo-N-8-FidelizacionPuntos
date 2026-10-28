@@ -1,0 +1,21 @@
+meta {
+  name: Canjes por Documento - No Encontrado
+  type: http
+  seq: 14
+}
+
+get {
+  url: {{baseUrl}}/api/clientes/99999999/canjes
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenEmpleado}}
+}
+
+tests {
+  test("404 Not Found", function () {
+    expect(res.status).to.equal(404);
+  });
+}

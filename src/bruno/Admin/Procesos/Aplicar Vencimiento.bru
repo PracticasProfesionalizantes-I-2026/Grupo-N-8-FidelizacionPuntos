@@ -1,0 +1,17 @@
+meta {
+  name: Aplicar Vencimiento
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/admin/procesos/vencimiento-puntos
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("200 OK (CU-22)", function () {
+    expect(res.status).to.equal(200);
+  });
+}

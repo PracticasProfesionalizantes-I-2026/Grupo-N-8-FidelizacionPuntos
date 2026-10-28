@@ -1,0 +1,21 @@
+meta {
+  name: Entregar Canje - Ya Entregado
+  type: http
+  seq: 13
+}
+
+patch {
+  url: {{baseUrl}}/api/canjes/{{canjeOnlineId}}/entregar
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenEmpleado}}
+}
+
+tests {
+  test("409 Conflict", function () {
+    expect(res.status).to.equal(409);
+  });
+}

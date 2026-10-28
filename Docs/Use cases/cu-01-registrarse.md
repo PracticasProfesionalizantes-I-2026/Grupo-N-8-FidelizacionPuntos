@@ -3,7 +3,7 @@
 > Especificación elaborada siguiendo la guía
 > `GUIA-Especificacion-Casos-de-Uso.md` (sección 3).
 > Reglas de negocio RN-01 (documento y email únicos) y RN-02 (política mínima de
-> contraseña) **a implementar**; cada caso borde debe contar con su test unitario e
+> contraseña) **implementadas**; cada caso borde cuenta con su test unitario e
 > integración (ver matriz de trazabilidad).
 
 | Campo | Valor |

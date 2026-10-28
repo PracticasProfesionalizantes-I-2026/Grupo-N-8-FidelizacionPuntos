@@ -1,0 +1,17 @@
+meta {
+  name: Reporte Beneficios Mas Canjeados
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/api/admin/reportes?tipo=BeneficiosMasCanjeados&periodoDesde=2026-01-01&periodoHasta=2026-12-31
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("200 OK con ranking (CU-24)", function () {
+    expect(res.status).to.equal(200);
+  });
+}

@@ -92,13 +92,12 @@ El catálogo del sistema define cuatro niveles de complejidad sobre las reglas b
 
 **Clientes:**
 
-* **RF-01:** El sistema debe permitir el ABM de un cliente 
+* **RF-01:** El sistema debe permitir el ABM de un cliente (RN-01, RN-02, RN-14). *(CU-01, CU-15)*
 * **RF-02:** El sistema debe permitir iniciar sesión al cliente, con bloqueo temporal tras intentos fallidos (RN-03). *(CU-02)*  
-* **RF-03:** El sistema debe permitir gestionar el perfil de un cliente 
+* **RF-03:** El sistema debe permitir gestionar el perfil de un cliente (RN-01, RN-04, RN-14). *(CU-03)*
 * **RF-04:** El sistema debe permitir al cliente darse de baja voluntariamente de su cuenta (baja lógica), preservando su historial de movimientos y canjes (RN-14). *(CU-03)*
-* **RF-05:** El sistema debe permitir al cliente visualizar un dashboard con información sobre sus puntos, vencimientos y canjes realizados.
-* **RF-06:** El sistema debe permitir al cliente visualizar/consultar beneficios disponibles
-
+* **RF-05:** El sistema debe permitir al cliente visualizar un dashboard con información sobre sus puntos, vencimientos y canjes realizados (RN-05, RN-06, RN-10). *(CU-04, CU-05, CU-08)*
+* **RF-06:** El sistema debe permitir al cliente visualizar/consultar beneficios disponibles (RN-07). *(CU-06)*
 **Compras:**
 
 * **RF-07:** El sistema debe permitir registrar compras asociadas a clientes mediante carga manual. *(CU-10)*
@@ -106,7 +105,7 @@ El catálogo del sistema define cuatro niveles de complejidad sobre las reglas b
 
 **Puntos:**
 
-* **RF-09:** El sistema debe gestionar el historial y disponibilidad de puntos de cada cliente.  
+* **RF-09:** El sistema debe gestionar el historial y disponibilidad de puntos de cada cliente (RN-05, RN-06, RN-21). *(CU-04, CU-05, CU-22)*
 * **RF-10:** El sistema debe acreditar automáticamente un bono de puntos a los clientes activos en la fecha de su cumpleaños, una vez por año, mediante un proceso batch programado (RN-29). *(CU-26)*
 * **RF-11:** El sistema debe validar las reglas de negocio correspondientes al canje de puntos (RN-08, RN-17). *(CU-07)*
 
@@ -117,22 +116,21 @@ El catálogo del sistema define cuatro niveles de complejidad sobre las reglas b
 * **RF-14:** El sistema debe aplicar metodo FIFO en los canjes respecto de la antigüedad de los lotes de puntos (RN-09). *(CU-07, CU-23)*
 
 **Admin:**
-* **RF-15:** El sistema debe permitir iniciar sesion al admin  
-* **RF-16:** El sistema debe permitir al administrador visualizar y filtrar el historial de ventas, incluyendo comparaciones entre distintos períodos.  
-* **RF-17:** El sistema debe permitir al administrador crear y eliminar un empleado.  
-* **RF-18:** El sistema debe permitir al administrador crear y eliminar un cliente.  
+* **RF-15:** El sistema debe permitir iniciar sesion al admin (RN-11). *(CU-14)*
+* **RF-16:** El sistema debe permitir al administrador visualizar y filtrar el historial de ventas, incluyendo comparaciones entre distintos períodos (RN-06, RN-19). *(CU-20, CU-24)*
+* **RF-17:** El sistema debe permitir al administrador crear y eliminar un empleado (RN-01, RN-15). *(CU-16)*
+* **RF-18:** El sistema debe permitir al administrador crear y eliminar un cliente (RN-01, RN-14). *(CU-15)*
 * **RF-19:** El sistema debe permitir al administrador gestionar productos y beneficios (RN-16, RN-17, RN-23, RN-24, RN-25, RN-26). *(CU-17, CU-18)*
 * **RF-20:** El sistema debe permitir al administrador crear o modificar reglas de acumulacion de puntos (RN-13, RN-18). *(CU-19)*
-* **RF-21:** El sistema debe permitir al administrador realizar auditorias de operaciones
+* **RF-21:** El sistema debe permitir al administrador realizar auditorias de operaciones (RN-13, RN-20). *(CU-21)*
 * **RF-22:** El sistema debe permitir al administrador aplicar lapso de vencimiento a los puntos (RN-21). *(CU-19)*
-* **RF-23:** El sistema debe permitir al administrador generar reportes basicos
-
+* **RF-23:** El sistema debe permitir al administrador generar reportes basicos (RN-19). *(CU-24)*
 **Empleado:**
 
-* **RF-24:** El sistema debe permitir iniciar sesion al empleado  
-* **RF-25:** El sistema debe permitir visualizar los canjes realizados por los clientes.
-* **RF-26:** El sistema debe permitir al empleado corregir errores en la asignación de una compra de un clientes.  
-* **RF-27:** El sistema debe permitir al empleado crear una cuenta de cliente.
+* **RF-24:** El sistema debe permitir iniciar sesion al empleado (RN-11, RN-15). *(CU-09)*
+* **RF-25:** El sistema debe permitir visualizar los canjes realizados por los clientes (RN-10). *(CU-08, CU-11, CU-13)*
+* **RF-26:** El sistema debe permitir al empleado corregir errores en la asignación de una compra de un clientes. *(CU-10, flujo 3c: el empleado revisa y corrige el carrito antes de confirmar)*
+* **RF-27:** El sistema debe permitir al empleado crear una cuenta de cliente (RN-01). *(CU-12)*
 * **RF-28:** El sistema debe registrar qué empleado fue responsable de cada acumulación, corrección o movimiento de puntos, para fines de trazabilidad y auditoría (RN-13). *(CU-10, CU-21)*
 
 **Seguridad y Acceso (multi-rol):**

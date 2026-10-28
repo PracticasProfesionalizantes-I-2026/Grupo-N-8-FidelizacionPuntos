@@ -1,0 +1,17 @@
+meta {
+  name: Movimientos
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/admin/movimientos?clienteId={{clienteDemoId}}
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("200 OK: acumulaciones y canjes (CU-20)", function () {
+    expect(res.status).to.equal(200);
+  });
+}

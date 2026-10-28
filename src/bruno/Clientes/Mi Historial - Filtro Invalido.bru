@@ -1,0 +1,17 @@
+meta {
+  name: Mi Historial - Filtro Invalido
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{baseUrl}}/api/clientes/me/movimientos?fechaDesde=no-es-fecha
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("400 Bad Request", function () {
+    expect(res.status).to.equal(400);
+  });
+}

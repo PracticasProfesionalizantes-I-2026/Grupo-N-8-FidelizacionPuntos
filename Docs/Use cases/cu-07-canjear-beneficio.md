@@ -96,7 +96,8 @@ presencial en punto de venta lo gestiona el empleado (ver CU-11)._
 ### 6. POSTCONDICIONES
 1. El canje queda registrado en la tabla `Movimientos` (tipo `Canje`, puntos
    negativos, con el beneficio asociado) y se informa con estado "Pendiente" hasta
-   que el empleado entregue el beneficio (CU-11, versión futura).
+   que el empleado entregue el beneficio en el local (`PATCH /api/canjes/{id}/entregar`,
+   CU-11), cuando pasa a "Entregado" (RN-10).
 2. El saldo de puntos del cliente queda actualizado, descontando los lotes más
    antiguos según **RN-09**.
 

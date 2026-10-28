@@ -1,0 +1,18 @@
+meta {
+  name: Auditoria - Sin Criterios
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/api/admin/auditoria
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("200 OK con lista vacía (flujo 3a)", function () {
+    expect(res.status).to.equal(200);
+    expect(res.body.items.length).to.equal(0);
+  });
+}

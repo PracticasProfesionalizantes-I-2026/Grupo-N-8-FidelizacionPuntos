@@ -4,8 +4,8 @@
 > `GUIA-Especificacion-Casos-de-Uso.md` (sección 3), adaptada a un caso de uso
 > de **Sistema** (proceso batch diario, sin actor humano ni endpoint HTTP
 > público).
-> Regla de negocio RN-29 (bono de cumpleaños único por año) **a implementar**;
-> cada caso borde debe contar con su test unitario e integración (ver matriz
+> Regla de negocio RN-29 (bono de cumpleaños único por año) **implementada**;
+> cada caso borde cuenta con su test unitario e integración (ver matriz
 > de trazabilidad).
 
 | Campo | Valor |
@@ -39,7 +39,7 @@ ejecuta el proceso.
    coincide con la fecha de ejecución.
 2. Para cada cliente encontrado, el Sistema verifica que no haya recibido el
    bono en el año en curso (**RN-29**).
-3. El Sistema acredita el monto fijo configurado (`BonoCumpleanosPuntos`) como
+3. El Sistema acredita el monto fijo configurado (`Puntos:BonoCumpleanos` en `appsettings.json`, 500 por defecto) como
    un nuevo lote de puntos, con su propia fecha de vencimiento (misma lógica
    que cualquier acumulación, RN-05/RN-21).
 4. La **Capa de Persistencia** registra el movimiento (`Movimientos`, tipo
@@ -74,6 +74,14 @@ _No aplica: el proceso se ejecuta por un único mecanismo (job programado)._
 2. El bono queda registrado en `Movimientos`, disponible para auditoría
    (**RN-13**), y no se vuelve a acreditar al mismo cliente en el mismo año
    (**RN-29**).
+
+### 7. DETALLE DE IMPLEMENTACIÓN
+
+* **Job:** `BonoCumpleanosJob` corre al arrancar la API y después cada 24 h (se apaga con `Jobs:Habilitados = false`).
+* **Ejecución manual:** `POST /api/admin/procesos/bono-cumpleanos` (rol Admin, `AdminProcesosController`).
+* El bono queda **disponible de inmediato** (no es una compra, así que no aplica el pendiente de N2) y vence según los días de la regla vigente (CU-19). Los nacidos un 29/2 lo reciben el 28/2 en los años no bisiestos.
+* Test de integración: `BonoCumpleanosJob_WithMatchingCliente_AccruesPointsOncePerYear`.
+* **Colección Bruno:** `bruno/Admin/Procesos/`.
 
 ---
 

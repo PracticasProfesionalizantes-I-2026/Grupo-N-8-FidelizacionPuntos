@@ -2,8 +2,8 @@
 
 > Especificación elaborada siguiendo la guía
 > `GUIA-Especificacion-Casos-de-Uso.md` (sección 3).
-> Regla de negocio RN-06 (historial completo y cronológico) **a implementar**;
-> cada caso borde debe contar con su test unitario e integración (ver matriz de
+> Regla de negocio RN-06 (historial completo y cronológico) **implementada**;
+> cada caso borde cuenta con su test unitario e integración (ver matriz de
 > trazabilidad).
 
 | Campo | Valor |
@@ -63,6 +63,16 @@ vencimientos de puntos realizados sobre su cuenta.
 ### 6. POSTCONDICIONES
 1. El cliente visualiza el historial solicitado, sin que se modifique ningún dato
    persistente.
+
+### 7. DETALLE DE IMPLEMENTACIÓN
+
+| Endpoint | Rol (token JWT) | Controller → Service |
+| --- | --- | --- |
+| `GET /api/clientes/me/movimientos?fechaDesde&fechaHasta&tipoMovimiento` | Cliente | `ClientesController.ConsultarHistorial → ClienteService.ConsultarHistorialAsync` |
+
+* `tipoMovimiento` acepta `Acumulacion`, `Canje`, `BonoCumpleanos` o `Vencimiento`. Una fecha mal formada o un rango invertido devuelven 400 automático.
+* La respuesta es `{ mensaje, items }`; con la lista vacía, `mensaje` = "No hay movimientos para mostrar".
+* **Colección Bruno:** `bruno/Clientes/`.
 
 ---
 

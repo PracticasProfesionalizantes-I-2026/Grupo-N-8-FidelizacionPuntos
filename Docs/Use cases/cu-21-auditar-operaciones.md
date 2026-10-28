@@ -3,7 +3,7 @@
 > Especificación elaborada siguiendo la guía
 > `GUIA-Especificacion-Casos-de-Uso.md` (sección 3).
 > Reglas de negocio RN-20 (inmutabilidad de la auditoría) y RN-13 (registro de
-> operaciones críticas) **a implementar**; cada caso borde debe contar con su test
+> operaciones críticas) **implementadas**; cada caso borde cuenta con su test
 > unitario e integración (ver matriz de trazabilidad).
 
 | Campo | Valor |
@@ -65,6 +65,17 @@ _No aplica: consulta de lectura simple, sin variantes de mecanismo relevantes._
 ### 6. POSTCONDICIONES
 1. El admin visualiza la información de auditoría solicitada.
 2. Ningún registro de auditoría consultado es modificado ni eliminado (**RN-20**).
+
+### 7. DETALLE DE IMPLEMENTACIÓN
+
+| Endpoint | Rol (token JWT) | Controller → Service |
+| --- | --- | --- |
+| `GET /api/admin/auditoria?fechaDesde&fechaHasta&tipoOperacion&actorId` | Admin | `AdminAuditoriaController.Consultar → AuditoriaService.ConsultarAuditoriaAsync` |
+| `GET /api/admin/auditoria/{id}` | Admin | `AdminAuditoriaController.ObtenerPorId → AuditoriaService.ObtenerPorIdAsync` |
+
+* **Cómo se registra (RN-13):** un filtro global (`AuditoriaFilter`) audita cada POST/PUT/PATCH/DELETE que termina en 2xx: operación (`Controller.Accion`), actor (id y rol del token), entidad afectada y ruta. Los procesos automáticos (CU-22, CU-26) se auditan con rol `Sistema`. Los logins no se auditan.
+* **Inmutable (RN-20):** `IAuditoriaRepository` no hereda del repositorio base y no tiene `UpdateAsync`: solo crea y consulta.
+* **Colección Bruno:** `bruno/Admin/Consultas/`.
 
 ---
 

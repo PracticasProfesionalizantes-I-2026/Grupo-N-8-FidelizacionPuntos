@@ -3,8 +3,7 @@
 > Especificación elaborada siguiendo la guía
 > `GUIA-Especificacion-Casos-de-Uso.md` (sección 3), adaptada a un caso de uso de
 > **Sistema** (proceso interno programado, sin actor humano ni endpoint HTTP
-> público). Reglas de negocio RN-09 (FIFO) y RN-13 (registro para auditoría) **a
-> implementar**; cada caso borde debe contar con su test unitario e integración
+> público). Reglas de negocio RN-09 (FIFO) y RN-13 (registro para auditoría) **implementadas**; cada caso borde cuenta con su test unitario e integración
 > (ver matriz de trazabilidad).
 
 | Campo | Valor |
@@ -73,6 +72,13 @@ interno)._
    lotes vencidos.
 2. El vencimiento queda registrado en `Movimientos` y es auditable (**RN-13**,
    CU-21).
+
+### 7. DETALLE DE IMPLEMENTACIÓN
+
+* **Job:** `PointsExpirationJob` (BackgroundService) corre al arrancar la API y después cada 24 h; se apaga con `Jobs:Habilitados = false` (los tests lo apagan).
+* **Ejecución manual / reintento:** `POST /api/admin/procesos/vencimiento-puntos` (rol Admin, `AdminProcesosController`), que llama al mismo `PuntosService.AplicarVencimientoAsync`.
+* Por cada cliente: los lotes vencidos quedan en 0 (FIFO), se registra un movimiento `Vencimiento` negativo, se audita y se le avisa por email (en desarrollo, el email se escribe en la consola). Si un cliente falla, sus lotes se restauran y se sigue con el resto (**ErrorParcial**).
+* **Colección Bruno:** `bruno/Admin/Procesos/`.
 
 ---
 
