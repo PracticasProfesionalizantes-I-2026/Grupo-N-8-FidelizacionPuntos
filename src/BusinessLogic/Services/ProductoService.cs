@@ -1,6 +1,7 @@
 using FidelixAPI.BusinessLogic.Interfaces;
 using FidelixAPI.DataAccess.Entities;
 using FidelixAPI.DataAccess.Repositories.Interfaces;
+using FidelixAPI.Shared.DTOs.Comun;
 using FidelixAPI.Shared.DTOs.Producto;
 using FidelixAPI.Shared.Exceptions;
 
@@ -73,6 +74,22 @@ public class ProductoService(IProductoRepository productoRepository) : IProducto
         producto.Activo = false;
         await productoRepository.UpdateAsync(producto);
         return MapToResponseDTO(producto);
+    }
+
+    /// <summary> Consulta del admin: todos los productos ordenados por nombre, incluidos los desactivados. </summary>
+    public async Task<ListadoResponseDTO<ProductoResponseDTO>> ListarProductosAsync()
+    {
+        var productos = await productoRepository.GetAllAsync();
+        var items = productos.OrderBy(p => p.Nombre).Select(MapToResponseDTO).ToList();
+        return ListadoResponseDTO<ProductoResponseDTO>.Crear(items, "No hay productos registrados");
+    }
+
+    /// <summary> Consulta del empleado: solo los productos activos (RN-26), ordenados por nombre. </summary>
+    public async Task<ListadoResponseDTO<ProductoResponseDTO>> ListarProductosActivosAsync()
+    {
+        var productos = await productoRepository.GetAllAsync();
+        var items = productos.Where(p => p.Activo).OrderBy(p => p.Nombre).Select(MapToResponseDTO).ToList();
+        return ListadoResponseDTO<ProductoResponseDTO>.Crear(items, "No hay productos disponibles");
     }
 
     /// <summary>

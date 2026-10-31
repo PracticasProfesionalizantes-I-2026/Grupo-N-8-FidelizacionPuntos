@@ -8,13 +8,17 @@ using Microsoft.AspNetCore.Mvc;
 namespace FidelixAPI.API.Controllers;
 
 /// <summary>
-/// ABM de productos por el admin (CU-18). Exige el token del login de admin (CU-14, RN-11).
+/// ABM y consulta de productos por el admin (CU-18). Exige el token del login de admin (CU-14, RN-11).
 /// </summary>
 [ApiController]
 [Authorize(Roles = Roles.Admin)]
 [Route("api/admin/productos")]
 public class AdminProductosController(IProductoService productoService) : ControllerBase
 {
+    /// <summary> Lista todos los productos, activos e inactivos; una lista vacía también es 200. </summary>
+    [HttpGet]
+    public async Task<IActionResult> ListarProductos() => Ok(await productoService.ListarProductosAsync());
+
     /// <summary> Alta de un producto (RN-24 y RN-25). </summary>
     [HttpPost]
     public async Task<IActionResult> CrearProducto(ProductoCreateDTO dto)

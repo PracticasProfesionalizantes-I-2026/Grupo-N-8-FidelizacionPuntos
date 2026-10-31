@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using FidelixAPI.Shared.DTOs.Comun;
 using FidelixAPI.Shared.DTOs.Producto;
 using FidelixAPI.Shared.Security;
 using Xunit;
@@ -172,5 +173,49 @@ public class AdminProductosControllerTests : IClassFixture<FidelixApiFactory>, I
 
         Assert.Equal(HttpStatusCode.OK, respuesta.StatusCode);
         Assert.False(desactivado!.Activo);
+    }
+
+    /// <summary>CU-18, consulta del admin: devuelve 200 OK e incluye los productos desactivados.</summary>
+    [Fact]
+    public async Task ListarProductos_AsAdmin_Returns200OKIncludingInactive()
+    {
+        var client = _factory.CreateClientComo(Roles.Admin);
+        var producto = await CrearProductoAsync(client);
+        await client.PatchAsync($"/api/admin/productos/{producto.Id}/desactivar", null);
+
+        var respuesta = await client.GetAsync("/api/admin/productos");
+        var listado = await respuesta.Content.ReadFromJsonAsync<ListadoResponseDTO<ProductoResponseDTO>>();
+
+        Assert.Equal(HttpStatusCode.OK, respuesta.StatusCode);
+        Assert.Contains(listado!.Items, p => p.Id == producto.Id && !p.Activo);
+    }
+
+    /// <summary>CU-18, consulta del empleado: devuelve 200 OK solo con productos activos (RN-26).</summary>
+    [Fact]
+    public async Task ListarProductos_AsEmpleado_Returns200OKOnlyActive()
+    {
+        var admin = _factory.CreateClientComo(Roles.Admin);
+        var activo = await CrearProductoAsync(admin);
+        var inactivo = await CrearProductoAsync(admin);
+        await admin.PatchAsync($"/api/admin/productos/{inactivo.Id}/desactivar", null);
+        var empleado = _factory.CreateClientComo(Roles.Empleado);
+
+        var respuesta = await empleado.GetAsync("/api/productos");
+        var listado = await respuesta.Content.ReadFromJsonAsync<ListadoResponseDTO<ProductoResponseDTO>>();
+
+        Assert.Equal(HttpStatusCode.OK, respuesta.StatusCode);
+        Assert.Contains(listado!.Items, p => p.Id == activo.Id);
+        Assert.DoesNotContain(listado.Items, p => p.Id == inactivo.Id);
+    }
+
+    /// <summary>CU-18, consulta: un cliente no puede ver el catálogo de productos (403, RN-11).</summary>
+    [Fact]
+    public async Task ListarProductos_AsCliente_Returns403Forbidden()
+    {
+        var client = _factory.CreateClientComo(Roles.Cliente);
+
+        var respuesta = await client.GetAsync("/api/productos");
+
+        Assert.Equal(HttpStatusCode.Forbidden, respuesta.StatusCode);
     }
 }

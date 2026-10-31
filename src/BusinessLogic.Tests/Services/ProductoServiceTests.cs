@@ -151,4 +151,47 @@ public class ProductoServiceTests
 
         _productoRepo.Verify(r => r.UpdateAsync(producto), Times.Never);
     }
+
+    /// <summary> CU-18, consulta del admin: devuelve activos e inactivos, ordenados por nombre. </summary>
+    [Fact]
+    public async Task ListarProductosAsync_ReturnsAllProductosOrderedByNombre()
+    {
+        _productoRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Producto>
+        {
+            new() { Id = Guid.NewGuid(), Nombre = "Pizza", Precio = 100, Activo = true },
+            new() { Id = Guid.NewGuid(), Nombre = "Empanada", Precio = 50, Activo = false }
+        });
+
+        var resultado = await _sut.ListarProductosAsync();
+
+        Assert.Equal(["Empanada", "Pizza"], resultado.Items.Select(p => p.Nombre));
+        Assert.Null(resultado.Mensaje);
+    }
+
+    /// <summary> CU-18, consulta del empleado: los productos desactivados no aparecen (RN-26). </summary>
+    [Fact]
+    public async Task ListarProductosActivosAsync_ExcludesInactiveProductos()
+    {
+        _productoRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Producto>
+        {
+            new() { Id = Guid.NewGuid(), Nombre = "Pizza", Precio = 100, Activo = true },
+            new() { Id = Guid.NewGuid(), Nombre = "Empanada", Precio = 50, Activo = false }
+        });
+
+        var resultado = await _sut.ListarProductosActivosAsync();
+
+        Assert.Equal("Pizza", Assert.Single(resultado.Items).Nombre);
+    }
+
+    /// <summary> CU-18, consulta sin productos: lista vacía con mensaje, no es un error. </summary>
+    [Fact]
+    public async Task ListarProductosActivosAsync_WhenNoProductos_ReturnsEmptyListWithMensaje()
+    {
+        _productoRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Producto>());
+
+        var resultado = await _sut.ListarProductosActivosAsync();
+
+        Assert.Empty(resultado.Items);
+        Assert.Equal("No hay productos disponibles", resultado.Mensaje);
+    }
 }

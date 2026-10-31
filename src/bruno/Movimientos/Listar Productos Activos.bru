@@ -1,0 +1,27 @@
+meta {
+  name: Listar Productos Activos
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/api/productos
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("200 OK", function () {
+    expect(res.status).to.equal(200);
+  });
+  test("Solo productos activos (RN-26)", function () {
+    expect(res.body.items).to.be.an("array");
+    expect(res.body.items.every(p => p.activo === true)).to.equal(true);
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  forwardAuthorizationHeader: false
+}

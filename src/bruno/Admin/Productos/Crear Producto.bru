@@ -12,10 +12,15 @@ post {
 
 body:json {
   {
-    "nombre": "Producto Nuevo",
+    "nombre": "{{nombreProducto}}",
     "descripcion": "Creado desde Bruno",
     "precio": 500
   }
+}
+
+script:pre-request {
+  // Nombre único en cada corrida: así la carpeta se puede repetir sin borrar la base (RN-24).
+  bru.setVar("nombreProducto", "Producto Nuevo " + Date.now());
 }
 
 script:post-response {

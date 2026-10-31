@@ -93,6 +93,13 @@ disponibles para ser registrados en las compras de los clientes.
 3. **Ocultar / desactivar:** `PATCH /api/admin/productos/{id}/desactivar` →
    `200 OK`; a partir de ese momento, por **RN-26**, el producto deja de estar
    disponible para registrar nuevas compras (CU-10).
+4. **Consultar (admin):** `GET /api/admin/productos` → `200 OK` con **todos** los
+   productos, activos e inactivos, ordenados por nombre, para gestionar el catálogo.
+5. **Consultar (empleado):** `GET /api/productos` (token de empleado, CU-09) →
+   `200 OK` solo con los productos **activos** (**RN-26**). De acá el empleado
+   obtiene el `productoId` que envía al registrar una compra (CU-10).
+6. En ambas consultas, una lista vacía no es un error: `200 OK` con `items: []` y
+   un `mensaje` ("No hay productos registrados" / "No hay productos disponibles").
 
 ### 6. POSTCONDICIONES
 1. El producto queda creado, actualizado o desactivado en la tabla `Productos`.
@@ -117,7 +124,8 @@ disponibles para ser registrados en las compras de los clientes.
   (RN-24, RN-25, RN-26) se verifican en la Capa de Negocio.
 * **Autenticación:** los endpoints exigen el token del login de admin (CU-14, RN-11); cada operación queda en la auditoría (CU-21).
 * **Colección Bruno:** `bruno/Admin/Productos/` cubre el alta, el precio inválido,
-  el precio con muchos decimales, el precio excesivo, el duplicado, la modificación, el id inexistente y la desactivación.
+  el precio con muchos decimales, el precio excesivo, el duplicado, la modificación, el id inexistente, la desactivación y el listado
+  del admin; el listado del empleado está en `bruno/Movimientos/Listar Productos Activos`.
 
 ---
 
@@ -127,10 +135,11 @@ disponibles para ser registrados en las compras de los clientes.
 
 | Código HTTP | Nombre Técnico | Contexto de Aplicación en el Caso de Uso |
 | --- | --- | --- |
-| `200` | OK | Éxito al modificar o desactivar un producto existente. |
+| `200` | OK | Éxito al modificar o desactivar un producto existente, o al consultar el catálogo. |
 | `201` | Created | Confirmación de persistencia exitosa del nuevo recurso Producto. |
 | `400` | Bad Request | Datos inválidos (nombre faltante o en blanco) o precio fuera de rango o con más de 2 decimales (RN-25). |
 | `404` | Not Found | Producto inexistente en modificación o desactivación. |
+| `403` | Forbidden | Consulta del catálogo con el token de otro rol (ej. cliente), RN-11. |
 | `409` | Conflict | Violación de RN-24: nombre de otro producto existente, en el alta o en la modificación. |
 
 ### Matriz de trazabilidad CU-18 → Test
@@ -148,5 +157,9 @@ disponibles para ser registrados en las compras de los clientes.
 | 3b. Nombre ya existente (alta) | `409 Conflict` | `CrearProductoAsync_WhenNombreExists_ThrowsProductoDuplicadoException` | `AbmProducto_Create_WhenNombreExists_Returns409Conflict` |
 | 3b. Nombre de otro producto (modificación) | `409 Conflict` | `ActualizarProductoAsync_WhenNombreExists_ThrowsProductoDuplicadoException` | `AbmProducto_Update_WhenNombreBelongsToOther_Returns409Conflict` |
 | 3c. Producto inexistente | `404 Not Found` | `ActualizarProductoAsync_WithNonExistentId_ThrowsProductoNotFoundException` | `AbmProducto_Update_WithNonExistentId_Returns404NotFound` |
+| Sub-variación 4. Consulta del admin | `200 OK` | `ListarProductosAsync_ReturnsAllProductosOrderedByNombre` | `ListarProductos_AsAdmin_Returns200OKIncludingInactive` |
+| Sub-variación 5. Consulta del empleado (RN-26) | `200 OK` | `ListarProductosActivosAsync_ExcludesInactiveProductos` | `ListarProductos_AsEmpleado_Returns200OKOnlyActive` |
+| Sub-variación 6. Catálogo vacío | `200 OK` + mensaje | `ListarProductosActivosAsync_WhenNoProductos_ReturnsEmptyListWithMensaje` | — |
+| Consulta con otro rol (RN-11) | `403 Forbidden` | — (atributo `[Authorize]`) | `ListarProductos_AsCliente_Returns403Forbidden` |
 
 > Regla de oro: cada flujo del caso de uso debe tener al menos un test.
