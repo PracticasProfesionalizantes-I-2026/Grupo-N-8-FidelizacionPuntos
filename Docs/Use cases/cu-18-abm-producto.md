@@ -2,7 +2,7 @@
 
 > Especificación elaborada siguiendo la guía
 > `GUIA-Especificacion-Casos-de-Uso.md` (sección 3).
-> Reglas de negocio RN-24 (nombre de producto único), RN-25 (precio mayor a 0)
+> Reglas de negocio RN-24 (nombre de producto único), RN-25 (precio mayor a 0, hasta 999.999,99 y con 2 decimales como máximo)
 > y RN-26 (producto inactivo no disponible para registrar compras)
 > **implementadas** (ver sección 7); cada caso borde cuenta con su test unitario
 > e integración (ver matriz de trazabilidad). RN-26 se termina de aplicar en
@@ -17,7 +17,7 @@
 | **Stakeholders e intereses** | Admin → mantener el catálogo de productos actualizado; Empleado → contar con productos válidos y con un precio correcto al registrar una compra (CU-10) |
 | **Disparador (Trigger)** | El admin accede a la gestión de productos |
 | **Prioridad / Frecuencia** | Media; uso ocasional |
-| **Reglas de negocio relacionadas** | RN-24 (nombre de producto único); RN-25 (precio mayor a 0); RN-26 (producto inactivo no disponible para registrar compras) |
+| **Reglas de negocio relacionadas** | RN-24 (nombre de producto único); RN-25 (precio mayor a 0, con hasta 6 dígitos enteros y 2 decimales); RN-26 (producto inactivo no disponible para registrar compras) |
 
 ---
 
@@ -57,11 +57,14 @@ disponibles para ser registrados en las compras de los clientes.
 
 * **3a. Precio inválido (HTTP 400 Bad Request):**
   1. El sistema detecta que en el Paso 3 (alta o modificación) el precio ingresado es menor o
-     igual a 0, violando **RN-25**.
+     igual a 0, supera 999.999,99 (más de 6 dígitos enteros) o tiene más de 2 decimales
+     (ej. 1,999), violando **RN-25**.
   2. El Sistema (Capa de Negocio) lanza la excepción de dominio
      `PrecioInvalidoException`.
-  3. El Sistema devuelve un código **400 Bad Request** con el mensaje: "El
-     precio debe ser mayor a 0". El flujo retorna al Paso 1.
+  3. El Sistema devuelve un código **400 Bad Request** con el mensaje que
+     corresponda: "El precio debe ser mayor a 0", "El precio no puede superar
+     999999.99" o "El precio puede tener como máximo 2 decimales". El flujo
+     retorna al Paso 1.
   4. Si en la modificación no se envía precio, esta validación no se aplica.
 
 * **3b. Nombre de producto ya existente (HTTP 409 Conflict):**
@@ -105,7 +108,7 @@ disponibles para ser registrados en las compras de los clientes.
 | Nombre obligatorio (alta) | DTO: `[Required]` en `ProductoCreateDTO` | 400 |
 | Nombre no en blanco (modificación) | DTO: `[RegularExpression(@".*\S.*")]` en `ProductoUpdateDTO` | 400 |
 | Producto existente | `ProductoService`: `GetByIdAsync` | 404 |
-| RN-25: precio > 0 | `ProductoService` (en el alta, antes de consultar la base) | 400 |
+| RN-25: 0 < precio ≤ 999.999,99, máximo 2 decimales | `ProductoService.ValidarPrecio` (alta y modificación, antes de consultar la base) | 400 |
 | RN-24: nombre único | `ProductoService` + índice único en `Productos.Nombre` | 409 |
 | RN-26: producto inactivo | `ProductoService`: desactivación lógica (se completa en CU-10) | 200 |
 
@@ -114,7 +117,7 @@ disponibles para ser registrados en las compras de los clientes.
   (RN-24, RN-25, RN-26) se verifican en la Capa de Negocio.
 * **Autenticación:** los endpoints exigen el token del login de admin (CU-14, RN-11); cada operación queda en la auditoría (CU-21).
 * **Colección Bruno:** `bruno/Admin/Productos/` cubre el alta, el precio inválido,
-  el duplicado, la modificación, el id inexistente y la desactivación.
+  el precio con muchos decimales, el precio excesivo, el duplicado, la modificación, el id inexistente y la desactivación.
 
 ---
 
@@ -126,7 +129,7 @@ disponibles para ser registrados en las compras de los clientes.
 | --- | --- | --- |
 | `200` | OK | Éxito al modificar o desactivar un producto existente. |
 | `201` | Created | Confirmación de persistencia exitosa del nuevo recurso Producto. |
-| `400` | Bad Request | Datos inválidos (nombre faltante o en blanco) o precio ≤ 0 (RN-25). |
+| `400` | Bad Request | Datos inválidos (nombre faltante o en blanco) o precio fuera de rango o con más de 2 decimales (RN-25). |
 | `404` | Not Found | Producto inexistente en modificación o desactivación. |
 | `409` | Conflict | Violación de RN-24: nombre de otro producto existente, en el alta o en la modificación. |
 
@@ -140,6 +143,8 @@ disponibles para ser registrados en las compras de los clientes.
 | 2a. Datos inválidos (alta) | `400 Bad Request` | — (validación de esquema) | `AbmProducto_WithInvalidData_Returns400BadRequest` |
 | 2a. Nombre en blanco (modificación) | `400 Bad Request` | — (validación de esquema) | `AbmProducto_Update_WithBlankNombre_Returns400BadRequest` |
 | 3a. Precio inválido | `400 Bad Request` | `CrearProductoAsync_WithNonPositivePrecio_ThrowsPrecioInvalidoException` | `AbmProducto_Create_WithNonPositivePrecio_Returns400BadRequest` |
+| 3a. Precio con más de 6 enteros o 2 decimales | `400 Bad Request` | `CrearProductoAsync_WithPrecioOutOfFormat_ThrowsPrecioInvalidoException`, `ActualizarProductoAsync_WithTooManyDecimals_ThrowsPrecioInvalidoException` | `AbmProducto_Create_WithTooManyDecimals_Returns400BadRequest`, `AbmProducto_Create_WithPrecioAboveMaximum_Returns400BadRequest` |
+| 3a. Caso borde: precio máximo 999.999,99 | `201 Created` | `CrearProductoAsync_WithMaximumPrecio_CreatesProducto` | — |
 | 3b. Nombre ya existente (alta) | `409 Conflict` | `CrearProductoAsync_WhenNombreExists_ThrowsProductoDuplicadoException` | `AbmProducto_Create_WhenNombreExists_Returns409Conflict` |
 | 3b. Nombre de otro producto (modificación) | `409 Conflict` | `ActualizarProductoAsync_WhenNombreExists_ThrowsProductoDuplicadoException` | `AbmProducto_Update_WhenNombreBelongsToOther_Returns409Conflict` |
 | 3c. Producto inexistente | `404 Not Found` | `ActualizarProductoAsync_WithNonExistentId_ThrowsProductoNotFoundException` | `AbmProducto_Update_WithNonExistentId_Returns404NotFound` |

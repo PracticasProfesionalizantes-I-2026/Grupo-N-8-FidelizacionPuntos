@@ -9,13 +9,15 @@ namespace FidelixAPI.BusinessLogic.Services;
 /// <summary> Implementación de IProductoService (CU-18). </summary>
 public class ProductoService(IProductoRepository productoRepository) : IProductoService
 {
-    /// <summary> Alta: nombre único (RN-24) y precio positivo (RN-25). </summary>
+    /// <summary> Precio máximo de un producto: hasta 6 dígitos enteros y 2 decimales (RN-25). </summary>
+    private const decimal PrecioMaximo = 999_999.99m;
+    /// <summary> Cantidad máxima de decimales permitida en un precio (RN-25). </summary>
+    private const int DecimalesMaximos = 2;
+
+    /// <summary> Alta: nombre único (RN-24) y precio válido (RN-25). </summary>
     public async Task<ProductoResponseDTO> CrearProductoAsync(ProductoCreateDTO dto)
     {
-        if (dto.Precio <= 0)
-        {
-            throw new PrecioInvalidoException("El precio debe ser mayor a 0");
-        }
+        ValidarPrecio(dto.Precio);
 
         if (await productoRepository.GetByNombreAsync(dto.Nombre) is not null)
         {
@@ -33,15 +35,15 @@ public class ProductoService(IProductoRepository productoRepository) : IProducto
         return MapToResponseDTO(producto);
     }
 
-    /// <summary> Modificar un producto, actualizacion parcial: nombre único (RN-24) y precio positivo (RN-25). </summary>
+    /// <summary> Modificar un producto, actualizacion parcial: nombre único (RN-24) y precio válido (RN-25). </summary>
     public async Task<ProductoResponseDTO> ActualizarProductoAsync(Guid id, ProductoUpdateDTO dto)
     {
         var producto = await productoRepository.GetByIdAsync(id)
             ?? throw new ProductoNotFoundException("El producto no existe.");
 
-        if (dto.Precio is <= 0)
+        if (dto.Precio is not null)
         {
-            throw new PrecioInvalidoException("El precio debe ser mayor a 0");
+            ValidarPrecio(dto.Precio.Value);
         }
 
         if (dto.Nombre is not null && dto.Nombre != producto.Nombre)
@@ -71,6 +73,29 @@ public class ProductoService(IProductoRepository productoRepository) : IProducto
         producto.Activo = false;
         await productoRepository.UpdateAsync(producto);
         return MapToResponseDTO(producto);
+    }
+
+    /// <summary>
+    /// RN-25: el precio debe ser mayor a 0, no superar 999.999,99 (6 dígitos enteros)
+    /// y tener como máximo 2 decimales. Lo comparten el alta y la modificación.
+    /// </summary>
+    private static void ValidarPrecio(decimal precio)
+    {
+        if (precio <= 0)
+        {
+            throw new PrecioInvalidoException("El precio debe ser mayor a 0");
+        }
+
+        if (precio > PrecioMaximo)
+        {
+            throw new PrecioInvalidoException("El precio no puede superar 999999.99");
+        }
+
+        // Si redondear a 2 decimales cambia el valor, es que tenía más de 2 (ej. 0.999 → 1.00).
+        if (decimal.Round(precio, DecimalesMaximos) != precio)
+        {
+            throw new PrecioInvalidoException("El precio puede tener como máximo 2 decimales");
+        }
     }
 
     /// <summary>Traduce la entidad al DTO público.</summary>

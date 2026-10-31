@@ -75,6 +75,28 @@ public class AdminProductosControllerTests : IClassFixture<FidelixApiFactory>, I
         Assert.Equal(HttpStatusCode.BadRequest, respuesta.StatusCode);
     }
 
+    /// <summary>CU-18, flujo 3a: un precio con más de 2 decimales devuelve 400 Bad Request (RN-25).</summary>
+    [Fact]
+    public async Task AbmProducto_Create_WithTooManyDecimals_Returns400BadRequest()
+    {
+        var client = _factory.CreateClientComo(Roles.Admin);
+
+        var respuesta = await client.PostAsJsonAsync("/api/admin/productos", new ProductoCreateDTO { Nombre = "Producto Muchos Decimales", Precio = 1.999m });
+
+        Assert.Equal(HttpStatusCode.BadRequest, respuesta.StatusCode);
+    }
+
+    /// <summary>CU-18, flujo 3a: un precio de más de 6 dígitos enteros devuelve 400 Bad Request (RN-25).</summary>
+    [Fact]
+    public async Task AbmProducto_Create_WithPrecioAboveMaximum_Returns400BadRequest()
+    {
+        var client = _factory.CreateClientComo(Roles.Admin);
+
+        var respuesta = await client.PostAsJsonAsync("/api/admin/productos", new ProductoCreateDTO { Nombre = "Producto Muy Caro", Precio = 1_000_000m });
+
+        Assert.Equal(HttpStatusCode.BadRequest, respuesta.StatusCode);
+    }
+
     /// <summary>CU-18, flujo 3b: dar de alta un nombre que ya existe devuelve 409 Conflict (RN-24).</summary>
     [Fact]
     public async Task AbmProducto_Create_WhenNombreExists_Returns409Conflict()

@@ -75,7 +75,7 @@ Sin autenticación en esta etapa: se incorpora con el login (CU-02/09/14).
 | RN-01: empleado duplicado | `EmpleadoAdminService` | `EmpleadoDuplicadoException` | 409 |
 | Empleado inexistente | `EmpleadoAdminService` | `EmpleadoNotFoundException` | 404 |
 | RN-24: nombre de producto único | `ProductoService` | `ProductoDuplicadoException` | 409 |
-| RN-25: precio mayor a cero | `ProductoService` | `PrecioInvalidoException` | 400 |
+| RN-25: precio mayor a cero, hasta 999.999,99 y con 2 decimales como máximo | `ProductoService` | `PrecioInvalidoException` | 400 |
 | Producto inexistente | `ProductoService` | `ProductoNotFoundException` | 404 |
 | RN-18: regla de acumulación inválida o superpuesta | `ReglaAcumulacionService` | `ReglaAcumulacionInvalidaException` | 400 |
 | Regla de acumulación inexistente | `ReglaAcumulacionService` | `ReglaAcumulacionNotFoundException` | 404 |

@@ -1,0 +1,30 @@
+meta {
+  name: Crear Producto - Precio Con Muchos Decimales
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/api/admin/productos
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "nombre": "Producto Muchos Decimales",
+    "precio": 1.999
+  }
+}
+
+tests {
+  test("400 Bad Request", function () {
+    expect(res.status).to.equal(400);
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  forwardAuthorizationHeader: false
+}

@@ -1,3 +1,4 @@
+using System.Globalization;
 using FidelixAPI.BusinessLogic.Services;
 using FidelixAPI.DataAccess.Entities;
 using FidelixAPI.DataAccess.Repositories.Interfaces;
@@ -105,6 +106,48 @@ public class ProductoServiceTests
 
         await Assert.ThrowsAsync<ProductoDuplicadoException>(() =>
             _sut.ActualizarProductoAsync(producto.Id, new ProductoUpdateDTO { Nombre = otro.Nombre }));
+
+        _productoRepo.Verify(r => r.UpdateAsync(producto), Times.Never);
+    }
+
+    /// <summary>
+    /// CU-18, flujo alternativo 3a: precio con más de 6 dígitos enteros o más de 2 decimales
+    /// lanza excepción (RN-25). El precio va como string porque C# no admite decimal en atributos.
+    /// </summary>
+    [Theory]
+    [InlineData("1000000")]
+    [InlineData("1.999")]
+    [InlineData("0.99999999")]
+    public async Task CrearProductoAsync_WithPrecioOutOfFormat_ThrowsPrecioInvalidoException(string precio)
+    {
+        var dto = new ProductoCreateDTO { Nombre = "Producto", Precio = decimal.Parse(precio, CultureInfo.InvariantCulture) };
+
+        await Assert.ThrowsAsync<PrecioInvalidoException>(() => _sut.CrearProductoAsync(dto));
+
+        _productoRepo.Verify(r => r.CreateAsync(It.IsAny<Producto>()), Times.Never);
+    }
+
+    /// <summary> CU-18, alta: el precio máximo permitido (999999.99) se acepta (caso borde de RN-25). </summary>
+    [Fact]
+    public async Task CrearProductoAsync_WithMaximumPrecio_CreatesProducto()
+    {
+        _productoRepo.Setup(r => r.GetByNombreAsync(It.IsAny<string>())).ReturnsAsync((Producto?)null);
+        _productoRepo.Setup(r => r.CreateAsync(It.IsAny<Producto>())).ReturnsAsync((Producto p) => p);
+
+        var resultado = await _sut.CrearProductoAsync(new ProductoCreateDTO { Nombre = "Producto", Precio = 999_999.99m });
+
+        Assert.Equal(999_999.99m, resultado.Precio);
+    }
+
+    /// <summary> CU-18, modificación: un precio con más de 2 decimales lanza excepción y no se guarda (RN-25). </summary>
+    [Fact]
+    public async Task ActualizarProductoAsync_WithTooManyDecimals_ThrowsPrecioInvalidoException()
+    {
+        var producto = new Producto { Id = Guid.NewGuid(), Nombre = "Producto", Precio = 100, Activo = true };
+        _productoRepo.Setup(r => r.GetByIdAsync(producto.Id)).ReturnsAsync(producto);
+
+        await Assert.ThrowsAsync<PrecioInvalidoException>(() =>
+            _sut.ActualizarProductoAsync(producto.Id, new ProductoUpdateDTO { Precio = 10.555m }));
 
         _productoRepo.Verify(r => r.UpdateAsync(producto), Times.Never);
     }
