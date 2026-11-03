@@ -10,6 +10,15 @@ get {
   auth: inherit
 }
 
+params:query {
+  clienteId: {{clienteDemoId}}
+  ~clienteGoldId: {{clienteGoldId}}
+}
+
+vars:pre-request {
+  clienteGoldId: 6dd36ee3-bc6a-43a0-b3c8-9751eb0d4b1f
+}
+
 tests {
   test("200 OK: acumulaciones y canjes (CU-20)", function () {
     expect(res.status).to.equal(200);
