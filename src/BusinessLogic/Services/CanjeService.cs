@@ -23,11 +23,11 @@ public class CanjeService(
         return await EjecutarCanjeAsync(cliente, dto.BeneficioId!.Value, EstadoCanje.Pendiente, empleadoId: null);
     }
 
-    /// <summary> CU-11: el cliente se busca por documento (1a); el beneficio se entrega en el momento. </summary>
+    /// <summary> CU-11: el cliente se identifica por su id (1a); el beneficio se entrega en el momento. </summary>
     public async Task<CanjeResponseDTO> CrearCanjePresencialAsync(CanjePresencialCreateDTO dto, Guid? empleadoId)
     {
-        var cliente = await clienteRepository.GetByDocumentoAsync(dto.ClienteDocumento)
-            ?? throw new ClienteNotFoundException("El documento ingresado no se encuentra registrado");
+        var cliente = await clienteRepository.GetByIdAsync(dto.ClienteId!.Value)
+            ?? throw new ClienteNotFoundException("El cliente no se encuentra registrado.");
 
         return await EjecutarCanjeAsync(cliente, dto.BeneficioId!.Value, EstadoCanje.Entregado, empleadoId);
     }

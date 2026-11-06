@@ -1,7 +1,7 @@
 meta {
   name: Registrar Acumulacion - Cliente Gold
   type: http
-  seq: 3
+  seq: 4
 }
 
 post {
@@ -12,7 +12,7 @@ post {
 
 body:json {
   {
-    "clienteDocumento": "40111222",
+    "clienteId": "{{clienteGoldId}}",
     "items": [
       { "productoId": "{{productoCompraId}}", "cantidad": 2 }
     ]

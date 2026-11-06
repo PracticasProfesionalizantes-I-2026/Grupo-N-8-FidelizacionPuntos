@@ -20,19 +20,20 @@
 ---
 
 ### 1. BREVE DESCRIPCIÓN
-Permite al empleado consultar, mediante el documento (DNI) del cliente, el
-listado de beneficios que canjeó previamente, con su fecha y estado.
+Permite al empleado consultar el listado de beneficios que un cliente canjeó
+previamente, con su fecha y estado. El empleado ubica al cliente por su documento
+(DNI) y la consulta se hace con el **id** que devuelve esa búsqueda.
 
 ### 2. PRECONDICIONES
 1. El empleado se encuentra autenticado (Token JWT válido, CU-09).
 
 ### 3. FLUJO PRINCIPAL (Camino Feliz - HTTP 200)
-1. El Actor envía una petición al endpoint `GET /api/clientes/{documento}/canjes`
-   indicando el documento (DNI) del cliente a consultar.
-2. La **Capa de Presentación** (`ClientesController.ConsultarCanjesPorDocumento`)
-   valida que el documento tenga el formato correcto.
-3. La **Capa de Negocio** (`ClienteService.ConsultarCanjesPorDocumentoAsync`)
-   localiza al cliente por documento y recupera sus canjes, incluyendo el
+1. El Actor busca al cliente por documento (`GET /api/clientes?documento={dni}`, ver
+   CU-10), obtiene su id y envía una petición al endpoint `GET /api/clientes/{id}/canjes`.
+2. La **Capa de Presentación** (`ClientesController.ConsultarCanjesDeCliente`)
+   valida que el id sea un Guid (restricción de ruta `{id:guid}`).
+3. La **Capa de Negocio** (`ClienteService.ConsultarCanjesDeClienteAsync`)
+   localiza al cliente por su id y recupera sus canjes, incluyendo el
    estado de cada uno (**RN-10**).
 4. La **Capa de Persistencia** recupera los movimientos de tipo `Canje` del cliente
    encontrado.
@@ -41,12 +42,19 @@ listado de beneficios que canjeó previamente, con su fecha y estado.
 
 ### 4. FLUJOS ALTERNATIVOS (Caminos Tristes / Excepciones)
 
-* **3a. Cliente no encontrado por DNI (HTTP 404 Not Found):**
-  1. El sistema detecta que en el Paso 3 el documento ingresado no corresponde a
+* **1a. DNI mal ingresado o no registrado en la búsqueda (HTTP 400 / 404):**
+  1. El sistema detecta que en el Paso 1 el documento no tiene formato válido (7 a 10
+     dígitos) o no corresponde a ningún cliente.
+  2. El Sistema devuelve **400 Bad Request** ("El documento ingresado fue incorrecto.")
+     o **404 Not Found** ("El documento ingresado no se encuentra registrado."). El
+     flujo retorna al Paso 1.
+
+* **3a. Cliente no encontrado (HTTP 404 Not Found):**
+  1. El sistema detecta que en el Paso 3 el id enviado no corresponde a
      ningún cliente registrado.
   2. La Capa de Negocio no encuentra la entidad correspondiente.
-  3. El Sistema devuelve un código **404 Not Found** con el mensaje: "El DNI
-     ingresado es inválido". El flujo retorna al Paso 1.
+  3. El Sistema devuelve un código **404 Not Found** con el mensaje: "El cliente
+     no se encuentra registrado.". El flujo retorna al Paso 1.
 
 * **4a. Sin canjes registrados (HTTP 200 OK):**
   1. El sistema detecta que en el Paso 4 el Sistema no encuentra canjes realizados por el cliente
@@ -68,9 +76,11 @@ empleado (punto de venta)._
 
 | Endpoint | Rol (token JWT) | Controller → Service |
 | --- | --- | --- |
-| `GET /api/clientes/{documento}/canjes` | Empleado | `ClientesController.ConsultarCanjesPorDocumento → ClienteService.ConsultarCanjesPorDocumentoAsync` |
+| `GET /api/clientes?documento={dni}` (paso previo) | Empleado, Admin | `ClientesController.BuscarPorDocumento → ClienteService.BuscarPorDocumentoAsync` |
+| `GET /api/clientes/{id}/canjes` | Empleado | `ClientesController.ConsultarCanjesDeCliente → ClienteService.ConsultarCanjesDeClienteAsync` |
 
-* **Colección Bruno:** `bruno/Clientes/ (Canjes por Documento)`.
+* **El id es la clave, no el DNI:** la ruta usa el id (Guid) del cliente; el DNI solo se usa en la búsqueda previa. Reemplaza a la ruta anterior `GET /api/clientes/{documento}/canjes`.
+* **Colección Bruno:** `bruno/Clientes/` ("Buscar Cliente por DNI", "Canjes de Cliente", "Canjes de Cliente - No Encontrado").
 
 ---
 
@@ -81,14 +91,16 @@ empleado (punto de venta)._
 | Código HTTP | Nombre Técnico | Contexto de Aplicación en el Caso de Uso |
 | --- | --- | --- |
 | `200` | OK | Éxito al recuperar el listado (con o sin resultados). |
-| `404` | Not Found | DNI que no corresponde a ningún cliente registrado. |
+| `400` | Bad Request | DNI mal ingresado en la búsqueda. |
+| `404` | Not Found | DNI no registrado (búsqueda) o id que no corresponde a ningún cliente. |
 
 ### Matriz de trazabilidad CU-13 → Test
 
 | Paso del CU | Excepción / Código | Test unitario (BusinessLogic) | Test integración (HTTP) |
 | --- | --- | --- | --- |
-| Flujo principal | `200 OK` | `ConsultarCanjesPorDocumentoAsync_WithValidDocumento_ReturnsCanjesWithStatus` | `ConsultarCanjesPorDocumento_WithValidDocumento_Returns200OK` |
-| 3a. Cliente no encontrado por DNI | `404 Not Found` | `ConsultarCanjesPorDocumentoAsync_WithUnknownDocumento_ThrowsClienteNotFoundException` | `ConsultarCanjesPorDocumento_WithUnknownDocumento_Returns404NotFound` |
-| 4a. Sin canjes registrados | `200 OK` (lista vacía) | `ConsultarCanjesPorDocumentoAsync_WithNoCanjes_ReturnsEmptyList` | `ConsultarCanjesPorDocumento_WithNoCanjes_Returns200OKWithEmptyList` |
+| Flujo principal | `200 OK` | `ConsultarCanjesDeClienteAsync_WithExistingId_ReturnsCanjesWithStatus` | `ConsultarCanjesDeCliente_WithExistingId_Returns200OK` |
+| 1a. DNI mal ingresado / no registrado | `400` / `404` | `BuscarPorDocumentoAsync_WithMalformedDocumento_ThrowsDocumentoInvalidoException`, `BuscarPorDocumentoAsync_WithUnknownDocumento_ThrowsClienteNotFoundException` | `BuscarPorDocumento_WithMalformedDocumento_Returns400BadRequest`, `BuscarPorDocumento_WithUnknownDocumento_Returns404NotFound` |
+| 3a. Cliente no encontrado (id) | `404 Not Found` | `ConsultarCanjesDeClienteAsync_WithUnknownId_ThrowsClienteNotFoundException` | `ConsultarCanjesDeCliente_WithUnknownId_Returns404NotFound` |
+| 4a. Sin canjes registrados | `200 OK` (lista vacía) | `ConsultarCanjesDeClienteAsync_WithNoCanjes_ReturnsEmptyList` | `ConsultarCanjesDeCliente_WithNoCanjes_Returns200OKWithEmptyList` |
 
 > Regla de oro: cada flujo del caso de uso debe tener al menos un test.

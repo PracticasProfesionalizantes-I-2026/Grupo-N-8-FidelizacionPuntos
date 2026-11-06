@@ -30,7 +30,7 @@ public class MovimientoServiceTests
     {
         _sut = new MovimientoService(_clienteRepo.Object, _productoRepo.Object, _reglaRepo.Object, _movimientoRepo.Object);
 
-        _clienteRepo.Setup(r => r.GetByDocumentoAsync(_cliente.Documento)).ReturnsAsync(_cliente);
+        _clienteRepo.Setup(r => r.GetByIdAsync(_cliente.Id)).ReturnsAsync(_cliente);
         _productoRepo.Setup(r => r.GetByIdAsync(_producto.Id)).ReturnsAsync(_producto);
         _reglaRepo.Setup(r => r.GetVigenteAsync(It.IsAny<DateTime>()))
             .ReturnsAsync(new ReglaAcumulacion { PuntosPorMonto = 0.1m, DiasVigenciaPuntos = 180 });
@@ -39,10 +39,10 @@ public class MovimientoServiceTests
             .ReturnsAsync([new Movimiento { PuntosDisponibles = 150 }]);
     }
 
-    /// <summary> Compra de 2 unidades del producto de prueba ($1000 c/u = $2000). </summary>
-    private AcumulacionCreateDTO Compra(string documento = "40333444") => new()
+    /// <summary> Compra de 2 unidades del producto de prueba ($1000 c/u = $2000) para el cliente indicado (por defecto, el de prueba). </summary>
+    private AcumulacionCreateDTO Compra(Guid? clienteId = null) => new()
     {
-        ClienteDocumento = documento,
+        ClienteId = clienteId ?? _cliente.Id,
         Items = [new ItemCompraDTO { ProductoId = _producto.Id, Cantidad = 2 }]
     };
 
@@ -73,22 +73,15 @@ public class MovimientoServiceTests
         Assert.Equal(300, resultado.PuntosAcreditados);
     }
 
-    /// <summary> CU-10, flujo 3a: un documento que no es de ningún cliente lanza ClienteNotFoundException. </summary>
+    /// <summary> CU-10, flujo 3a: un id que no es de ningún cliente lanza ClienteNotFoundException y no acredita nada. </summary>
     [Fact]
-    public async Task RegistrarAcumulacionAsync_WithUnknownDocumento_ThrowsClienteNotFoundException()
+    public async Task RegistrarAcumulacionAsync_WithUnknownClienteId_ThrowsClienteNotFoundException()
     {
-        _clienteRepo.Setup(r => r.GetByDocumentoAsync("99999999")).ReturnsAsync((Cliente?)null);
+        var idInexistente = Guid.NewGuid();
+        _clienteRepo.Setup(r => r.GetByIdAsync(idInexistente)).ReturnsAsync((Cliente?)null);
 
-        await Assert.ThrowsAsync<ClienteNotFoundException>(() => _sut.RegistrarAcumulacionAsync(Compra("99999999")));
+        await Assert.ThrowsAsync<ClienteNotFoundException>(() => _sut.RegistrarAcumulacionAsync(Compra(idInexistente)));
         _movimientoRepo.Verify(r => r.CreateAsync(It.IsAny<Movimiento>()), Times.Never);
-    }
-
-    /// <summary> CU-10, flujo 3b: un documento con letras se rechaza antes de buscar al cliente. </summary>
-    [Fact]
-    public async Task RegistrarAcumulacionAsync_WithMalformedDocumento_ThrowsValidationException()
-    {
-        await Assert.ThrowsAsync<DocumentoInvalidoException>(() => _sut.RegistrarAcumulacionAsync(Compra("abc123")));
-        _clienteRepo.Verify(r => r.GetByDocumentoAsync(It.IsAny<string>()), Times.Never);
     }
 
     /// <summary> CU-10, flujo 2a: un producto inactivo (RN-26) rechaza la compra y no acredita nada. </summary>

@@ -1,11 +1,11 @@
 meta {
-  name: Canjes por Documento
+  name: Canjes de Cliente
   type: http
   seq: 13
 }
 
 get {
-  url: {{baseUrl}}/api/clientes/40333444/canjes
+  url: {{baseUrl}}/api/clientes/{{clienteDemoId}}/canjes
   body: none
   auth: bearer
 }

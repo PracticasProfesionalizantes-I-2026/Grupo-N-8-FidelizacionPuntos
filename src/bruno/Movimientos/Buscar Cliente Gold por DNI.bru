@@ -1,0 +1,35 @@
+meta {
+  name: Buscar Cliente Gold por DNI
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/clientes?documento=40111222
+  body: none
+  auth: inherit
+}
+
+params:query {
+  documento: 40111222
+}
+
+docs {
+  Paso previo del punto de venta: el empleado busca al cliente por DNI y la API devuelve su id.
+  El id del cliente Gold se genera al sembrar la base, por eso se obtiene así y se guarda en
+  `clienteGoldId` para la request siguiente ("Registrar Acumulacion - Cliente Gold").
+}
+
+script:post-response {
+  if (res.status === 200) {
+    bru.setVar("clienteGoldId", res.body.id);
+  }
+}
+
+tests {
+  test("200 OK con el id y la categoría Gold", function () {
+    expect(res.status).to.equal(200);
+    expect(res.body.id).to.be.a("string");
+    expect(res.body.categoria).to.equal("Gold");
+  });
+}

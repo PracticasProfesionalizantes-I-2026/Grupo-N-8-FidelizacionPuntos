@@ -166,39 +166,69 @@ public class ClientePerfilServiceTests
         _clienteRepo.Verify(r => r.CreateAsync(It.IsAny<Cliente>()), Times.Never);
     }
 
-    /// <summary> CU-13: busca al cliente por documento y devuelve sus canjes con estado. </summary>
+    /// <summary> CU-13: con el id del cliente devuelve sus canjes con estado. </summary>
     [Fact]
-    public async Task ConsultarCanjesPorDocumentoAsync_WithValidDocumento_ReturnsCanjesWithStatus()
+    public async Task ConsultarCanjesDeClienteAsync_WithExistingId_ReturnsCanjesWithStatus()
     {
-        _clienteRepo.Setup(r => r.GetByDocumentoAsync(_cliente.Documento)).ReturnsAsync(_cliente);
         _movimientoRepo.Setup(r => r.BuscarAsync(_cliente.Id, TipoMovimiento.Canje, null, null)).ReturnsAsync([
             new Movimiento { Tipo = TipoMovimiento.Canje, Puntos = -50, EstadoCanje = EstadoCanje.Entregado }
         ]);
 
-        var resultado = await _sut.ConsultarCanjesPorDocumentoAsync(_cliente.Documento);
+        var resultado = await _sut.ConsultarCanjesDeClienteAsync(_cliente.Id);
 
         Assert.Equal("Entregado", Assert.Single(resultado.Items).Estado);
     }
 
-    /// <summary> CU-13, flujo 3a: un documento desconocido lanza ClienteNotFoundException. </summary>
+    /// <summary> CU-13, flujo 3a: un id que no es de ningún cliente lanza ClienteNotFoundException. </summary>
     [Fact]
-    public async Task ConsultarCanjesPorDocumentoAsync_WithUnknownDocumento_ThrowsClienteNotFoundException()
+    public async Task ConsultarCanjesDeClienteAsync_WithUnknownId_ThrowsClienteNotFoundException()
     {
-        _clienteRepo.Setup(r => r.GetByDocumentoAsync(It.IsAny<string>())).ReturnsAsync((Cliente?)null);
-
-        await Assert.ThrowsAsync<ClienteNotFoundException>(() => _sut.ConsultarCanjesPorDocumentoAsync("99999999"));
+        await Assert.ThrowsAsync<ClienteNotFoundException>(() => _sut.ConsultarCanjesDeClienteAsync(Guid.NewGuid()));
     }
 
     /// <summary> CU-13, flujo 4a: un cliente sin canjes devuelve una lista vacía con mensaje. </summary>
     [Fact]
-    public async Task ConsultarCanjesPorDocumentoAsync_WithNoCanjes_ReturnsEmptyList()
+    public async Task ConsultarCanjesDeClienteAsync_WithNoCanjes_ReturnsEmptyList()
     {
-        _clienteRepo.Setup(r => r.GetByDocumentoAsync(_cliente.Documento)).ReturnsAsync(_cliente);
         _movimientoRepo.Setup(r => r.BuscarAsync(_cliente.Id, TipoMovimiento.Canje, null, null)).ReturnsAsync([]);
 
-        var resultado = await _sut.ConsultarCanjesPorDocumentoAsync(_cliente.Documento);
+        var resultado = await _sut.ConsultarCanjesDeClienteAsync(_cliente.Id);
 
         Assert.Empty(resultado.Items);
         Assert.Equal("El cliente aún no registra beneficios canjeados", resultado.Mensaje);
+    }
+
+    /// <summary>
+    /// Búsqueda por DNI del punto de venta: devuelve el id del cliente con datos mínimos (nombre,
+    /// documento y categoría), sin email ni teléfono.
+    /// </summary>
+    [Fact]
+    public async Task BuscarPorDocumentoAsync_WithExistingDocumento_ReturnsReducedCliente()
+    {
+        _cliente.Categoria = CategoriaCliente.Gold;
+        _clienteRepo.Setup(r => r.GetByDocumentoAsync(_cliente.Documento)).ReturnsAsync(_cliente);
+
+        var resultado = await _sut.BuscarPorDocumentoAsync(new ClienteBusquedaDTO { Documento = _cliente.Documento });
+
+        Assert.Equal(_cliente.Id, resultado.Id);
+        Assert.Equal("Ana", resultado.Nombre);
+        Assert.Equal("Gold", resultado.Categoria);
+    }
+
+    /// <summary> Búsqueda por DNI: un documento con letras (antes flujo 3b de CU-10) se rechaza sin ir a la base. </summary>
+    [Fact]
+    public async Task BuscarPorDocumentoAsync_WithMalformedDocumento_ThrowsDocumentoInvalidoException()
+    {
+        await Assert.ThrowsAsync<DocumentoInvalidoException>(() => _sut.BuscarPorDocumentoAsync(new ClienteBusquedaDTO { Documento = "abc123" }));
+        _clienteRepo.Verify(r => r.GetByDocumentoAsync(It.IsAny<string>()), Times.Never);
+    }
+
+    /// <summary> Búsqueda por DNI: un documento bien formado pero no registrado lanza ClienteNotFoundException. </summary>
+    [Fact]
+    public async Task BuscarPorDocumentoAsync_WithUnknownDocumento_ThrowsClienteNotFoundException()
+    {
+        _clienteRepo.Setup(r => r.GetByDocumentoAsync(It.IsAny<string>())).ReturnsAsync((Cliente?)null);
+
+        await Assert.ThrowsAsync<ClienteNotFoundException>(() => _sut.BuscarPorDocumentoAsync(new ClienteBusquedaDTO { Documento = "99999999" }));
     }
 }

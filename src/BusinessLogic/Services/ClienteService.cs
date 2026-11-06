@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using FidelixAPI.BusinessLogic.Helpers;
 using FidelixAPI.BusinessLogic.Interfaces;
 using FidelixAPI.DataAccess.Entities;
@@ -15,6 +16,9 @@ namespace FidelixAPI.BusinessLogic.Services;
 /// <summary>Implementación de <see cref="IClienteService"/> (CU-01, CU-03, CU-04, CU-05, CU-08, CU-12, CU-13).</summary>
 public class ClienteService(IClienteRepository clienteRepository, IMovimientoRepository movimientoRepository) : IClienteService
 {
+    /// <summary> Formato del DNI en la búsqueda del punto de venta: solo números, de 7 a 10 dígitos. </summary>
+    private static readonly Regex FormatoDocumento = new(@"^\d{7,10}$");
+
     /// <summary>Autorregistro: exige contraseña propia (RN-02) y unicidad de documento/email (RN-01).</summary>
     public async Task<ClienteResponseDTO> RegistrarAsync(ClienteCreateDTO dto)
     {
@@ -164,11 +168,34 @@ public class ClienteService(IClienteRepository clienteRepository, IMovimientoRep
         return MapToResponseDTO(cliente);
     }
 
-    /// <summary>Canjes de un cliente por documento (CU-13): 404 si no existe (3a); vacío no es error (4a).</summary>
-    public async Task<ListadoResponseDTO<CanjeItemDTO>> ConsultarCanjesPorDocumentoAsync(string documento)
+    /// <summary>
+    /// Búsqueda por DNI desde el punto de venta (CU-10, CU-11, CU-13): valida el formato antes de ir a la
+    /// base (fail fast, 400) y devuelve el id del cliente con los datos mínimos para confirmar que es él (404 si no existe).
+    /// </summary>
+    public async Task<ClienteBusquedaResponseDTO> BuscarPorDocumentoAsync(ClienteBusquedaDTO busqueda)
     {
-        var cliente = await clienteRepository.GetByDocumentoAsync(documento)
-            ?? throw new ClienteNotFoundException("El DNI ingresado es inválido");
+        if (!FormatoDocumento.IsMatch(busqueda.Documento))
+        {
+            throw new DocumentoInvalidoException("El documento ingresado fue incorrecto.");
+        }
+
+        var cliente = await clienteRepository.GetByDocumentoAsync(busqueda.Documento)
+            ?? throw new ClienteNotFoundException("El documento ingresado no se encuentra registrado.");
+
+        return new ClienteBusquedaResponseDTO
+        {
+            Id = cliente.Id,
+            Nombre = cliente.Nombre,
+            Documento = cliente.Documento,
+            Categoria = cliente.Categoria.ToString()
+        };
+    }
+
+    /// <summary>Canjes de un cliente por su id, para el empleado (CU-13): 404 si no existe (3a); vacío no es error (4a).</summary>
+    public async Task<ListadoResponseDTO<CanjeItemDTO>> ConsultarCanjesDeClienteAsync(Guid clienteId)
+    {
+        var cliente = await clienteRepository.GetByIdAsync(clienteId)
+            ?? throw new ClienteNotFoundException("El cliente no se encuentra registrado.");
 
         var canjes = await movimientoRepository.BuscarAsync(cliente.Id, TipoMovimiento.Canje, null, null);
         return ListadoResponseDTO<CanjeItemDTO>.Crear(canjes.Select(MovimientoMapper.ToCanjeItemDTO).ToList(), "El cliente aún no registra beneficios canjeados");

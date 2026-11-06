@@ -32,16 +32,18 @@ acumulación configuradas (CU-19).
 
 ### 3. FLUJO PRINCIPAL (Camino Feliz - HTTP 201)
 1. El cliente realiza una compra en el local; el empleado le solicita el
-   documento, carga los productos de la venta y, al finalizarla, el Actor
+   documento y lo busca (`GET /api/clientes?documento={dni}`), que devuelve el
+   **id** del cliente con su nombre y categoría para confirmar que es la persona
+   correcta. Luego carga los productos de la venta y, al finalizarla, el Actor
    envía una petición al endpoint `POST /api/movimientos/acumulaciones` con un
-   JSON que contiene el documento del cliente y el detalle de la compra
-   (`clienteDocumento`, `items: [{productoId, cantidad}]`). El monto **no** lo
+   JSON que contiene el id del cliente y el detalle de la compra
+   (`clienteId`, `items: [{productoId, cantidad}]`). El monto **no** lo
    envía el empleado: el sistema lo calcula con el precio de cada producto (CU-18),
    para que no se puedan acreditar puntos de más.
 2. La **Capa de Presentación** (`MovimientosController.RegistrarAcumulacion`)
    valida que el JSON sea estructuralmente correcto.
-3. La **Capa de Negocio** (`MovimientoService.RegistrarAcumulacionAsync`) valida el
-   formato del documento, localiza al cliente, calcula el monto de la compra con los
+3. La **Capa de Negocio** (`MovimientoService.RegistrarAcumulacionAsync`) localiza
+   al cliente por su id, calcula el monto de la compra con los
    precios de los productos activos (**RN-26**) y los puntos a acreditar con la regla
    de acumulación vigente (**RN-12**): `puntos = ⌊monto × puntosPorMonto × multiplicador⌋`,
    donde el multiplicador es 1.5 para clientes **Gold** (**N1**) y 1 para el resto.
@@ -69,20 +71,30 @@ acumulación configuradas (CU-19).
   3. El Sistema devuelve un código **400 Bad Request** detallando el ítem
      rechazado (ej.: "Ítem 1: el producto no existe."). El flujo retorna al Paso 1.
 
-* **3a. Cliente no registrado (HTTP 404 Not Found):**
-  1. El sistema detecta que en el Paso 3 el documento ingresado no corresponde a ningún cliente
-     registrado.
-  2. La Capa de Negocio no encuentra la entidad correspondiente.
-  3. El Sistema devuelve un código **404 Not Found** con el mensaje: "El documento
-     ingresado no se encuentra registrado". Fin del caso de uso.
+* **1a. DNI no registrado en la búsqueda (HTTP 404 Not Found):**
+  1. El sistema detecta que en el Paso 1 el documento buscado no corresponde a ningún
+     cliente registrado.
+  2. El Sistema devuelve un código **404 Not Found** con el mensaje: "El documento
+     ingresado no se encuentra registrado". El empleado puede darlo de alta (CU-12).
 
-* **3b. Documento del cliente mal ingresado (HTTP 400 Bad Request):**
-  1. El sistema detecta que en el Paso 3 el documento no respeta el formato válido
+* **1b. DNI mal ingresado en la búsqueda (HTTP 400 Bad Request):**
+  1. El sistema detecta que en el Paso 1 el documento no respeta el formato válido
      (solo números, de 7 a 10 dígitos).
-  2. El Sistema (Capa de Negocio) lanza `DocumentoInvalidoException` antes de buscar
-     al cliente (fail fast).
+  2. El Sistema (Capa de Negocio, `ClienteService.BuscarPorDocumentoAsync`) lanza
+     `DocumentoInvalidoException` antes de consultar la base (fail fast).
   3. El Sistema devuelve un código **400 Bad Request** con el mensaje: "El
-     documento ingresado fue incorrecto". Fin del caso de uso.
+     documento ingresado fue incorrecto". El flujo retorna al Paso 1.
+
+* **3a. Cliente no registrado (HTTP 404 Not Found):**
+  1. El sistema detecta que en el Paso 3 el `clienteId` enviado no corresponde a ningún
+     cliente registrado.
+  2. La Capa de Negocio no encuentra la entidad correspondiente.
+  3. El Sistema devuelve un código **404 Not Found** con el mensaje: "El cliente
+     no se encuentra registrado.". Fin del caso de uso.
+
+> El antiguo flujo 3b (documento mal ingresado en la compra) pasó a ser el 1b: la
+> compra ya no recibe el DNI, sino el id que devuelve la búsqueda. Un `clienteId`
+> faltante o que no es un Guid lo rechaza la Capa de Presentación (flujo 2a, 400).
 
 * **3d. Cliente inactivo o sin regla vigente (HTTP 409 Conflict):**
   1. El sistema detecta que en el Paso 3 el cliente está dado de baja (RN-14) o que
@@ -126,9 +138,9 @@ venta operado por el empleado)._
 
 | Regla / Validación | Dónde se aplica | Respuesta |
 | --- | --- | --- |
-| Campos obligatorios, cantidad 1..1000 | DTO (`AcumulacionCreateDTO`, `ItemCompraDTO`) | 400 |
-| Formato del documento (7 a 10 dígitos) | `MovimientoService` (antes de consultar la base) | 400 |
-| Cliente existente / activo | `MovimientoService` | 404 / 409 |
+| Campos obligatorios (`clienteId`, ítems), cantidad 1..1000 | DTO (`AcumulacionCreateDTO`, `ItemCompraDTO`) | 400 |
+| Formato del DNI en la búsqueda (7 a 10 dígitos) | `ClienteService.BuscarPorDocumentoAsync` (antes de consultar la base) | 400 |
+| Cliente existente (por id) / activo | `MovimientoService` | 404 / 409 |
 | Producto existente y activo (RN-26) | `MovimientoService.CalcularMontoAsync` | 400 |
 | RN-12: regla vigente | `ReglaAcumulacionRepository.GetVigenteAsync` (la de `vigenciaDesde` más reciente que ya empezó) | 409 si no hay |
 | **N1**: Gold x1.5 | `MovimientoService` (`Cliente.Categoria`) | — |
@@ -138,12 +150,19 @@ venta operado por el empleado)._
 * **Ejemplo:** compra de 2 productos de $1000 con la regla sembrada (0.1 pts/$):
   cliente Estándar → 200 puntos; cliente Gold → 300 puntos. En ambos casos quedan
   pendientes 15 días.
+* **El id es la clave, no el DNI:** el DNI solo se usa para **buscar** al cliente
+  (`GET /api/clientes?documento={dni}`, roles Empleado y Admin). La búsqueda recibe un
+  `ClienteBusquedaDTO` por `[FromQuery]` y responde un `ClienteBusquedaResponseDTO`
+  reducido (`id`, `nombre`, `documento`, `categoria`), sin email ni teléfono. La compra
+  se registra con ese `clienteId` (Guid), que es además la clave foránea del movimiento.
 * **Datos de prueba:** el seed incluye un cliente Gold (`40111222`,
-  `cliente.gold@fidelix.local` / `Gold1234!`).
+  `cliente.gold@fidelix.local` / `Gold1234!`). Su id se genera al sembrar, por eso en
+  Bruno primero se busca por DNI ("Buscar Cliente Gold por DNI") y el id queda en la
+  variable `clienteGoldId`.
 * **Autenticación y RF-28:** el endpoint exige el token del login de empleado (CU-09,
   `[Authorize(Roles = "Empleado")]`); el movimiento guarda el `EmpleadoId` del token, y la
   operación queda además en la auditoría (CU-21).
-* **Colección Bruno:** `bruno/Movimientos/`.
+* **Colección Bruno:** `bruno/Movimientos/` y la búsqueda en `bruno/Clientes/` ("Buscar Cliente por DNI").
 
 ---
 
@@ -154,8 +173,9 @@ venta operado por el empleado)._
 | Código HTTP | Nombre Técnico | Contexto de Aplicación en el Caso de Uso |
 | --- | --- | --- |
 | `201` | Created | Confirmación de persistencia exitosa del movimiento de acumulación. |
-| `400` | Bad Request | Ítem de venta inválido o documento del cliente mal ingresado. |
-| `404` | Not Found | Documento que no corresponde a ningún cliente registrado. |
+| `200` | OK | Búsqueda por DNI exitosa (paso previo). |
+| `400` | Bad Request | Ítem de venta inválido, `clienteId` faltante o inválido, o DNI mal ingresado en la búsqueda. |
+| `404` | Not Found | DNI no registrado (búsqueda) o `clienteId` que no corresponde a ningún cliente. |
 | `409` | Conflict | Cliente inactivo o sin regla de acumulación vigente. |
 | `500` | Internal Server Error | Error técnico no controlado durante la persistencia. |
 
@@ -167,8 +187,12 @@ venta operado por el empleado)._
 | Flujo principal, N1 (Gold x1.5) | `201 Created` | `RegistrarAcumulacionAsync_WithGoldCliente_AppliesMultiplier` | `RegistrarAcumulacion_WithGoldCliente_AppliesMultiplier` |
 | 2a. Ítem inválido (cantidad) | `400 Bad Request` | — (validación de esquema) | `RegistrarAcumulacion_WithInvalidItem_Returns400BadRequest` |
 | 2a. Producto inactivo (RN-26) | `400 Bad Request` | `RegistrarAcumulacionAsync_WithInactiveProducto_ThrowsItemCompraInvalidoException` | — (cubierto por el unitario) |
-| 3a. Cliente no registrado | `404 Not Found` | `RegistrarAcumulacionAsync_WithUnknownDocumento_ThrowsClienteNotFoundException` | `RegistrarAcumulacion_WithUnknownDocumento_Returns404NotFound` |
-| 3b. Documento mal ingresado | `400 Bad Request` | `RegistrarAcumulacionAsync_WithMalformedDocumento_ThrowsValidationException` | `RegistrarAcumulacion_WithMalformedDocumento_Returns400BadRequest` |
+| 1. Búsqueda por DNI | `200 OK` | `BuscarPorDocumentoAsync_WithExistingDocumento_ReturnsReducedCliente` | `BuscarPorDocumento_WithExistingDocumento_Returns200WithReducedData`, `BuscarPorDocumento_AsAdmin_Returns200OK` |
+| 1a. DNI no registrado | `404 Not Found` | `BuscarPorDocumentoAsync_WithUnknownDocumento_ThrowsClienteNotFoundException` | `BuscarPorDocumento_WithUnknownDocumento_Returns404NotFound` |
+| 1b. DNI mal ingresado | `400 Bad Request` | `BuscarPorDocumentoAsync_WithMalformedDocumento_ThrowsDocumentoInvalidoException` | `BuscarPorDocumento_WithMalformedDocumento_Returns400BadRequest`, `BuscarPorDocumento_WithoutDocumento_Returns400BadRequest` |
+| 2a. `clienteId` faltante | `400 Bad Request` | — (validación de esquema) | `RegistrarAcumulacion_WithoutClienteId_Returns400BadRequest` |
+| 3a. Cliente no registrado (id) | `404 Not Found` | `RegistrarAcumulacionAsync_WithUnknownClienteId_ThrowsClienteNotFoundException` | `RegistrarAcumulacion_WithUnknownClienteId_Returns404NotFound` |
+| RN-11: solo personal busca clientes | `403 Forbidden` | — | `BuscarPorDocumento_AsCliente_Returns403Forbidden` |
 | 3d. Sin regla vigente | `409 Conflict` | `RegistrarAcumulacionAsync_WithoutVigenteRule_ThrowsReglaAcumulacionNoVigenteException` | — (cubierto por el unitario) |
 | 3c. Cálculo revisado antes de confirmar | Sin cambios (no se envía la petición) | — (verificación del empleado, previa al envío) | — (no genera una petición distinta; se cubre con el test del flujo principal una vez corregido el carrito) |
 | 4a. Error interno de persistencia | `500 Internal Server Error` | `RegistrarAcumulacionAsync_WhenRepositoryFails_ThrowsPersistenceException` | `RegistrarAcumulacion_WhenPersistenceFails_Returns500InternalServerError` |

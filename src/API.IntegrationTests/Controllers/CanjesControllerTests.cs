@@ -159,7 +159,7 @@ public class CanjesControllerTests : IClassFixture<FidelixApiFactory>, IAsyncLif
     {
         var client = _factory.CreateClient();
         var beneficioId = await CrearBeneficioAsync(costo: 100);
-        var documento = await RegistrarYAutenticarClienteNuevoAsync(client);
+        var (clienteId, _, _) = await TestHelpers.RegistrarYAutenticarClienteAsync(client);
 
         // Compra de $10000 → 1000 puntos, pero pendientes (N2).
         var producto = await (await _factory.CreateClientComo(Roles.Admin).PostAsJsonAsync("/api/admin/productos", new ProductoCreateDTO
@@ -169,7 +169,7 @@ public class CanjesControllerTests : IClassFixture<FidelixApiFactory>, IAsyncLif
         })).Content.ReadFromJsonAsync<ProductoResponseDTO>();
         await _factory.CreateClientComo(Roles.Empleado).PostAsJsonAsync("/api/movimientos/acumulaciones", new AcumulacionCreateDTO
         {
-            ClienteDocumento = documento,
+            ClienteId = clienteId,
             Items = [new ItemCompraDTO { ProductoId = producto!.Id, Cantidad = 1 }]
         });
 

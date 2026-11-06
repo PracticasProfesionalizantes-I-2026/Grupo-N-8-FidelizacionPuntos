@@ -1,0 +1,25 @@
+meta {
+  name: Buscar Cliente por DNI - No Encontrado
+  type: http
+  seq: 17
+}
+
+get {
+  url: {{baseUrl}}/api/clientes?documento=99999999
+  body: none
+  auth: bearer
+}
+
+params:query {
+  documento: 99999999
+}
+
+auth:bearer {
+  token: {{tokenEmpleado}}
+}
+
+tests {
+  test("404 Not Found: el DNI no está registrado", function () {
+    expect(res.status).to.equal(404);
+  });
+}

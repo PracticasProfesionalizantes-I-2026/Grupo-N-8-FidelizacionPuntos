@@ -32,6 +32,9 @@ public interface IClienteService
     /// <summary>Alta de un cliente desde el punto de venta (CU-12): sin contraseña, documento/email únicos (RN-01).</summary>
     Task<ClienteResponseDTO> CrearClienteDesdePOSAsync(ClienteCreateDTO dto);
 
-    /// <summary>Canjes de un cliente buscado por documento, para el empleado (CU-13, RN-10).</summary>
-    Task<ListadoResponseDTO<CanjeItemDTO>> ConsultarCanjesPorDocumentoAsync(string documento);
+    /// <summary>Busca un cliente por DNI desde el punto de venta y devuelve su id con datos mínimos (CU-10, CU-11, CU-13).</summary>
+    Task<ClienteBusquedaResponseDTO> BuscarPorDocumentoAsync(ClienteBusquedaDTO busqueda);
+
+    /// <summary>Canjes de un cliente identificado por su id, para el empleado (CU-13, RN-10).</summary>
+    Task<ListadoResponseDTO<CanjeItemDTO>> ConsultarCanjesDeClienteAsync(Guid clienteId);
 }

@@ -26,10 +26,6 @@ public class MovimientosController(IMovimientoService movimientoService) : Contr
             var acumulacion = await movimientoService.RegistrarAcumulacionAsync(dto, User.ObtenerId());
             return StatusCode(StatusCodes.Status201Created, acumulacion);
         }
-        catch (DocumentoInvalidoException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
         catch (ItemCompraInvalidoException ex)
         {
             return BadRequest(new { message = ex.Message });

@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using FidelixAPI.API.IntegrationTests.Fakes;
 using FidelixAPI.DataAccess.Repositories.Interfaces;
+using FidelixAPI.DataAccess.Seed;
 using FidelixAPI.Shared.DTOs.Movimiento;
 using FidelixAPI.Shared.DTOs.Producto;
 using FidelixAPI.Shared.Security;
@@ -18,7 +19,7 @@ namespace FidelixAPI.API.IntegrationTests.Controllers;
 public class MovimientosControllerTests : IClassFixture<FidelixApiFactory>, IAsyncLifetime
 {
     private const string Url = "/api/movimientos/acumulaciones";
-    private const string DocumentoDemo = "40333444";
+    /// <summary>DNI del cliente Gold sembrado: su id se genera al sembrar, así que se obtiene buscándolo por DNI.</summary>
     private const string DocumentoGold = "40111222";
 
     private readonly FidelixApiFactory _factory;
@@ -43,10 +44,10 @@ public class MovimientosControllerTests : IClassFixture<FidelixApiFactory>, IAsy
         return (await respuesta.Content.ReadFromJsonAsync<ProductoResponseDTO>())!.Id;
     }
 
-    /// <summary>Compra de 2 unidades de un producto ($2000).</summary>
-    private static AcumulacionCreateDTO Compra(string documento, Guid productoId, int cantidad = 2) => new()
+    /// <summary>Compra de 2 unidades de un producto ($2000) para el cliente indicado por id.</summary>
+    private static AcumulacionCreateDTO Compra(Guid clienteId, Guid productoId, int cantidad = 2) => new()
     {
-        ClienteDocumento = documento,
+        ClienteId = clienteId,
         Items = [new ItemCompraDTO { ProductoId = productoId, Cantidad = cantidad }]
     };
 
@@ -57,21 +58,25 @@ public class MovimientosControllerTests : IClassFixture<FidelixApiFactory>, IAsy
         var client = _factory.CreateClientComo(Roles.Empleado);
         var productoId = await CrearProductoAsync();
 
-        var respuesta = await client.PostAsJsonAsync(Url, Compra(DocumentoDemo, productoId));
+        var respuesta = await client.PostAsJsonAsync(Url, Compra(DbInitializer.ClienteDemoId, productoId));
         var acumulacion = await respuesta.Content.ReadFromJsonAsync<AcumulacionResponseDTO>();
 
         Assert.Equal(HttpStatusCode.Created, respuesta.StatusCode);
         Assert.Equal(200, acumulacion!.PuntosAcreditados);
     }
 
-    /// <summary>CU-10, N1: el cliente Gold sembrado acumula x1.5 ($2000 → 300 puntos).</summary>
+    /// <summary>
+    /// CU-10, N1: el cliente Gold sembrado acumula x1.5 ($2000 → 300 puntos). Sigue el flujo real del
+    /// punto de venta: primero busca al cliente por DNI y después registra la compra con su id.
+    /// </summary>
     [Fact]
     public async Task RegistrarAcumulacion_WithGoldCliente_AppliesMultiplier()
     {
         var client = _factory.CreateClientComo(Roles.Empleado);
         var productoId = await CrearProductoAsync();
+        var clienteGoldId = await TestHelpers.BuscarIdPorDocumentoAsync(_factory, DocumentoGold);
 
-        var respuesta = await client.PostAsJsonAsync(Url, Compra(DocumentoGold, productoId));
+        var respuesta = await client.PostAsJsonAsync(Url, Compra(clienteGoldId, productoId));
         var acumulacion = await respuesta.Content.ReadFromJsonAsync<AcumulacionResponseDTO>();
 
         Assert.Equal(HttpStatusCode.Created, respuesta.StatusCode);
@@ -85,31 +90,34 @@ public class MovimientosControllerTests : IClassFixture<FidelixApiFactory>, IAsy
         var client = _factory.CreateClientComo(Roles.Empleado);
         var productoId = await CrearProductoAsync();
 
-        var respuesta = await client.PostAsJsonAsync(Url, Compra(DocumentoDemo, productoId, cantidad: 0));
+        var respuesta = await client.PostAsJsonAsync(Url, Compra(DbInitializer.ClienteDemoId, productoId, cantidad: 0));
 
         Assert.Equal(HttpStatusCode.BadRequest, respuesta.StatusCode);
     }
 
-    /// <summary>CU-10, flujo 3a: un documento no registrado devuelve 404 Not Found.</summary>
+    /// <summary>CU-10, flujo 3a: un id que no es de ningún cliente devuelve 404 Not Found.</summary>
     [Fact]
-    public async Task RegistrarAcumulacion_WithUnknownDocumento_Returns404NotFound()
+    public async Task RegistrarAcumulacion_WithUnknownClienteId_Returns404NotFound()
     {
         var client = _factory.CreateClientComo(Roles.Empleado);
         var productoId = await CrearProductoAsync();
 
-        var respuesta = await client.PostAsJsonAsync(Url, Compra("99999999", productoId));
+        var respuesta = await client.PostAsJsonAsync(Url, Compra(Guid.NewGuid(), productoId));
 
         Assert.Equal(HttpStatusCode.NotFound, respuesta.StatusCode);
     }
 
-    /// <summary>CU-10, flujo 3b: un documento con letras devuelve 400 Bad Request.</summary>
+    /// <summary>CU-10, flujo 2a: una compra sin cliente (`clienteId` faltante) devuelve 400 Bad Request.</summary>
     [Fact]
-    public async Task RegistrarAcumulacion_WithMalformedDocumento_Returns400BadRequest()
+    public async Task RegistrarAcumulacion_WithoutClienteId_Returns400BadRequest()
     {
         var client = _factory.CreateClientComo(Roles.Empleado);
         var productoId = await CrearProductoAsync();
 
-        var respuesta = await client.PostAsJsonAsync(Url, Compra("abc123", productoId));
+        var respuesta = await client.PostAsJsonAsync(Url, new AcumulacionCreateDTO
+        {
+            Items = [new ItemCompraDTO { ProductoId = productoId, Cantidad = 1 }]
+        });
 
         Assert.Equal(HttpStatusCode.BadRequest, respuesta.StatusCode);
     }
@@ -127,7 +135,7 @@ public class MovimientosControllerTests : IClassFixture<FidelixApiFactory>, IAsy
             .CreateClient();
         _factory.Autenticar(client, Roles.Empleado);
 
-        var respuesta = await client.PostAsJsonAsync(Url, Compra(DocumentoDemo, productoId));
+        var respuesta = await client.PostAsJsonAsync(Url, Compra(DbInitializer.ClienteDemoId, productoId));
 
         Assert.Equal(HttpStatusCode.InternalServerError, respuesta.StatusCode);
     }
@@ -138,7 +146,7 @@ public class MovimientosControllerTests : IClassFixture<FidelixApiFactory>, IAsy
     {
         var productoId = await CrearProductoAsync();
 
-        var respuesta = await _factory.CreateClient().PostAsJsonAsync(Url, Compra(DocumentoDemo, productoId));
+        var respuesta = await _factory.CreateClient().PostAsJsonAsync(Url, Compra(DbInitializer.ClienteDemoId, productoId));
 
         Assert.Equal(HttpStatusCode.Unauthorized, respuesta.StatusCode);
     }
@@ -149,7 +157,7 @@ public class MovimientosControllerTests : IClassFixture<FidelixApiFactory>, IAsy
     {
         var productoId = await CrearProductoAsync();
 
-        var respuesta = await _factory.CreateClientComo(Roles.Cliente).PostAsJsonAsync(Url, Compra(DocumentoDemo, productoId));
+        var respuesta = await _factory.CreateClientComo(Roles.Cliente).PostAsJsonAsync(Url, Compra(DbInitializer.ClienteDemoId, productoId));
 
         Assert.Equal(HttpStatusCode.Forbidden, respuesta.StatusCode);
     }

@@ -1,7 +1,7 @@
 meta {
   name: Registrar Acumulacion - Cliente No Registrado
   type: http
-  seq: 5
+  seq: 6
 }
 
 post {
@@ -12,7 +12,7 @@ post {
 
 body:json {
   {
-    "clienteDocumento": "99999999",
+    "clienteId": "00000000-0000-0000-0000-000000000000",
     "items": [
       { "productoId": "{{productoCompraId}}", "cantidad": 2 }
     ]
@@ -20,7 +20,7 @@ body:json {
 }
 
 tests {
-  test("404 Not Found", function () {
+  test("404 Not Found: el id no es de ningún cliente (CU-10, 3a)", function () {
     expect(res.status).to.equal(404);
   });
 }

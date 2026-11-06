@@ -16,13 +16,13 @@ auth:bearer {
 
 body:json {
   {
-    "clienteDocumento": "99999999",
+    "clienteId": "00000000-0000-0000-0000-000000000000",
     "beneficioId": "{{beneficioBaratoId}}"
   }
 }
 
 tests {
-  test("404 Not Found", function () {
+  test("404 Not Found: el id no es de ningún cliente (CU-11, 1a)", function () {
     expect(res.status).to.equal(404);
   });
 }

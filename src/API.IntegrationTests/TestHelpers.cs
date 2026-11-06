@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using FidelixAPI.Shared.DTOs.Auth;
 using FidelixAPI.Shared.DTOs.Cliente;
+using FidelixAPI.Shared.Security;
 
 namespace FidelixAPI.API.IntegrationTests;
 
@@ -30,6 +31,17 @@ public static class TestHelpers
         var cliente = await registro.Content.ReadFromJsonAsync<ClienteResponseDTO>();
         await LoginClienteAsync(client, email, "Cliente123!");
         return (cliente!.Id, documento, email);
+    }
+
+    /// <summary>
+    /// Busca un cliente por DNI como empleado (`GET /api/clientes?documento=`) y devuelve su id: es el
+    /// mismo paso que hace el punto de venta antes de registrar una compra o un canje.
+    /// </summary>
+    public static async Task<Guid> BuscarIdPorDocumentoAsync(FidelixApiFactory factory, string documento)
+    {
+        var cliente = await factory.CreateClientComo(Roles.Empleado)
+            .GetFromJsonAsync<ClienteBusquedaResponseDTO>($"/api/clientes?documento={documento}");
+        return cliente!.Id;
     }
 
     /// <summary> Inicia sesión como cliente (CU-02) y deja el token en el header del cliente HTTP. </summary>

@@ -1,0 +1,25 @@
+meta {
+  name: Buscar Cliente por DNI - Documento Invalido
+  type: http
+  seq: 16
+}
+
+get {
+  url: {{baseUrl}}/api/clientes?documento=abc123
+  body: none
+  auth: bearer
+}
+
+params:query {
+  documento: abc123
+}
+
+auth:bearer {
+  token: {{tokenEmpleado}}
+}
+
+tests {
+  test("400 Bad Request: el DNI son solo números, de 7 a 10 dígitos", function () {
+    expect(res.status).to.equal(400);
+  });
+}

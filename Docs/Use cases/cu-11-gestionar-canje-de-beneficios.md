@@ -30,14 +30,14 @@ nombre de un cliente que se presenta físicamente en el local.
 3. El beneficio se encuentra activo (**RN-17**).
 
 ### 3. FLUJO PRINCIPAL (Camino Feliz - HTTP 201)
-1. El Actor envía una petición al endpoint `POST /api/canjes/presencial` con un JSON que
-   contiene el documento del cliente y el beneficio elegido (`clienteDocumento`,
-   `beneficioId`).
+1. El empleado busca al cliente por su documento (`GET /api/clientes?documento={dni}`,
+   ver CU-10) y obtiene su **id**. Luego el Actor envía una petición al endpoint
+   `POST /api/canjes/presencial` con un JSON que contiene el id del cliente y el
+   beneficio elegido (`clienteId`, `beneficioId`).
 2. La **Capa de Presentación** (`CanjesController.CrearCanjePresencial`) valida
-   que el JSON sea estructuralmente correcto y localiza el saldo de puntos del
-   cliente por su documento.
-3. La **Capa de Negocio** (`CanjeService.CrearCanjePresencialAsync`) verifica que
-   el beneficio esté activo (**RN-17**) y que el cliente posea puntos suficientes
+   que el JSON sea estructuralmente correcto (`clienteId` y `beneficioId` obligatorios).
+3. La **Capa de Negocio** (`CanjeService.CrearCanjePresencialAsync`) localiza al
+   cliente por su id, verifica que el beneficio esté activo (**RN-17**) y que el cliente posea puntos suficientes
    (**RN-08**).
 4. El Sistema calcula los puntos a descontar utilizando el método **FIFO**
    (**RN-09**, ver CU-23).
@@ -49,11 +49,13 @@ nombre de un cliente que se presenta físicamente en el local.
 ### 4. FLUJOS ALTERNATIVOS (Caminos Tristes / Excepciones)
 
 * **1a. Cliente no registrado (HTTP 404 Not Found):**
-  1. El sistema detecta que en el Paso 1/2 el documento ingresado no corresponde a un cliente
-     registrado.
+  1. El sistema detecta que el documento buscado en el Paso 1 no corresponde a un cliente
+     registrado (búsqueda por DNI), o que el `clienteId` enviado en el canje no
+     corresponde a ningún cliente.
   2. La Capa de Negocio no encuentra la entidad correspondiente.
   3. El Sistema devuelve un código **404 Not Found** con el mensaje: "El documento
-     ingresado no se encuentra registrado". Fin del caso de uso.
+     ingresado no se encuentra registrado" (búsqueda) o "El cliente no se encuentra
+     registrado." (canje). Fin del caso de uso.
 
 * **3a. Beneficio inactivo (HTTP 409 Conflict):**
   1. El sistema detecta que en el Paso 3 el beneficio seleccionado no está activo, violando **RN-17**.
@@ -82,7 +84,7 @@ _No aplica: el canje presencial se realiza por un único canal (terminal de punt
 de venta operado por el empleado)._
 
 ### 6. POSTCONDICIONES
-1. El canje queda registrado en la tabla `Canjes`, disponible para auditoría
+1. El canje queda registrado en la tabla `Movimientos` (tipo `Canje`), disponible para auditoría
    (**RN-13**).
 2. El saldo de puntos del cliente queda actualizado según el consumo FIFO.
 
@@ -90,12 +92,14 @@ de venta operado por el empleado)._
 
 | Endpoint | Rol (token JWT) | Controller → Service |
 | --- | --- | --- |
+| `GET /api/clientes?documento={dni}` (paso previo) | Empleado, Admin | `ClientesController.BuscarPorDocumento → ClienteService.BuscarPorDocumentoAsync` |
 | `POST /api/canjes/presencial` | Empleado | `CanjesController.CrearCanjePresencial → CanjeService.CrearCanjePresencialAsync` |
 | `PATCH /api/canjes/{id}/entregar` | Empleado | `CanjesController.MarcarEntregado → CanjeService.MarcarEntregadoAsync` |
 
 * El canje presencial comparte el núcleo con CU-07 (`EjecutarCanjeAsync`): mismas reglas RN-08, RN-09 (FIFO) y RN-17, y una sola transacción.
 * Queda con estado **Entregado** y con el `EmpleadoId` del token (RN-13). El segundo endpoint entrega un canje **Pendiente** hecho desde la app (RN-10); entregarlo dos veces da 409.
-* **Colección Bruno:** `bruno/Canjes/`.
+* **El id es la clave, no el DNI:** el canje recibe `clienteId` (Guid), que es la clave foránea del movimiento; el DNI solo se usa en la búsqueda previa (detalle en CU-10).
+* **Colección Bruno:** `bruno/Canjes/` y la búsqueda en `bruno/Clientes/` ("Buscar Cliente por DNI").
 
 ---
 
@@ -106,7 +110,8 @@ de venta operado por el empleado)._
 | Código HTTP | Nombre Técnico | Contexto de Aplicación en el Caso de Uso |
 | --- | --- | --- |
 | `201` | Created | Confirmación de persistencia exitosa del nuevo recurso Canje. |
-| `404` | Not Found | Documento que no corresponde a ningún cliente registrado. |
+| `400` | Bad Request | `clienteId` o `beneficioId` faltante o inválido; DNI mal ingresado en la búsqueda. |
+| `404` | Not Found | DNI no registrado (búsqueda) o `clienteId` que no corresponde a ningún cliente. |
 | `409` | Conflict | Violación de RN-17 (beneficio inactivo) o RN-08 (saldo insuficiente). |
 | `500` | Internal Server Error | Error técnico no controlado durante la persistencia. |
 
@@ -115,7 +120,9 @@ de venta operado por el empleado)._
 | Paso del CU | Excepción / Código | Test unitario (BusinessLogic) | Test integración (HTTP) |
 | --- | --- | --- | --- |
 | Flujo principal | `201 Created` | `CrearCanjePresencialAsync_WithSufficientBalance_CreatesCanjeAndLogsAudit` | `CrearCanjePresencial_WithValidData_Returns201Created` |
-| 1a. Cliente no registrado | `404 Not Found` | `CrearCanjePresencialAsync_WithUnknownDocumento_ThrowsClienteNotFoundException` | `CrearCanjePresencial_WithUnknownDocumento_Returns404NotFound` |
+| 1. Búsqueda por DNI | `200 OK` | `BuscarPorDocumentoAsync_WithExistingDocumento_ReturnsReducedCliente` | `BuscarPorDocumento_WithExistingDocumento_Returns200WithReducedData` |
+| 1a. Cliente no registrado (DNI) | `404 Not Found` | `BuscarPorDocumentoAsync_WithUnknownDocumento_ThrowsClienteNotFoundException` | `BuscarPorDocumento_WithUnknownDocumento_Returns404NotFound` |
+| 1a. Cliente no registrado (id) | `404 Not Found` | `CrearCanjePresencialAsync_WithUnknownClienteId_ThrowsClienteNotFoundException` | `CrearCanjePresencial_WithUnknownClienteId_Returns404NotFound` |
 | 3a. Beneficio inactivo | `409 Conflict` | `CrearCanjePresencialAsync_WithInactiveBeneficio_ThrowsBeneficioInactivoException` | `CrearCanjePresencial_WithInactiveBeneficio_Returns409Conflict` |
 | 3b. Saldo insuficiente | `409 Conflict` | `CrearCanjePresencialAsync_WithInsufficientBalance_ThrowsSaldoInsuficienteException` | `CrearCanjePresencial_WithInsufficientBalance_Returns409Conflict` |
 | 5a. Error interno de persistencia | `500 Internal Server Error` | `CrearCanjePresencialAsync_WhenRepositoryFails_ThrowsPersistenceException` | `CrearCanjePresencial_WhenPersistenceFails_Returns500InternalServerError` |

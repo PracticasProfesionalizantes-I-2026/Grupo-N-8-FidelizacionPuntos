@@ -95,18 +95,18 @@ public class CanjeServiceTests
         await Assert.ThrowsAsync<PersistenceException>(() => _sut.CrearCanjeAsync(_clienteId, Pedido()));
     }
 
-    /// <summary> Pedido de canje presencial del cliente de prueba (documento 40333444). </summary>
-    private CanjePresencialCreateDTO PedidoPresencial() => new() { ClienteDocumento = "40333444", BeneficioId = _beneficio.Id };
+    /// <summary> Pedido de canje presencial del cliente de prueba, identificado por su id. </summary>
+    private CanjePresencialCreateDTO PedidoPresencial() => new() { ClienteId = _clienteId, BeneficioId = _beneficio.Id };
 
-    /// <summary> Configura el cliente que el empleado busca por documento en el canje presencial. </summary>
-    private void ConfigurarClientePorDocumento() =>
-        _clienteRepo.Setup(r => r.GetByDocumentoAsync("40333444")).ReturnsAsync(new Cliente { Id = _clienteId, Documento = "40333444" });
+    /// <summary> Configura el cliente que el empleado indica por id en el canje presencial. </summary>
+    private void ConfigurarClientePorId() =>
+        _clienteRepo.Setup(r => r.GetByIdAsync(_clienteId)).ReturnsAsync(new Cliente { Id = _clienteId, Documento = "40333444" });
 
     /// <summary> CU-11: el canje presencial queda "Entregado" y registra qué empleado lo hizo (RN-13). </summary>
     [Fact]
     public async Task CrearCanjePresencialAsync_WithSufficientBalance_CreatesCanjeAndLogsAudit()
     {
-        ConfigurarClientePorDocumento();
+        ConfigurarClientePorId();
         var empleadoId = Guid.NewGuid();
 
         var resultado = await _sut.CrearCanjePresencialAsync(PedidoPresencial(), empleadoId);
@@ -116,11 +116,11 @@ public class CanjeServiceTests
             m.EmpleadoId == empleadoId && m.EstadoCanje == EstadoCanje.Entregado)), Times.Once);
     }
 
-    /// <summary> CU-11, flujo 1a: un documento desconocido lanza ClienteNotFoundException. </summary>
+    /// <summary> CU-11, flujo 1a: un id que no es de ningún cliente lanza ClienteNotFoundException. </summary>
     [Fact]
-    public async Task CrearCanjePresencialAsync_WithUnknownDocumento_ThrowsClienteNotFoundException()
+    public async Task CrearCanjePresencialAsync_WithUnknownClienteId_ThrowsClienteNotFoundException()
     {
-        _clienteRepo.Setup(r => r.GetByDocumentoAsync(It.IsAny<string>())).ReturnsAsync((Cliente?)null);
+        _clienteRepo.Setup(r => r.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync((Cliente?)null);
 
         await Assert.ThrowsAsync<ClienteNotFoundException>(() => _sut.CrearCanjePresencialAsync(PedidoPresencial(), Guid.NewGuid()));
     }
@@ -129,7 +129,7 @@ public class CanjeServiceTests
     [Fact]
     public async Task CrearCanjePresencialAsync_WithInactiveBeneficio_ThrowsBeneficioInactivoException()
     {
-        ConfigurarClientePorDocumento();
+        ConfigurarClientePorId();
         _beneficio.Activo = false;
 
         await Assert.ThrowsAsync<BeneficioInactivoException>(() => _sut.CrearCanjePresencialAsync(PedidoPresencial(), Guid.NewGuid()));
@@ -139,7 +139,7 @@ public class CanjeServiceTests
     [Fact]
     public async Task CrearCanjePresencialAsync_WithInsufficientBalance_ThrowsSaldoInsuficienteException()
     {
-        ConfigurarClientePorDocumento();
+        ConfigurarClientePorId();
         _beneficio.CostoPuntos = 500;
 
         await Assert.ThrowsAsync<SaldoInsuficienteException>(() => _sut.CrearCanjePresencialAsync(PedidoPresencial(), Guid.NewGuid()));
@@ -149,7 +149,7 @@ public class CanjeServiceTests
     [Fact]
     public async Task CrearCanjePresencialAsync_WhenRepositoryFails_ThrowsPersistenceException()
     {
-        ConfigurarClientePorDocumento();
+        ConfigurarClientePorId();
         _movimientoRepo.Setup(r => r.CreateAsync(It.IsAny<Movimiento>())).ThrowsAsync(new InvalidOperationException("Falla simulada"));
 
         await Assert.ThrowsAsync<PersistenceException>(() => _sut.CrearCanjePresencialAsync(PedidoPresencial(), Guid.NewGuid()));

@@ -11,8 +11,8 @@ namespace FidelixAPI.API.Controllers;
 
 /// <summary>
 /// Ciclo de vida del cliente: autorregistro (CU-01), perfil (CU-03), saldo (CU-04), historial (CU-05)
-/// y canjes (CU-08) del cliente autenticado (`/me`, el id sale del token), más el alta desde el
-/// punto de venta (CU-12) y la consulta de canjes por documento (CU-13) para el empleado.
+/// y canjes (CU-08) del cliente autenticado (`/me`, el id sale del token), más la búsqueda por DNI,
+/// el alta desde el punto de venta (CU-12) y la consulta de canjes de un cliente (CU-13) para el empleado.
 /// </summary>
 [ApiController]
 [Route("api/clientes")]
@@ -164,14 +164,36 @@ public class ClientesController(IClienteService clienteService) : ControllerBase
         }
     }
 
-    /// <summary> Canjes de un cliente buscado por documento, para el empleado (CU-13). </summary>
-    [HttpGet("{documento}/canjes")]
-    [Authorize(Roles = Roles.Empleado)]
-    public async Task<IActionResult> ConsultarCanjesPorDocumento(string documento)
+    /// <summary>
+    /// Busca un cliente por DNI (`?documento=`) y devuelve su id con datos mínimos, para que el empleado
+    /// opere con él (compra CU-10, canje CU-11, consulta CU-13). DNI mal formado: 400; inexistente: 404.
+    /// </summary>
+    [HttpGet]
+    [Authorize(Roles = $"{Roles.Empleado},{Roles.Admin}")]
+    public async Task<IActionResult> BuscarPorDocumento([FromQuery] ClienteBusquedaDTO busqueda)
     {
         try
         {
-            return Ok(await clienteService.ConsultarCanjesPorDocumentoAsync(documento));
+            return Ok(await clienteService.BuscarPorDocumentoAsync(busqueda));
+        }
+        catch (DocumentoInvalidoException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (ClienteNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    /// <summary> Canjes de un cliente identificado por su id, para el empleado (CU-13). </summary>
+    [HttpGet("{id:guid}/canjes")]
+    [Authorize(Roles = Roles.Empleado)]
+    public async Task<IActionResult> ConsultarCanjesDeCliente(Guid id)
+    {
+        try
+        {
+            return Ok(await clienteService.ConsultarCanjesDeClienteAsync(id));
         }
         catch (ClienteNotFoundException ex)
         {

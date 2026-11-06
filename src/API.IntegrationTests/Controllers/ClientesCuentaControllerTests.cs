@@ -154,12 +154,12 @@ public class ClientesCuentaControllerTests : IClassFixture<FidelixApiFactory>, I
     public async Task ConsultarCanjes_WithValidToken_Returns200OK()
     {
         var client = _factory.CreateClient();
-        var (id, documento, _) = await TestHelpers.RegistrarYAutenticarClienteAsync(client);
+        var (id, _, _) = await TestHelpers.RegistrarYAutenticarClienteAsync(client);
         await _factory.AcreditarPuntosAsync(id, 1000);
         var beneficios = await client.GetFromJsonAsync<ListadoResponseDTO<FidelixAPI.Shared.DTOs.Beneficio.BeneficioResponseDTO>>("/api/beneficios");
         var masBarato = beneficios!.Items.OrderBy(b => b.CostoPuntos).First();
         await _factory.CreateClientComo(Roles.Empleado).PostAsJsonAsync("/api/canjes/presencial",
-            new CanjePresencialCreateDTO { ClienteDocumento = documento, BeneficioId = masBarato.Id });
+            new CanjePresencialCreateDTO { ClienteId = id, BeneficioId = masBarato.Id });
 
         var canjes = await client.GetFromJsonAsync<ListadoResponseDTO<CanjeItemDTO>>("/api/clientes/me/canjes");
 
@@ -211,33 +211,37 @@ public class ClientesCuentaControllerTests : IClassFixture<FidelixApiFactory>, I
         Assert.Equal(HttpStatusCode.Conflict, respuesta.StatusCode);
     }
 
-    /// <summary>CU-13: el empleado consulta los canjes del cliente demo por documento (200).</summary>
+    /// <summary>CU-13: el empleado consulta los canjes del cliente demo por su id (200).</summary>
     [Fact]
-    public async Task ConsultarCanjesPorDocumento_WithValidDocumento_Returns200OK()
+    public async Task ConsultarCanjesDeCliente_WithExistingId_Returns200OK()
     {
-        var respuesta = await _factory.CreateClientComo(Roles.Empleado).GetAsync("/api/clientes/40333444/canjes");
+        var respuesta = await _factory.CreateClientComo(Roles.Empleado).GetAsync($"/api/clientes/{DbInitializer.ClienteDemoId}/canjes");
 
         Assert.Equal(HttpStatusCode.OK, respuesta.StatusCode);
     }
 
-    /// <summary>CU-13, flujo 3a: un documento que no existe devuelve 404.</summary>
+    /// <summary>CU-13, flujo 3a: un id que no es de ningún cliente devuelve 404.</summary>
     [Fact]
-    public async Task ConsultarCanjesPorDocumento_WithUnknownDocumento_Returns404NotFound()
+    public async Task ConsultarCanjesDeCliente_WithUnknownId_Returns404NotFound()
     {
-        var respuesta = await _factory.CreateClientComo(Roles.Empleado).GetAsync("/api/clientes/99999999/canjes");
+        var respuesta = await _factory.CreateClientComo(Roles.Empleado).GetAsync($"/api/clientes/{Guid.NewGuid()}/canjes");
 
         Assert.Equal(HttpStatusCode.NotFound, respuesta.StatusCode);
     }
 
-    /// <summary>CU-13, flujo 4a: un cliente recién creado no tiene canjes: 200 con lista vacía.</summary>
+    /// <summary>
+    /// CU-13, flujo 4a: un cliente recién creado no tiene canjes: 200 con lista vacía. Sigue el flujo
+    /// del punto de venta: busca al cliente por DNI y consulta sus canjes con el id obtenido.
+    /// </summary>
     [Fact]
-    public async Task ConsultarCanjesPorDocumento_WithNoCanjes_Returns200OKWithEmptyList()
+    public async Task ConsultarCanjesDeCliente_WithNoCanjes_Returns200OKWithEmptyList()
     {
         var empleado = _factory.CreateClientComo(Roles.Empleado);
         var documento = TestHelpers.DocumentoUnico();
         await empleado.PostAsJsonAsync("/api/clientes", new ClienteCreateDTO { Nombre = "Sin Canjes", Documento = documento, Email = $"sc.{documento}@fidelix.local" });
+        var clienteId = await TestHelpers.BuscarIdPorDocumentoAsync(_factory, documento);
 
-        var canjes = await empleado.GetFromJsonAsync<ListadoResponseDTO<CanjeItemDTO>>($"/api/clientes/{documento}/canjes");
+        var canjes = await empleado.GetFromJsonAsync<ListadoResponseDTO<CanjeItemDTO>>($"/api/clientes/{clienteId}/canjes");
 
         Assert.Empty(canjes!.Items);
         Assert.Equal("El cliente aún no registra beneficios canjeados", canjes.Mensaje);
@@ -259,5 +263,68 @@ public class ClientesCuentaControllerTests : IClassFixture<FidelixApiFactory>, I
 
         Assert.Single(dia6!.Items);
         Assert.Empty(dia7!.Items);
+    }
+
+    /// <summary>
+    /// Búsqueda por DNI (punto de venta): el empleado obtiene el id del cliente con datos mínimos. La
+    /// respuesta no expone datos de contacto (email ni teléfono).
+    /// </summary>
+    [Fact]
+    public async Task BuscarPorDocumento_WithExistingDocumento_Returns200WithReducedData()
+    {
+        var respuesta = await _factory.CreateClientComo(Roles.Empleado).GetAsync("/api/clientes?documento=40333444");
+        var json = await respuesta.Content.ReadAsStringAsync();
+        var cliente = await respuesta.Content.ReadFromJsonAsync<ClienteBusquedaResponseDTO>();
+
+        Assert.Equal(HttpStatusCode.OK, respuesta.StatusCode);
+        Assert.Equal(DbInitializer.ClienteDemoId, cliente!.Id);
+        Assert.Equal("Estandar", cliente.Categoria);
+        Assert.DoesNotContain("email", json, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("telefono", json, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>Búsqueda por DNI: el admin también puede buscar (200).</summary>
+    [Fact]
+    public async Task BuscarPorDocumento_AsAdmin_Returns200OK()
+    {
+        var respuesta = await _factory.CreateClientComo(Roles.Admin).GetAsync("/api/clientes?documento=40333444");
+
+        Assert.Equal(HttpStatusCode.OK, respuesta.StatusCode);
+    }
+
+    /// <summary>Búsqueda por DNI: un documento con letras devuelve 400 (antes flujo 3b de CU-10).</summary>
+    [Fact]
+    public async Task BuscarPorDocumento_WithMalformedDocumento_Returns400BadRequest()
+    {
+        var respuesta = await _factory.CreateClientComo(Roles.Empleado).GetAsync("/api/clientes?documento=abc123");
+
+        Assert.Equal(HttpStatusCode.BadRequest, respuesta.StatusCode);
+    }
+
+    /// <summary>Búsqueda por DNI: sin el parámetro `documento` devuelve 400.</summary>
+    [Fact]
+    public async Task BuscarPorDocumento_WithoutDocumento_Returns400BadRequest()
+    {
+        var respuesta = await _factory.CreateClientComo(Roles.Empleado).GetAsync("/api/clientes");
+
+        Assert.Equal(HttpStatusCode.BadRequest, respuesta.StatusCode);
+    }
+
+    /// <summary>Búsqueda por DNI: un documento bien formado pero no registrado devuelve 404.</summary>
+    [Fact]
+    public async Task BuscarPorDocumento_WithUnknownDocumento_Returns404NotFound()
+    {
+        var respuesta = await _factory.CreateClientComo(Roles.Empleado).GetAsync("/api/clientes?documento=99999999");
+
+        Assert.Equal(HttpStatusCode.NotFound, respuesta.StatusCode);
+    }
+
+    /// <summary>Búsqueda por DNI, RN-11: un cliente no puede buscar a otros clientes (403).</summary>
+    [Fact]
+    public async Task BuscarPorDocumento_AsCliente_Returns403Forbidden()
+    {
+        var respuesta = await _factory.CreateClientComo(Roles.Cliente).GetAsync("/api/clientes?documento=40333444");
+
+        Assert.Equal(HttpStatusCode.Forbidden, respuesta.StatusCode);
     }
 }

@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using FidelixAPI.BusinessLogic.Helpers;
 using FidelixAPI.BusinessLogic.Interfaces;
 using FidelixAPI.DataAccess.Entities;
@@ -21,35 +20,28 @@ public class MovimientoService(
     private const decimal MultiplicadorGold = 1.5m;
     /// <summary> N2: días que los puntos quedan pendientes antes de poder canjearse. </summary>
     private const int DiasPendiente = 15;
-    /// <summary> Flujo 3b: el documento son solo números, de 7 a 10 dígitos. </summary>
-    private static readonly Regex FormatoDocumento = new(@"^\d{7,10}$");
 
     /// <summary>
-    /// Registra la compra: valida el documento (3b), busca al cliente (3a), calcula el monto con
+    /// Registra la compra: busca al cliente por su id (3a), calcula el monto con
     /// los precios de los productos (2a, RN-26), aplica la regla vigente (RN-12) con el
     /// multiplicador Gold (N1), guarda el lote como pendiente 15 días (N2) y devuelve el saldo.
     /// </summary>
     public async Task<AcumulacionResponseDTO> RegistrarAcumulacionAsync(AcumulacionCreateDTO dto, Guid? empleadoId = null)
     {
-        // 1. Formato del documento, antes de ir a la base (fail fast, flujo 3b).
-        if (!FormatoDocumento.IsMatch(dto.ClienteDocumento))
-        {
-            throw new DocumentoInvalidoException("El documento ingresado fue incorrecto.");
-        }
-
-        // 2. El cliente tiene que existir (3a) y estar activo (RN-14).
-        var cliente = await clienteRepository.GetByDocumentoAsync(dto.ClienteDocumento)
-            ?? throw new ClienteNotFoundException("El documento ingresado no se encuentra registrado.");
+        // 1. El cliente tiene que existir (3a) y estar activo (RN-14). Se identifica por id: el DNI
+        //    solo se usa antes, en la búsqueda (`ClienteService.BuscarPorDocumentoAsync`).
+        var cliente = await clienteRepository.GetByIdAsync(dto.ClienteId!.Value)
+            ?? throw new ClienteNotFoundException("El cliente no se encuentra registrado.");
 
         if (!cliente.Activo)
         {
             throw new CuentaInactivaException("El cliente se encuentra inactivo.");
         }
 
-        // 3. Monto de la compra con los precios reales de los productos (2a, RN-26).
+        // 2. Monto de la compra con los precios reales de los productos (2a, RN-26).
         var montoTotal = await CalcularMontoAsync(dto.Items);
 
-        // 4. Regla vigente hoy (RN-12) y multiplicador por categoría (N1).
+        // 3. Regla vigente hoy (RN-12) y multiplicador por categoría (N1).
         var ahora = DateTime.UtcNow;
         var regla = await reglaRepository.GetVigenteAsync(ahora)
             ?? throw new ReglaAcumulacionNoVigenteException("No hay una regla de acumulación vigente.");
@@ -57,7 +49,7 @@ public class MovimientoService(
         var multiplicador = cliente.Categoria == CategoriaCliente.Gold ? MultiplicadorGold : 1m;
         var puntos = (int)Math.Floor(montoTotal * regla.PuntosPorMonto * multiplicador);
 
-        // 5. El lote queda pendiente 15 días (N2) y vence `DiasVigenciaPuntos` después de estar disponible (RN-21).
+        // 4. El lote queda pendiente 15 días (N2) y vence `DiasVigenciaPuntos` después de estar disponible (RN-21).
         var fechaDisponible = ahora.AddDays(DiasPendiente);
         var movimiento = new Movimiento
         {
@@ -73,7 +65,7 @@ public class MovimientoService(
             Detalle = FormattableString.Invariant($"Compra por ${montoTotal} ({regla.PuntosPorMonto} pts/$ x{multiplicador})")
         };
 
-        // 6. Persistir (RN-13) y leer el saldo; una falla técnica se traduce a 500 (flujo 4a).
+        // 5. Persistir (RN-13) y leer el saldo; una falla técnica se traduce a 500 (flujo 4a).
         int saldoDisponible;
         try
         {
