@@ -1,0 +1,32 @@
+meta {
+  name: Reporte Resumen CSV
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{baseUrl}}/api/admin/reportes?tipo=Resumen&periodoDesde=2026-01-01&periodoHasta=2026-12-31&formato=Csv
+  body: none
+  auth: inherit
+}
+
+params:query {
+  tipo: Resumen
+  periodoDesde: 2026-01-01
+  periodoHasta: 2026-12-31
+  formato: Csv
+}
+
+tests {
+  test("200 OK con un archivo CSV descargable (CU-24, sub-variación 1)", function () {
+    expect(res.status).to.equal(200);
+    expect(res.headers["content-type"]).to.contain("text/csv");
+    expect(res.headers["content-disposition"]).to.contain("attachment");
+  });
+
+  test("trae los mismos campos que el reporte en pantalla", function () {
+    expect(res.body).to.contain("Campo,Valor");
+    expect(res.body).to.contain("PuntosAcumulados,");
+    expect(res.body).to.contain("RegistrosAuditoria,");
+  });
+}

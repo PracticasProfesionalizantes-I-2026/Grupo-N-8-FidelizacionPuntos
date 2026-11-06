@@ -21,7 +21,9 @@
 
 ### 1. BREVE DESCRIPCIÓN
 Permite al administrador consultar los movimientos de puntos (acumulaciones y
-canjes) realizados en todo el sistema, con filtros de búsqueda y comparación entre fechas distintas, o misma fecha pero distinto movimiento. 
+canjes) realizados en todo el sistema, con filtros de búsqueda y comparación entre fechas distintas, o misma fecha pero distinto movimiento.
+La comparación (gráfico "Tipo 1 vs Tipo 2" del dashboard) se resuelve con el endpoint
+de comparación de reportes, `GET /api/admin/reportes/comparacion` (ver CU-24, sub-variación 2).
 
 ### 2. PRECONDICIONES
 1. El admin se encuentra autenticado (Token JWT válido, CU-14).
@@ -34,7 +36,8 @@ canjes) realizados en todo el sistema, con filtros de búsqueda y comparación e
    formato de los filtros recibidos.
 3. La **Capa de Negocio** (`MovimientoService.ConsultarMovimientosAsync`) aplica
    los criterios de consulta, incluyendo tanto acumulaciones como canjes
-   (**RN-06**).
+   (**RN-06**). Las fechas se interpretan en hora Argentina; si `fechaHasta` no
+   trae hora, se incluye ese día completo.
 4. La **Capa de Persistencia** recupera los movimientos (`Movimientos`)
    correspondientes.
 5. El Sistema devuelve un código **200 OK** con los resultados.
@@ -55,7 +58,10 @@ canjes) realizados en todo el sistema, con filtros de búsqueda y comparación e
      "No existen resultados para los filtros seleccionados". Fin del caso de uso.
 
 ### 5. SUB-VARIACIONES (opcional)
-_No aplica: consulta de lectura simple, sin variantes de mecanismo relevantes._
+1. **Listado filtrado:** `GET /api/admin/movimientos` (este endpoint).
+2. **Comparación** entre fechas distintas (un tipo de movimiento en dos períodos) o
+   en la misma fecha con distinto movimiento (varios indicadores en un período):
+   `GET /api/admin/reportes/comparacion`, documentado en CU-24.
 
 ### 6. POSTCONDICIONES
 1. El admin visualiza los movimientos solicitados, sin que se modifique ningún
@@ -68,7 +74,9 @@ _No aplica: consulta de lectura simple, sin variantes de mecanismo relevantes._
 | `GET /api/admin/movimientos?clienteId&tipoMovimiento&fechaDesde&fechaHasta` | Admin | `AdminMovimientosController.Consultar → MovimientoService.ConsultarMovimientosAsync` |
 
 * Usa el mismo método de repositorio que el historial del cliente (`MovimientoRepository.BuscarAsync`), sin fijar el cliente. Cada movimiento muestra, si corresponde, el empleado que lo registró (RF-28).
-* **Colección Bruno:** `bruno/Admin/Consultas/`.
+* **Fechas en hora Argentina:** `fechaDesde`/`fechaHasta` se interpretan en hora Argentina (UTC-3) y se convierten a UTC con `FechasNegocio.RangoUtc` (`BusinessLogic/Helpers`); si `fechaHasta` no trae hora, se incluye el día completo. Es el mismo criterio que el historial (CU-05) y los reportes (CU-24), por eso el reporte de un día y esta consulta para ese día cuentan los mismos movimientos. Corrige el error detectado en la defensa: con `fechaDesde = fechaHasta` la consulta salía vacía porque se cortaba a las 00:00.
+* `tipoMovimiento` acepta `Acumulacion`, `Canje`, `BonoCumpleanos` o `Vencimiento` (o su número). Se recomienda el formato de fecha `yyyy-MM-dd`: `dd/MM/yyyy` se interpreta como mes/día.
+* **Colección Bruno:** `bruno/Admin/Consultas/` (`Movimientos`, `Movimientos - Filtro Invalido`, `Movimientos - Mismo Dia`, `Movimientos - Filtros Combinados`).
 
 ---
 
@@ -87,6 +95,8 @@ _No aplica: consulta de lectura simple, sin variantes de mecanismo relevantes._
 | --- | --- | --- | --- |
 | Flujo principal | `200 OK` | `ConsultarMovimientosAsync_WithFilters_ReturnsAcumulacionesAndCanjes` | `ConsultarMovimientos_WithValidFilters_Returns200OK` |
 | 2a. Filtro inválido | `400 Bad Request` | — (validación de esquema) | `ConsultarMovimientos_WithInvalidDateFilter_Returns400BadRequest` |
+| Paso 3: día completo en hora Argentina | `200 OK` | `ConsultarMovimientosAsync_WithSameDayRange_QueriesWholeArgentineDayInUtc` | `ConsultarMovimientos_WithSameDayRange_IncludesSaleAfter21ArgentineTime` |
+| Paso 3: consistencia con el reporte (CU-24) | `200 OK` | — | `GenerarReporte_ForSameDay_MatchesConsultarMovimientos` |
 | 4a. Sin resultados | `200 OK` (lista vacía) | `ConsultarMovimientosAsync_WithNoMatches_ReturnsEmptyList` | `ConsultarMovimientos_WithNoMatches_Returns200OKWithEmptyList` |
 
 > Regla de oro: cada flujo del caso de uso debe tener al menos un test.

@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using FidelixAPI.BusinessLogic.Helpers;
 using FidelixAPI.BusinessLogic.Interfaces;
 using FidelixAPI.DataAccess.Entities;
 using FidelixAPI.DataAccess.Repositories.Interfaces;
@@ -102,7 +103,9 @@ public class MovimientoService(
     /// <summary> Consulta del admin (CU-20): todos los tipos de movimiento (RN-06); vacío no es error (4a). </summary>
     public async Task<ListadoResponseDTO<MovimientoResponseDTO>> ConsultarMovimientosAsync(MovimientoFiltroDTO filtro)
     {
-        var movimientos = await movimientoRepository.BuscarAsync(filtro.ClienteId, filtro.TipoMovimiento, filtro.FechaDesde, filtro.FechaHasta);
+        // Las fechas del filtro son hora Argentina y "hasta" sin hora incluye el día completo.
+        var (desdeUtc, hastaUtc) = FechasNegocio.RangoUtc(filtro.FechaDesde, filtro.FechaHasta);
+        var movimientos = await movimientoRepository.BuscarAsync(filtro.ClienteId, filtro.TipoMovimiento, desdeUtc, hastaUtc);
         var items = movimientos.Select(MovimientoMapper.ToResponseDTO).ToList();
         return ListadoResponseDTO<MovimientoResponseDTO>.Crear(items, "No existen resultados para los filtros seleccionados");
     }

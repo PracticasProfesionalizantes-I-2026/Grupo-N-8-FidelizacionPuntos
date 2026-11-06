@@ -20,7 +20,10 @@ public class ReporteResponseDTO
     public int PuntosCanjeados { get; set; }
     public int PuntosVencidos { get; set; }
 
-    /// <summary>Registros de auditoría del mismo período, para poder contrastar (RN-19).</summary>
+    /// <summary>
+    /// Cantidad de registros de auditoría del período, de <b>cualquier</b> operación (RN-19). Es informativo:
+    /// no es una comparación uno a uno con los movimientos; sirve para contrastar manualmente con CU-21.
+    /// </summary>
     public int RegistrosAuditoria { get; set; }
 
     /// <summary>Solo en el reporte BeneficiosMasCanjeados.</summary>

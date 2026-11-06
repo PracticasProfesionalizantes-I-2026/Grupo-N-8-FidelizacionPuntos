@@ -1,0 +1,17 @@
+meta {
+  name: Reporte - Formato Invalido
+  type: http
+  seq: 11
+}
+
+get {
+  url: {{baseUrl}}/api/admin/reportes?tipo=Resumen&periodoDesde=2026-01-01&periodoHasta=2026-12-31&formato=Pdf
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("400 Bad Request: solo se admite Json o Csv (CU-24, 2a)", function () {
+    expect(res.status).to.equal(400);
+  });
+}

@@ -242,4 +242,22 @@ public class ClientesCuentaControllerTests : IClassFixture<FidelixApiFactory>, I
         Assert.Empty(canjes!.Items);
         Assert.Equal("El cliente aún no registra beneficios canjeados", canjes.Mensaje);
     }
+
+    /// <summary>
+    /// CU-05: el historial usa el mismo criterio de fechas que el admin. Una compra a las 22:30 hora
+    /// Argentina del 06/11 (07/11 01:30 UTC en la base) aparece al filtrar el 06/11 y no el 07/11.
+    /// </summary>
+    [Fact]
+    public async Task ConsultarHistorial_WithSameDayRange_IncludesSaleAfter21ArgentineTime()
+    {
+        var client = _factory.CreateClient();
+        var (clienteId, _, _) = await TestHelpers.RegistrarYAutenticarClienteAsync(client);
+        await _factory.AcreditarPuntosAsync(clienteId, 100, fecha: new DateTime(2026, 11, 7, 1, 30, 0, DateTimeKind.Utc));
+
+        var dia6 = await client.GetFromJsonAsync<ListadoResponseDTO<MovimientoResponseDTO>>("/api/clientes/me/movimientos?fechaDesde=2026-11-06&fechaHasta=2026-11-06");
+        var dia7 = await client.GetFromJsonAsync<ListadoResponseDTO<MovimientoResponseDTO>>("/api/clientes/me/movimientos?fechaDesde=2026-11-07&fechaHasta=2026-11-07");
+
+        Assert.Single(dia6!.Items);
+        Assert.Empty(dia7!.Items);
+    }
 }

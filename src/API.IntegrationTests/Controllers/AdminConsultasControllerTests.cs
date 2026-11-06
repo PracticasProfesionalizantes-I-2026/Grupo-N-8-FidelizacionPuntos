@@ -150,4 +150,124 @@ public class AdminConsultasControllerTests : IClassFixture<FidelixApiFactory>, I
         Assert.Equal(0, reporte!.CantidadMovimientos);
         Assert.Equal("No hay datos disponibles para el período seleccionado", reporte.Mensaje);
     }
+
+    /// <summary>
+    /// CU-20, bug de la defensa: con `fechaDesde = fechaHasta` (sin hora) entra el día completo. Una venta
+    /// a las 22:30 hora Argentina del 06/11 (07/11 01:30 UTC en la base) aparece en el 06/11 y no en el 07/11.
+    /// </summary>
+    [Fact]
+    public async Task ConsultarMovimientos_WithSameDayRange_IncludesSaleAfter21ArgentineTime()
+    {
+        var (clienteId, _, _) = await TestHelpers.RegistrarYAutenticarClienteAsync(_factory.CreateClient());
+        await _factory.AcreditarPuntosAsync(clienteId, 100, fecha: new DateTime(2026, 11, 7, 1, 30, 0, DateTimeKind.Utc));
+        var admin = _factory.CreateClientComo(Roles.Admin);
+
+        var dia6 = await admin.GetFromJsonAsync<ListadoResponseDTO<MovimientoResponseDTO>>($"/api/admin/movimientos?clienteId={clienteId}&fechaDesde=2026-11-06&fechaHasta=2026-11-06");
+        var dia7 = await admin.GetFromJsonAsync<ListadoResponseDTO<MovimientoResponseDTO>>($"/api/admin/movimientos?clienteId={clienteId}&fechaDesde=2026-11-07&fechaHasta=2026-11-07");
+
+        Assert.Single(dia6!.Items);
+        Assert.Empty(dia7!.Items);
+    }
+
+    /// <summary>
+    /// CU-20 y CU-24 consistentes: para el mismo día, el reporte cuenta los mismos movimientos que devuelve
+    /// la consulta del admin (antes el reporte contaba el día y la consulta no). Usa un año sin otros datos.
+    /// </summary>
+    [Fact]
+    public async Task GenerarReporte_ForSameDay_MatchesConsultarMovimientos()
+    {
+        var (clienteId, _, _) = await TestHelpers.RegistrarYAutenticarClienteAsync(_factory.CreateClient());
+        await _factory.AcreditarPuntosAsync(clienteId, 70, fecha: new DateTime(1999, 3, 11, 1, 30, 0, DateTimeKind.Utc));
+        var admin = _factory.CreateClientComo(Roles.Admin);
+
+        var reporte = await admin.GetFromJsonAsync<ReporteResponseDTO>("/api/admin/reportes?tipo=Resumen&periodoDesde=1999-03-10&periodoHasta=1999-03-10");
+        var movimientos = await admin.GetFromJsonAsync<ListadoResponseDTO<MovimientoResponseDTO>>("/api/admin/movimientos?fechaDesde=1999-03-10&fechaHasta=1999-03-10");
+
+        Assert.Equal(1, reporte!.CantidadMovimientos);
+        Assert.Equal(70, reporte.PuntosAcumulados);
+        Assert.Equal(reporte.CantidadMovimientos, movimientos!.Items.Count);
+    }
+
+    /// <summary>
+    /// CU-24, sub-variación 1: con `formato=Csv` se descarga un archivo con el mismo contenido que el
+    /// reporte en pantalla (se comparan los totales de ambos).
+    /// </summary>
+    [Fact]
+    public async Task GenerarReporte_WithCsvFormat_ReturnsSameContentAsJson()
+    {
+        var admin = _factory.CreateClientComo(Roles.Admin);
+        var desde = DateTime.UtcNow.AddDays(-30).ToString("yyyy-MM-dd");
+        var hasta = DateTime.UtcNow.AddDays(1).ToString("yyyy-MM-dd");
+        var url = $"/api/admin/reportes?tipo=Resumen&periodoDesde={desde}&periodoHasta={hasta}";
+
+        var json = await admin.GetFromJsonAsync<ReporteResponseDTO>(url);
+        var respuesta = await admin.GetAsync(url + "&formato=Csv");
+        var csv = await respuesta.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, respuesta.StatusCode);
+        Assert.Equal("text/csv", respuesta.Content.Headers.ContentType!.MediaType);
+        Assert.Equal("attachment", respuesta.Content.Headers.ContentDisposition!.DispositionType);
+        Assert.Contains($"PuntosAcumulados,{json!.PuntosAcumulados}", csv);
+        Assert.Contains($"CantidadMovimientos,{json.CantidadMovimientos}", csv);
+    }
+
+    /// <summary>CU-24, flujo 2a: un formato que no existe (ej. PDF) devuelve 400.</summary>
+    [Fact]
+    public async Task GenerarReporte_WithUnknownFormat_Returns400BadRequest()
+    {
+        var respuesta = await _factory.CreateClientComo(Roles.Admin).GetAsync("/api/admin/reportes?tipo=Resumen&periodoDesde=2026-01-01&periodoHasta=2026-12-31&formato=Pdf");
+
+        Assert.Equal(HttpStatusCode.BadRequest, respuesta.StatusCode);
+    }
+
+    /// <summary>CU-24, comparación sin indicador: una serie por indicador (Ventas, Canjes, PuntosOtorgados) con un valor por día.</summary>
+    [Fact]
+    public async Task CompararIndicadores_WithoutIndicador_Returns200WithThreeSeries()
+    {
+        var respuesta = await _factory.CreateClientComo(Roles.Admin).GetAsync("/api/admin/reportes/comparacion?periodo1Desde=2026-11-01&periodo1Hasta=2026-11-07");
+        var comparacion = await respuesta.Content.ReadFromJsonAsync<ComparacionResponseDTO>();
+
+        Assert.Equal(HttpStatusCode.OK, respuesta.StatusCode);
+        Assert.Equal(["Ventas", "Canjes", "PuntosOtorgados"], comparacion!.Series.Select(s => s.Indicador));
+        Assert.All(comparacion.Series, s => Assert.Equal(7, s.Valores.Count));
+    }
+
+    /// <summary>CU-24, comparación de un indicador en dos períodos: una serie por período.</summary>
+    [Fact]
+    public async Task CompararIndicadores_WithIndicadorAndTwoPeriods_Returns200WithTwoSeries()
+    {
+        var comparacion = await _factory.CreateClientComo(Roles.Admin).GetFromJsonAsync<ComparacionResponseDTO>(
+            "/api/admin/reportes/comparacion?indicador=Ventas&periodo1Desde=2026-10-01&periodo1Hasta=2026-10-31&periodo2Desde=2026-11-01&periodo2Hasta=2026-11-30");
+
+        Assert.Equal(2, comparacion!.Series.Count);
+        Assert.All(comparacion.Series, s => Assert.Equal("Ventas", s.Indicador));
+    }
+
+    /// <summary>CU-24, flujo 2a: el segundo período sin indicador no está permitido (nota del prototipo) y devuelve 400.</summary>
+    [Fact]
+    public async Task CompararIndicadores_SecondPeriodWithoutIndicador_Returns400BadRequest()
+    {
+        var respuesta = await _factory.CreateClientComo(Roles.Admin).GetAsync(
+            "/api/admin/reportes/comparacion?periodo1Desde=2026-10-01&periodo1Hasta=2026-10-31&periodo2Desde=2026-11-01&periodo2Hasta=2026-11-30");
+
+        Assert.Equal(HttpStatusCode.BadRequest, respuesta.StatusCode);
+    }
+
+    /// <summary>CU-24, flujo 2a: un período invertido en la comparación devuelve 400.</summary>
+    [Fact]
+    public async Task CompararIndicadores_WithInvertedPeriod_Returns400BadRequest()
+    {
+        var respuesta = await _factory.CreateClientComo(Roles.Admin).GetAsync("/api/admin/reportes/comparacion?periodo1Desde=2026-11-30&periodo1Hasta=2026-11-01");
+
+        Assert.Equal(HttpStatusCode.BadRequest, respuesta.StatusCode);
+    }
+
+    /// <summary>CU-24, RN-11: la comparación es solo para el admin; con token de cliente devuelve 403.</summary>
+    [Fact]
+    public async Task CompararIndicadores_AsCliente_Returns403Forbidden()
+    {
+        var respuesta = await _factory.CreateClientComo(Roles.Cliente).GetAsync("/api/admin/reportes/comparacion?periodo1Desde=2026-11-01&periodo1Hasta=2026-11-07");
+
+        Assert.Equal(HttpStatusCode.Forbidden, respuesta.StatusCode);
+    }
 }

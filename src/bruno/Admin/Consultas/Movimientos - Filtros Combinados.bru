@@ -1,0 +1,31 @@
+meta {
+  name: Movimientos - Filtros Combinados
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{baseUrl}}/api/admin/movimientos?clienteId={{clienteDemoId}}&tipoMovimiento=Acumulacion&fechaDesde=2026-01-01&fechaHasta=2026-12-31
+  body: none
+  auth: inherit
+}
+
+params:query {
+  clienteId: {{clienteDemoId}}
+  tipoMovimiento: Acumulacion
+  fechaDesde: 2026-01-01
+  fechaHasta: 2026-12-31
+}
+
+tests {
+  test("200 OK (CU-20)", function () {
+    expect(res.status).to.equal(200);
+  });
+
+  test("solo acumulaciones del cliente pedido", function () {
+    res.body.items.forEach(function (m) {
+      expect(m.tipo).to.equal("Acumulacion");
+      expect(m.clienteId).to.equal(bru.getEnvVar("clienteDemoId"));
+    });
+  });
+}

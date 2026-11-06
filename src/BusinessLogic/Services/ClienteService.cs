@@ -1,3 +1,4 @@
+using FidelixAPI.BusinessLogic.Helpers;
 using FidelixAPI.BusinessLogic.Interfaces;
 using FidelixAPI.DataAccess.Entities;
 using FidelixAPI.DataAccess.Repositories.Interfaces;
@@ -120,7 +121,9 @@ public class ClienteService(IClienteRepository clienteRepository, IMovimientoRep
     /// <summary>Historial con filtros, en orden cronológico (CU-05, RN-06); vacío no es error (4a).</summary>
     public async Task<ListadoResponseDTO<MovimientoResponseDTO>> ConsultarHistorialAsync(Guid clienteId, HistorialFiltroDTO filtro)
     {
-        var movimientos = await movimientoRepository.BuscarAsync(clienteId, filtro.TipoMovimiento, filtro.FechaDesde, filtro.FechaHasta);
+        // Mismo criterio de fechas que la consulta del admin (CU-20): hora Argentina, día completo.
+        var (desdeUtc, hastaUtc) = FechasNegocio.RangoUtc(filtro.FechaDesde, filtro.FechaHasta);
+        var movimientos = await movimientoRepository.BuscarAsync(clienteId, filtro.TipoMovimiento, desdeUtc, hastaUtc);
         var items = movimientos.OrderBy(m => m.Fecha).Select(MovimientoMapper.ToResponseDTO).ToList();
         return ListadoResponseDTO<MovimientoResponseDTO>.Crear(items, "No hay movimientos para mostrar");
     }

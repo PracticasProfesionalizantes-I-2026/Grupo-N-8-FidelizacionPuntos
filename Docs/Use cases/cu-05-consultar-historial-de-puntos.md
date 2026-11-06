@@ -71,6 +71,8 @@ vencimientos de puntos realizados sobre su cuenta.
 | `GET /api/clientes/me/movimientos?fechaDesde&fechaHasta&tipoMovimiento` | Cliente | `ClientesController.ConsultarHistorial → ClienteService.ConsultarHistorialAsync` |
 
 * `tipoMovimiento` acepta `Acumulacion`, `Canje`, `BonoCumpleanos` o `Vencimiento`. Una fecha mal formada o un rango invertido devuelven 400 automático.
+* **Fechas en hora Argentina:** `fechaDesde`/`fechaHasta` se interpretan en hora Argentina (UTC-3) y se convierten a UTC, que es como se guardan los movimientos. Si `fechaHasta` no trae hora, se incluye el día completo (hasta las 23:59:59). Lo resuelve `FechasNegocio` (`BusinessLogic/Helpers`), el mismo helper que usan la consulta del admin (CU-20) y los reportes (CU-24), así todos cuentan los mismos días. Ej.: una compra a las 22:30 del 06/11 (07/11 01:30 UTC) aparece al filtrar el 06/11.
+* Se recomienda el formato `yyyy-MM-dd`: una fecha `dd/MM/yyyy` se interpreta como mes/día.
 * La respuesta es `{ mensaje, items }`; con la lista vacía, `mensaje` = "No hay movimientos para mostrar".
 * **Colección Bruno:** `bruno/Clientes/`.
 
@@ -91,6 +93,7 @@ vencimientos de puntos realizados sobre su cuenta.
 | --- | --- | --- | --- |
 | Flujo principal | `200 OK` | `ConsultarHistorialAsync_WithFilters_ReturnsOrderedMovimientos` | `ConsultarHistorial_WithValidFilters_Returns200OK` |
 | 2a. Filtro inválido | `400 Bad Request` | — (validación de esquema) | `ConsultarHistorial_WithInvalidDateFilter_Returns400BadRequest` |
+| Paso 3: día completo en hora Argentina | `200 OK` | `ConsultarHistorialAsync_WithSameDayRange_QueriesWholeArgentineDayInUtc` | `ConsultarHistorial_WithSameDayRange_IncludesSaleAfter21ArgentineTime` |
 | 4a. Sin movimientos | `200 OK` (lista vacía) | `ConsultarHistorialAsync_WithNoMovimientos_ReturnsEmptyList` | `ConsultarHistorial_WithNoMovimientos_Returns200OKWithEmptyList` |
 
 > Regla de oro: cada flujo del caso de uso debe tener al menos un test.

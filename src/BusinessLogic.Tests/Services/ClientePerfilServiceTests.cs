@@ -83,6 +83,24 @@ public class ClientePerfilServiceTests
         Assert.Null(resultado.Mensaje);
     }
 
+    /// <summary>
+    /// CU-05: el historial usa el mismo criterio de fechas que la consulta del admin (CU-20): un día
+    /// sin hora se consulta completo en hora Argentina, convertido a UTC.
+    /// </summary>
+    [Fact]
+    public async Task ConsultarHistorialAsync_WithSameDayRange_QueriesWholeArgentineDayInUtc()
+    {
+        _movimientoRepo.Setup(r => r.BuscarAsync(It.IsAny<Guid?>(), It.IsAny<TipoMovimiento?>(), It.IsAny<DateTime?>(), It.IsAny<DateTime?>()))
+            .ReturnsAsync([]);
+        var dia = new DateTime(2026, 11, 6);
+
+        await _sut.ConsultarHistorialAsync(_cliente.Id, new HistorialFiltroDTO { FechaDesde = dia, FechaHasta = dia });
+
+        _movimientoRepo.Verify(r => r.BuscarAsync(_cliente.Id, null,
+            new DateTime(2026, 11, 6, 3, 0, 0, DateTimeKind.Utc),
+            new DateTime(2026, 11, 7, 3, 0, 0, DateTimeKind.Utc).AddTicks(-1)), Times.Once);
+    }
+
     /// <summary> CU-05, flujo 4a: sin movimientos devuelve una lista vacía con mensaje (no es error). </summary>
     [Fact]
     public async Task ConsultarHistorialAsync_WithNoMovimientos_ReturnsEmptyList()

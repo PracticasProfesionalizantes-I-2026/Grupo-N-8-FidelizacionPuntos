@@ -74,4 +74,106 @@ public class ReporteServiceTests
 
         Assert.Equal(new DateTime(2026, 10, 31, 23, 59, 59), reporte.PeriodoHasta, TimeSpan.FromSeconds(1));
     }
+
+    /// <summary>
+    /// CU-24: el período (hora Argentina) se consulta en UTC, igual que los movimientos (CU-20), así el
+    /// reporte y la consulta de movimientos cuentan los mismos días.
+    /// </summary>
+    [Fact]
+    public async Task GenerarReporteAsync_QueriesPeriodInUtcFromArgentineTime()
+    {
+        _movimientoRepo.Setup(r => r.BuscarAsync(null, null, It.IsAny<DateTime?>(), It.IsAny<DateTime?>())).ReturnsAsync([]);
+
+        await _sut.GenerarReporteAsync(Octubre(TipoReporte.Resumen));
+
+        var desdeUtc = new DateTime(2026, 10, 1, 3, 0, 0, DateTimeKind.Utc);
+        var hastaUtc = new DateTime(2026, 11, 1, 3, 0, 0, DateTimeKind.Utc).AddTicks(-1);
+        _movimientoRepo.Verify(r => r.BuscarAsync(null, null, desdeUtc, hastaUtc), Times.Once);
+        _auditoriaRepo.Verify(r => r.ContarAsync(desdeUtc, hastaUtc), Times.Once);
+    }
+
+    /// <summary>
+    /// Comparación sin indicador ("misma fecha, distinto movimiento"): una serie por indicador, con un
+    /// punto por día (incluidos los días en 0). Ventas y Canjes cuentan movimientos; PuntosOtorgados suma
+    /// acumulaciones y bonos de cumpleaños.
+    /// </summary>
+    [Fact]
+    public async Task CompararAsync_WithoutIndicador_ReturnsOneSeriesPerIndicador()
+    {
+        _movimientoRepo.Setup(r => r.BuscarAsync(null, null, It.IsAny<DateTime?>(), It.IsAny<DateTime?>())).ReturnsAsync([
+            new Movimiento { Tipo = TipoMovimiento.Acumulacion, Puntos = 100, Fecha = new DateTime(2026, 11, 1, 15, 0, 0) },
+            new Movimiento { Tipo = TipoMovimiento.Acumulacion, Puntos = 50, Fecha = new DateTime(2026, 11, 1, 16, 0, 0) },
+            new Movimiento { Tipo = TipoMovimiento.BonoCumpleanos, Puntos = 200, Fecha = new DateTime(2026, 11, 2, 12, 0, 0) },
+            new Movimiento { Tipo = TipoMovimiento.Canje, Puntos = -100, Fecha = new DateTime(2026, 11, 3, 12, 0, 0) }
+        ]);
+
+        var resultado = await _sut.CompararAsync(new ComparacionQueryDTO { Periodo1Desde = new DateTime(2026, 11, 1), Periodo1Hasta = new DateTime(2026, 11, 3) });
+
+        Assert.Equal(["Ventas", "Canjes", "PuntosOtorgados"], resultado.Series.Select(s => s.Indicador));
+        var ventas = resultado.Series[0];
+        Assert.Equal([2, 0, 0], ventas.Valores.Select(v => v.Valor));
+        Assert.Equal(new DateOnly(2026, 11, 1), ventas.Valores[0].Fecha);
+        Assert.Equal(1, resultado.Series[1].Total);
+        Assert.Equal(350, resultado.Series[2].Total);
+        Assert.Null(resultado.Mensaje);
+    }
+
+    /// <summary>
+    /// Comparación con indicador y dos períodos ("fechas distintas"): una serie por período, y el
+    /// repositorio se consulta una vez por cada período.
+    /// </summary>
+    [Fact]
+    public async Task CompararAsync_WithIndicadorAndTwoPeriods_ReturnsOneSeriesPerPeriod()
+    {
+        _movimientoRepo.Setup(r => r.BuscarAsync(null, null, It.IsAny<DateTime?>(), It.IsAny<DateTime?>())).ReturnsAsync([
+            new Movimiento { Tipo = TipoMovimiento.Canje, Puntos = -100, Fecha = new DateTime(2026, 10, 1, 15, 0, 0) }
+        ]);
+
+        var resultado = await _sut.CompararAsync(new ComparacionQueryDTO
+        {
+            Indicador = IndicadorDashboard.Canjes,
+            Periodo1Desde = new DateTime(2026, 10, 1), Periodo1Hasta = new DateTime(2026, 10, 7),
+            Periodo2Desde = new DateTime(2026, 11, 1), Periodo2Hasta = new DateTime(2026, 11, 7)
+        });
+
+        Assert.Equal(2, resultado.Series.Count);
+        Assert.All(resultado.Series, s => Assert.Equal("Canjes", s.Indicador));
+        Assert.All(resultado.Series, s => Assert.Equal(7, s.Valores.Count));
+        Assert.Equal(new DateTime(2026, 11, 1), resultado.Series[1].PeriodoDesde);
+        _movimientoRepo.Verify(r => r.BuscarAsync(null, null, It.IsAny<DateTime?>(), It.IsAny<DateTime?>()), Times.Exactly(2));
+    }
+
+    /// <summary>
+    /// Una venta a las 22:30 hora Argentina del 06/11 (guardada como 07/11 01:30 UTC) cuenta en el día
+    /// 06/11 de la serie, no en el 07/11.
+    /// </summary>
+    [Fact]
+    public async Task CompararAsync_WithSaleAfter21ArgentineTime_CountsOnArgentineDay()
+    {
+        _movimientoRepo.Setup(r => r.BuscarAsync(null, null, It.IsAny<DateTime?>(), It.IsAny<DateTime?>())).ReturnsAsync([
+            new Movimiento { Tipo = TipoMovimiento.Acumulacion, Puntos = 100, Fecha = new DateTime(2026, 11, 7, 1, 30, 0) }
+        ]);
+
+        var resultado = await _sut.CompararAsync(new ComparacionQueryDTO
+        {
+            Indicador = IndicadorDashboard.Ventas,
+            Periodo1Desde = new DateTime(2026, 11, 6), Periodo1Hasta = new DateTime(2026, 11, 7)
+        });
+
+        var serie = Assert.Single(resultado.Series);
+        Assert.Equal(1, serie.Valores.Single(v => v.Fecha == new DateOnly(2026, 11, 6)).Valor);
+        Assert.Equal(0, serie.Valores.Single(v => v.Fecha == new DateOnly(2026, 11, 7)).Valor);
+    }
+
+    /// <summary> Comparación, flujo 4a: si todas las series dan 0, se informa que no hay datos. </summary>
+    [Fact]
+    public async Task CompararAsync_WithNoData_ReturnsMessage()
+    {
+        _movimientoRepo.Setup(r => r.BuscarAsync(null, null, It.IsAny<DateTime?>(), It.IsAny<DateTime?>())).ReturnsAsync([]);
+
+        var resultado = await _sut.CompararAsync(new ComparacionQueryDTO { Periodo1Desde = new DateTime(2026, 11, 1), Periodo1Hasta = new DateTime(2026, 11, 2) });
+
+        Assert.Equal(3, resultado.Series.Count);
+        Assert.Equal("No hay datos disponibles para el período seleccionado", resultado.Mensaje);
+    }
 }

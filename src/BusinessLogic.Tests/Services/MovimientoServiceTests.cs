@@ -121,12 +121,16 @@ public class MovimientoServiceTests
         await Assert.ThrowsAsync<PersistenceException>(() => _sut.RegistrarAcumulacionAsync(Compra()));
     }
 
-    /// <summary> CU-20: la consulta del admin devuelve acumulaciones y canjes (RN-06) con los filtros aplicados. </summary>
+    /// <summary>
+    /// CU-20: la consulta del admin devuelve acumulaciones y canjes (RN-06) con los filtros aplicados.
+    /// La fecha del filtro (00:00 hora Argentina) llega al repositorio convertida a UTC (03:00).
+    /// </summary>
     [Fact]
     public async Task ConsultarMovimientosAsync_WithFilters_ReturnsAcumulacionesAndCanjes()
     {
         var desde = new DateTime(2026, 1, 1);
-        _movimientoRepo.Setup(r => r.BuscarAsync(_cliente.Id, null, desde, null)).ReturnsAsync([
+        var desdeUtc = new DateTime(2026, 1, 1, 3, 0, 0, DateTimeKind.Utc);
+        _movimientoRepo.Setup(r => r.BuscarAsync(_cliente.Id, null, desdeUtc, null)).ReturnsAsync([
             new Movimiento { Tipo = TipoMovimiento.Acumulacion, Puntos = 100 },
             new Movimiento { Tipo = TipoMovimiento.Canje, Puntos = -50 }
         ]);
@@ -134,6 +138,25 @@ public class MovimientoServiceTests
         var resultado = await _sut.ConsultarMovimientosAsync(new MovimientoFiltroDTO { ClienteId = _cliente.Id, FechaDesde = desde });
 
         Assert.Equal(["Acumulacion", "Canje"], resultado.Items.Select(m => m.Tipo));
+    }
+
+    /// <summary>
+    /// CU-20, bug de la defensa: `fechaDesde = fechaHasta = 2026-11-06` (sin hora) tiene que consultar el
+    /// día completo en hora Argentina, o sea de 2026-11-06 03:00 UTC a 2026-11-07 02:59:59,9999999 UTC.
+    /// Antes se consultaba hasta las 00:00 y el día quedaba vacío.
+    /// </summary>
+    [Fact]
+    public async Task ConsultarMovimientosAsync_WithSameDayRange_QueriesWholeArgentineDayInUtc()
+    {
+        _movimientoRepo.Setup(r => r.BuscarAsync(It.IsAny<Guid?>(), It.IsAny<TipoMovimiento?>(), It.IsAny<DateTime?>(), It.IsAny<DateTime?>()))
+            .ReturnsAsync([]);
+        var dia = new DateTime(2026, 11, 6);
+
+        await _sut.ConsultarMovimientosAsync(new MovimientoFiltroDTO { FechaDesde = dia, FechaHasta = dia });
+
+        _movimientoRepo.Verify(r => r.BuscarAsync(null, null,
+            new DateTime(2026, 11, 6, 3, 0, 0, DateTimeKind.Utc),
+            new DateTime(2026, 11, 7, 3, 0, 0, DateTimeKind.Utc).AddTicks(-1)), Times.Once);
     }
 
     /// <summary> CU-20, flujo 4a: sin resultados devuelve una lista vacía con mensaje. </summary>

@@ -1,0 +1,35 @@
+meta {
+  name: Comparacion - Indicadores
+  type: http
+  seq: 12
+}
+
+get {
+  url: {{baseUrl}}/api/admin/reportes/comparacion?periodo1Desde=2026-11-01&periodo1Hasta=2026-11-30
+  body: none
+  auth: inherit
+}
+
+params:query {
+  periodo1Desde: 2026-11-01
+  periodo1Hasta: 2026-11-30
+}
+
+docs {
+  Misma fecha, distinto movimiento: sin `indicador` devuelve una serie por cada uno
+  (Ventas, Canjes, PuntosOtorgados), con un valor por día para el gráfico del dashboard.
+}
+
+tests {
+  test("200 OK (CU-24, comparación)", function () {
+    expect(res.status).to.equal(200);
+  });
+
+  test("una serie por indicador, con un valor por cada día del período", function () {
+    const nombres = res.body.series.map(function (s) { return s.indicador; });
+    expect(nombres).to.eql(["Ventas", "Canjes", "PuntosOtorgados"]);
+    res.body.series.forEach(function (s) {
+      expect(s.valores.length).to.equal(30);
+    });
+  });
+}

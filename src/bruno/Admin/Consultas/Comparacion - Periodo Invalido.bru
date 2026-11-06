@@ -1,0 +1,17 @@
+meta {
+  name: Comparacion - Periodo Invalido
+  type: http
+  seq: 15
+}
+
+get {
+  url: {{baseUrl}}/api/admin/reportes/comparacion?periodo1Desde=2026-11-30&periodo1Hasta=2026-11-01
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("400 Bad Request: período invertido (CU-24, 2a)", function () {
+    expect(res.status).to.equal(400);
+  });
+}

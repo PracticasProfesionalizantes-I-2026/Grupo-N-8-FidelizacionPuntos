@@ -1,0 +1,38 @@
+meta {
+  name: Movimientos - Mismo Dia
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{baseUrl}}/api/admin/movimientos?fechaDesde={{hoyAR}}&fechaHasta={{hoyAR}}
+  body: none
+  auth: inherit
+}
+
+params:query {
+  fechaDesde: {{hoyAR}}
+  fechaHasta: {{hoyAR}}
+}
+
+script:pre-request {
+  // Fecha de hoy en hora Argentina (UTC-3), formato yyyy-MM-dd.
+  const hoyAR = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  bru.setVar("hoyAR", hoyAR);
+}
+
+tests {
+  test("200 OK (CU-20)", function () {
+    expect(res.status).to.equal(200);
+  });
+
+  test("fechaHasta sin hora incluye el día completo en hora Argentina", function () {
+    const hoyAR = bru.getVar("hoyAR");
+    res.body.items.forEach(function (m) {
+      // La API devuelve UTC; se pasa a hora Argentina para ver de qué día es.
+      const utc = new Date(m.fecha.endsWith("Z") ? m.fecha : m.fecha + "Z");
+      const diaAR = new Date(utc.getTime() - 3 * 60 * 60 * 1000).toISOString().slice(0, 10);
+      expect(diaAR).to.equal(hoyAR);
+    });
+  });
+}

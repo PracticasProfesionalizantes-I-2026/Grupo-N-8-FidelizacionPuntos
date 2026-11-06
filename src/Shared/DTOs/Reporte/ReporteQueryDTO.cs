@@ -18,6 +18,9 @@ public class ReporteQueryDTO : IValidatableObject
     [Required(ErrorMessage = "periodoHasta es obligatorio.")]
     public DateTime? PeriodoHasta { get; set; }
 
+    /// <summary>`Json` (por defecto, para ver en pantalla) o `Csv` (descarga); un valor desconocido da 400.</summary>
+    public FormatoReporte Formato { get; set; } = FormatoReporte.Json;
+
     /// <summary>Rechaza un período con inicio posterior al fin.</summary>
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
