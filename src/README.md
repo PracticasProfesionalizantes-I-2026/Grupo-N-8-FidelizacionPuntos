@@ -122,7 +122,13 @@ dotnet test     # tests unitarios + de integración
 }
 ```
 
-`409 Conflict`: `{ "message": "Ya existe un cliente registrado con ese documento." }`
+`409 Conflict`: `{ "mensaje": "Ya existe un cliente registrado con ese documento." }`
+
+> **Formato de los errores:** todo error de negocio (400, 404, 409, 500) responde un
+> `ErrorResponseDTO` con la forma `{ "mensaje": "..." }`, la misma clave que usan
+> `MensajeResponseDTO` y los listados (`{ "mensaje", "items" }`). Los 400 por datos mal
+> formados que detecta ASP.NET antes de llegar al controller responden el formato estándar
+> `ProblemDetails` (`{ "title", "status", "errors" }`), y los 401/403/204 no tienen cuerpo.
 
 **Consultar saldo** — `GET /api/clientes/11111111-1111-1111-1111-111111111111/saldo`
 

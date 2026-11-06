@@ -1,5 +1,6 @@
 using FidelixAPI.BusinessLogic.Interfaces;
 using FidelixAPI.Shared.DTOs.Auditoria;
+using FidelixAPI.Shared.DTOs.Comun;
 using FidelixAPI.Shared.Exceptions;
 using FidelixAPI.Shared.Security;
 using Microsoft.AspNetCore.Authorization;
@@ -28,7 +29,7 @@ public class AdminAuditoriaController(IAuditoriaService auditoriaService) : Cont
         }
         catch (AuditoriaNotFoundException ex)
         {
-            return NotFound(new { message = ex.Message });
+            return NotFound(new ErrorResponseDTO(ex.Message));
         }
     }
 }

@@ -1,6 +1,7 @@
 using FidelixAPI.API.Extensions;
 using FidelixAPI.BusinessLogic.Interfaces;
 using FidelixAPI.Shared.DTOs.Cliente;
+using FidelixAPI.Shared.DTOs.Comun;
 using FidelixAPI.Shared.DTOs.Movimiento;
 using FidelixAPI.Shared.Exceptions;
 using FidelixAPI.Shared.Security;
@@ -29,11 +30,11 @@ public class ClientesController(IClienteService clienteService) : ControllerBase
         }
         catch (ClienteDuplicadoException ex)
         {
-            return Conflict(new { message = ex.Message });
+            return Conflict(new ErrorResponseDTO(ex.Message));
         }
         catch (PasswordInvalidaException ex)
         {
-            return BadRequest(new { message = ex.Message });
+            return BadRequest(new ErrorResponseDTO(ex.Message));
         }
     }
 
@@ -52,11 +53,11 @@ public class ClientesController(IClienteService clienteService) : ControllerBase
         }
         catch (ClienteNotFoundException ex)
         {
-            return NotFound(new { message = ex.Message });
+            return NotFound(new ErrorResponseDTO(ex.Message));
         }
         catch (PersistenceException ex)
         {
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
+            return StatusCode(StatusCodes.Status500InternalServerError, new ErrorResponseDTO(ex.Message));
         }
     }
 
@@ -81,7 +82,7 @@ public class ClientesController(IClienteService clienteService) : ControllerBase
         }
         catch (ClienteNotFoundException ex)
         {
-            return NotFound(new { message = ex.Message });
+            return NotFound(new ErrorResponseDTO(ex.Message));
         }
     }
 
@@ -97,19 +98,19 @@ public class ClientesController(IClienteService clienteService) : ControllerBase
         }
         catch (DocumentoNoModificableException ex)
         {
-            return BadRequest(new { message = ex.Message });
+            return BadRequest(new ErrorResponseDTO(ex.Message));
         }
         catch (PasswordInvalidaException ex)
         {
-            return BadRequest(new { message = ex.Message });
+            return BadRequest(new ErrorResponseDTO(ex.Message));
         }
         catch (EmailDuplicadoException ex)
         {
-            return Conflict(new { message = ex.Message });
+            return Conflict(new ErrorResponseDTO(ex.Message));
         }
         catch (ClienteNotFoundException ex)
         {
-            return NotFound(new { message = ex.Message });
+            return NotFound(new ErrorResponseDTO(ex.Message));
         }
     }
 
@@ -126,7 +127,7 @@ public class ClientesController(IClienteService clienteService) : ControllerBase
         }
         catch (ClienteNotFoundException ex)
         {
-            return NotFound(new { message = ex.Message });
+            return NotFound(new ErrorResponseDTO(ex.Message));
         }
     }
 
@@ -160,7 +161,7 @@ public class ClientesController(IClienteService clienteService) : ControllerBase
         }
         catch (ClienteDuplicadoException ex)
         {
-            return Conflict(new { message = ex.Message });
+            return Conflict(new ErrorResponseDTO(ex.Message));
         }
     }
 
@@ -178,11 +179,11 @@ public class ClientesController(IClienteService clienteService) : ControllerBase
         }
         catch (DocumentoInvalidoException ex)
         {
-            return BadRequest(new { message = ex.Message });
+            return BadRequest(new ErrorResponseDTO(ex.Message));
         }
         catch (ClienteNotFoundException ex)
         {
-            return NotFound(new { message = ex.Message });
+            return NotFound(new ErrorResponseDTO(ex.Message));
         }
     }
 
@@ -197,7 +198,7 @@ public class ClientesController(IClienteService clienteService) : ControllerBase
         }
         catch (ClienteNotFoundException ex)
         {
-            return NotFound(new { message = ex.Message });
+            return NotFound(new ErrorResponseDTO(ex.Message));
         }
     }
 }

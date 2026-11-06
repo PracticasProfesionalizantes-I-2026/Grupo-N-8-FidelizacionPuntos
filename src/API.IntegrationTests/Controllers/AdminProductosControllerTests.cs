@@ -110,6 +110,25 @@ public class AdminProductosControllerTests : IClassFixture<FidelixApiFactory>, I
         Assert.Equal(HttpStatusCode.Conflict, respuesta.StatusCode);
     }
 
+    /// <summary>
+    /// Errores como DTO: un error de negocio (409) responde un <see cref="ErrorResponseDTO"/> con la clave
+    /// `mensaje` (la misma que el resto de la API), ya no un objeto anónimo con `message`.
+    /// </summary>
+    [Fact]
+    public async Task AbmProducto_Create_WhenNombreExists_ReturnsErrorResponseDTO()
+    {
+        var client = _factory.CreateClientComo(Roles.Admin);
+        var existente = await CrearProductoAsync(client);
+
+        var respuesta = await client.PostAsJsonAsync("/api/admin/productos", new ProductoCreateDTO { Nombre = existente.Nombre, Precio = 100 });
+        var json = await respuesta.Content.ReadAsStringAsync();
+        var error = await respuesta.Content.ReadFromJsonAsync<ErrorResponseDTO>();
+
+        Assert.False(string.IsNullOrWhiteSpace(error!.Mensaje));
+        Assert.Contains("\"mensaje\"", json);
+        Assert.DoesNotContain("\"message\"", json);
+    }
+
     /// <summary>CU-18, modificación parcial: cambia solo el precio y el nombre queda intacto (200 OK).</summary>
     [Fact]
     public async Task AbmProducto_Update_WithValidData_Returns200OK()

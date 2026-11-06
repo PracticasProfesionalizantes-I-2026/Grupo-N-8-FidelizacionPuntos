@@ -310,13 +310,18 @@ public class ClientesCuentaControllerTests : IClassFixture<FidelixApiFactory>, I
         Assert.Equal(HttpStatusCode.BadRequest, respuesta.StatusCode);
     }
 
-    /// <summary>Búsqueda por DNI: un documento bien formado pero no registrado devuelve 404.</summary>
+    /// <summary>
+    /// Búsqueda por DNI: un documento bien formado pero no registrado devuelve 404 con un
+    /// <see cref="ErrorResponseDTO"/> (`{ "mensaje": "..." }`).
+    /// </summary>
     [Fact]
     public async Task BuscarPorDocumento_WithUnknownDocumento_Returns404NotFound()
     {
         var respuesta = await _factory.CreateClientComo(Roles.Empleado).GetAsync("/api/clientes?documento=99999999");
+        var error = await respuesta.Content.ReadFromJsonAsync<ErrorResponseDTO>();
 
         Assert.Equal(HttpStatusCode.NotFound, respuesta.StatusCode);
+        Assert.Equal("El documento ingresado no se encuentra registrado.", error!.Mensaje);
     }
 
     /// <summary>Búsqueda por DNI, RN-11: un cliente no puede buscar a otros clientes (403).</summary>

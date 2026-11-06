@@ -1,5 +1,6 @@
 using FidelixAPI.BusinessLogic.Interfaces;
 using FidelixAPI.Shared.DTOs.Beneficio;
+using FidelixAPI.Shared.DTOs.Comun;
 using FidelixAPI.Shared.Exceptions;
 using FidelixAPI.Shared.Security;
 using Microsoft.AspNetCore.Authorization;
@@ -26,11 +27,11 @@ public class AdminBeneficiosController(IBeneficioService beneficioService) : Con
         }
         catch (CostoInvalidoException ex)
         {
-            return BadRequest(new { message = ex.Message });
+            return BadRequest(new ErrorResponseDTO(ex.Message));
         }
         catch (BeneficioDuplicadoException ex)
         {
-            return Conflict(new { message = ex.Message });
+            return Conflict(new ErrorResponseDTO(ex.Message));
         }
     }
 
@@ -45,15 +46,15 @@ public class AdminBeneficiosController(IBeneficioService beneficioService) : Con
         }
         catch (BeneficioNotFoundException ex)
         {
-            return NotFound(new { message = ex.Message });
+            return NotFound(new ErrorResponseDTO(ex.Message));
         }
         catch (CostoInvalidoException ex)
         {
-            return BadRequest(new { message = ex.Message });
+            return BadRequest(new ErrorResponseDTO(ex.Message));
         }
         catch (BeneficioDuplicadoException ex)
         {
-            return Conflict(new { message = ex.Message });
+            return Conflict(new ErrorResponseDTO(ex.Message));
         }
     }
 
@@ -68,7 +69,7 @@ public class AdminBeneficiosController(IBeneficioService beneficioService) : Con
         }
         catch (BeneficioNotFoundException ex)
         {
-            return NotFound(new { message = ex.Message });
+            return NotFound(new ErrorResponseDTO(ex.Message));
         }
     }
 }

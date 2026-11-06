@@ -1,4 +1,5 @@
 using FidelixAPI.BusinessLogic.Interfaces;
+using FidelixAPI.Shared.DTOs.Comun;
 using FidelixAPI.Shared.DTOs.ReglaAcumulacion;
 using FidelixAPI.Shared.Exceptions;
 using FidelixAPI.Shared.Security;
@@ -34,7 +35,7 @@ public class AdminReglasAcumulacionController(IReglaAcumulacionService reglaServ
         }
         catch (ReglaAcumulacionNotFoundException ex)
         {
-            return NotFound(new { message = ex.Message });
+            return NotFound(new ErrorResponseDTO(ex.Message));
         }
     }
 
@@ -49,7 +50,7 @@ public class AdminReglasAcumulacionController(IReglaAcumulacionService reglaServ
         }
         catch (ReglaAcumulacionInvalidaException ex)
         {
-            return BadRequest(new { message = ex.Message });
+            return BadRequest(new ErrorResponseDTO(ex.Message));
         }
     }
 
@@ -64,11 +65,11 @@ public class AdminReglasAcumulacionController(IReglaAcumulacionService reglaServ
         }
         catch (ReglaAcumulacionNotFoundException ex)
         {
-            return NotFound(new { message = ex.Message });
+            return NotFound(new ErrorResponseDTO(ex.Message));
         }
         catch (ReglaAcumulacionInvalidaException ex)
         {
-            return BadRequest(new { message = ex.Message });
+            return BadRequest(new ErrorResponseDTO(ex.Message));
         }
     }
 }

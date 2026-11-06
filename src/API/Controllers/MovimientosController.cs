@@ -1,5 +1,6 @@
 using FidelixAPI.API.Extensions;
 using FidelixAPI.BusinessLogic.Interfaces;
+using FidelixAPI.Shared.DTOs.Comun;
 using FidelixAPI.Shared.DTOs.Movimiento;
 using FidelixAPI.Shared.Exceptions;
 using FidelixAPI.Shared.Security;
@@ -28,23 +29,23 @@ public class MovimientosController(IMovimientoService movimientoService) : Contr
         }
         catch (ItemCompraInvalidoException ex)
         {
-            return BadRequest(new { message = ex.Message });
+            return BadRequest(new ErrorResponseDTO(ex.Message));
         }
         catch (ClienteNotFoundException ex)
         {
-            return NotFound(new { message = ex.Message });
+            return NotFound(new ErrorResponseDTO(ex.Message));
         }
         catch (CuentaInactivaException ex)
         {
-            return Conflict(new { message = ex.Message });
+            return Conflict(new ErrorResponseDTO(ex.Message));
         }
         catch (ReglaAcumulacionNoVigenteException ex)
         {
-            return Conflict(new { message = ex.Message });
+            return Conflict(new ErrorResponseDTO(ex.Message));
         }
         catch (PersistenceException ex)
         {
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
+            return StatusCode(StatusCodes.Status500InternalServerError, new ErrorResponseDTO(ex.Message));
         }
     }
 }

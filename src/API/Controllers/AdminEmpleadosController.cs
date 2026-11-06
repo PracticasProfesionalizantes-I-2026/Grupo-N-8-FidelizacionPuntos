@@ -1,4 +1,5 @@
 using FidelixAPI.BusinessLogic.Interfaces;
+using FidelixAPI.Shared.DTOs.Comun;
 using FidelixAPI.Shared.DTOs.Empleado;
 using FidelixAPI.Shared.Exceptions;
 using FidelixAPI.Shared.Security;
@@ -28,11 +29,11 @@ public class AdminEmpleadosController(IEmpleadoAdminService empleadoAdminService
         }
         catch (EmpleadoDuplicadoException ex)
         {
-            return Conflict(new { message = ex.Message });
+            return Conflict(new ErrorResponseDTO(ex.Message));
         }
         catch (PasswordInvalidaException ex)
         {
-            return BadRequest(new { message = ex.Message });
+            return BadRequest(new ErrorResponseDTO(ex.Message));
         }
     }
 
@@ -46,15 +47,15 @@ public class AdminEmpleadosController(IEmpleadoAdminService empleadoAdminService
         }
         catch (EmpleadoNotFoundException ex)
         {
-            return NotFound(new { message = ex.Message });
+            return NotFound(new ErrorResponseDTO(ex.Message));
         }
         catch (EmpleadoDuplicadoException ex)
         {
-            return Conflict(new { message = ex.Message });
+            return Conflict(new ErrorResponseDTO(ex.Message));
         }
         catch (PasswordInvalidaException ex)
         {
-            return BadRequest(new { message = ex.Message });
+            return BadRequest(new ErrorResponseDTO(ex.Message));
         }
     }
 
@@ -69,7 +70,7 @@ public class AdminEmpleadosController(IEmpleadoAdminService empleadoAdminService
         }
         catch (EmpleadoNotFoundException ex)
         {
-            return NotFound(new { message = ex.Message });
+            return NotFound(new ErrorResponseDTO(ex.Message));
         }
     }
 }

@@ -1,6 +1,7 @@
 using FidelixAPI.API.Extensions;
 using FidelixAPI.BusinessLogic.Interfaces;
 using FidelixAPI.Shared.DTOs.Canje;
+using FidelixAPI.Shared.DTOs.Comun;
 using FidelixAPI.Shared.Exceptions;
 using FidelixAPI.Shared.Security;
 using Microsoft.AspNetCore.Authorization;
@@ -48,11 +49,11 @@ public class CanjesController(ICanjeService canjeService) : ControllerBase
         }
         catch (CanjeNotFoundException ex)
         {
-            return NotFound(new { message = ex.Message });
+            return NotFound(new ErrorResponseDTO(ex.Message));
         }
         catch (CanjeYaEntregadoException ex)
         {
-            return Conflict(new { message = ex.Message });
+            return Conflict(new ErrorResponseDTO(ex.Message));
         }
     }
 
@@ -66,27 +67,27 @@ public class CanjesController(ICanjeService canjeService) : ControllerBase
         }
         catch (ClienteNotFoundException ex)
         {
-            return NotFound(new { message = ex.Message });
+            return NotFound(new ErrorResponseDTO(ex.Message));
         }
         catch (BeneficioNotFoundException ex)
         {
-            return NotFound(new { message = ex.Message });
+            return NotFound(new ErrorResponseDTO(ex.Message));
         }
         catch (CuentaInactivaException ex)
         {
-            return Conflict(new { message = ex.Message });
+            return Conflict(new ErrorResponseDTO(ex.Message));
         }
         catch (BeneficioInactivoException ex)
         {
-            return Conflict(new { message = ex.Message });
+            return Conflict(new ErrorResponseDTO(ex.Message));
         }
         catch (SaldoInsuficienteException ex)
         {
-            return Conflict(new { message = ex.Message });
+            return Conflict(new ErrorResponseDTO(ex.Message));
         }
         catch (PersistenceException ex)
         {
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
+            return StatusCode(StatusCodes.Status500InternalServerError, new ErrorResponseDTO(ex.Message));
         }
     }
 }

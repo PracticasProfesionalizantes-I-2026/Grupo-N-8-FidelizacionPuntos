@@ -1,5 +1,6 @@
 using FidelixAPI.BusinessLogic.Interfaces;
 using FidelixAPI.Shared.DTOs.Auth;
+using FidelixAPI.Shared.DTOs.Comun;
 using FidelixAPI.Shared.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,11 +24,11 @@ public class AuthPersonalController(IAuthPersonalService authPersonalService, IR
         }
         catch (CredencialesInvalidasException ex)
         {
-            return Unauthorized(new { message = ex.Message });
+            return Unauthorized(new ErrorResponseDTO(ex.Message));
         }
         catch (CuentaInactivaException ex)
         {
-            return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message });
+            return StatusCode(StatusCodes.Status403Forbidden, new ErrorResponseDTO(ex.Message));
         }
     }
 
@@ -41,7 +42,7 @@ public class AuthPersonalController(IAuthPersonalService authPersonalService, IR
         }
         catch (CredencialesInvalidasException ex)
         {
-            return Unauthorized(new { message = ex.Message });
+            return Unauthorized(new ErrorResponseDTO(ex.Message));
         }
     }
 
@@ -60,11 +61,11 @@ public class AuthPersonalController(IAuthPersonalService authPersonalService, IR
         }
         catch (CodigoRecuperacionInvalidoException ex)
         {
-            return BadRequest(new { message = ex.Message });
+            return BadRequest(new ErrorResponseDTO(ex.Message));
         }
         catch (PasswordInvalidaException ex)
         {
-            return BadRequest(new { message = ex.Message });
+            return BadRequest(new ErrorResponseDTO(ex.Message));
         }
     }
 }

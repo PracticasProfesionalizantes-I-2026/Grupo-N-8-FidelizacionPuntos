@@ -1,5 +1,6 @@
 using FidelixAPI.BusinessLogic.Interfaces;
 using FidelixAPI.Shared.DTOs.Cliente;
+using FidelixAPI.Shared.DTOs.Comun;
 using FidelixAPI.Shared.Exceptions;
 using FidelixAPI.Shared.Security;
 using Microsoft.AspNetCore.Authorization;
@@ -28,11 +29,11 @@ public class AdminClientesController(IClienteAdminService clienteAdminService) :
         }
         catch (ClienteDuplicadoException ex)
         {
-            return Conflict(new { message = ex.Message });
+            return Conflict(new ErrorResponseDTO(ex.Message));
         }
         catch (PasswordInvalidaException ex)
         {
-            return BadRequest(new { message = ex.Message });
+            return BadRequest(new ErrorResponseDTO(ex.Message));
         }
     }
 
@@ -46,11 +47,11 @@ public class AdminClientesController(IClienteAdminService clienteAdminService) :
         }
         catch (ClienteNotFoundException ex)
         {
-            return NotFound(new { message = ex.Message });
+            return NotFound(new ErrorResponseDTO(ex.Message));
         }
         catch (ClienteDuplicadoException ex)
         {
-            return Conflict(new { message = ex.Message });
+            return Conflict(new ErrorResponseDTO(ex.Message));
         }
     }
 
@@ -65,7 +66,7 @@ public class AdminClientesController(IClienteAdminService clienteAdminService) :
         }
         catch (ClienteNotFoundException ex)
         {
-            return NotFound(new { message = ex.Message });
+            return NotFound(new ErrorResponseDTO(ex.Message));
         }
     }
 }

@@ -1,5 +1,6 @@
 using FidelixAPI.BusinessLogic.Interfaces;
 using FidelixAPI.Shared.DTOs.Auth;
+using FidelixAPI.Shared.DTOs.Comun;
 using FidelixAPI.Shared.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
@@ -25,15 +26,15 @@ public class AuthController(IAuthService authService) : ControllerBase
         }
         catch (CredencialesInvalidasException ex)
         {
-            return Unauthorized(new { message = ex.Message });
+            return Unauthorized(new ErrorResponseDTO(ex.Message));
         }
         catch (CuentaBloqueadaException ex)
         {
-            return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message });
+            return StatusCode(StatusCodes.Status403Forbidden, new ErrorResponseDTO(ex.Message));
         }
         catch (CuentaInactivaException ex)
         {
-            return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message });
+            return StatusCode(StatusCodes.Status403Forbidden, new ErrorResponseDTO(ex.Message));
         }
     }
 }

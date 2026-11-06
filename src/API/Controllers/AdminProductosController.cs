@@ -1,4 +1,5 @@
 using FidelixAPI.BusinessLogic.Interfaces;
+using FidelixAPI.Shared.DTOs.Comun;
 using FidelixAPI.Shared.DTOs.Producto;
 using FidelixAPI.Shared.Exceptions;
 using FidelixAPI.Shared.Security;
@@ -30,11 +31,11 @@ public class AdminProductosController(IProductoService productoService) : Contro
         }
         catch (PrecioInvalidoException ex)
         {
-            return BadRequest(new { message = ex.Message });
+            return BadRequest(new ErrorResponseDTO(ex.Message));
         }
         catch (ProductoDuplicadoException ex)
         {
-            return Conflict(new { message = ex.Message });
+            return Conflict(new ErrorResponseDTO(ex.Message));
         }
     }
 
@@ -49,15 +50,15 @@ public class AdminProductosController(IProductoService productoService) : Contro
         }
         catch (ProductoNotFoundException ex)
         {
-            return NotFound(new { message = ex.Message });
+            return NotFound(new ErrorResponseDTO(ex.Message));
         }
         catch (PrecioInvalidoException ex)
         {
-            return BadRequest(new { message = ex.Message });
+            return BadRequest(new ErrorResponseDTO(ex.Message));
         }
         catch (ProductoDuplicadoException ex)
         {
-            return Conflict(new { message = ex.Message });
+            return Conflict(new ErrorResponseDTO(ex.Message));
         }
     }
 
@@ -72,7 +73,7 @@ public class AdminProductosController(IProductoService productoService) : Contro
         }
         catch (ProductoNotFoundException ex)
         {
-            return NotFound(new { message = ex.Message });
+            return NotFound(new ErrorResponseDTO(ex.Message));
         }
     }
 }

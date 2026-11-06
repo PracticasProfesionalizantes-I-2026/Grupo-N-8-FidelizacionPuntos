@@ -22,4 +22,9 @@ tests {
   test("404 Not Found: el DNI no está registrado", function () {
     expect(res.status).to.equal(404);
   });
+
+  test("el error es un ErrorResponseDTO: { mensaje }", function () {
+    expect(res.body.mensaje).to.be.a("string");
+    expect(res.body).to.not.have.property("message");
+  });
 }
