@@ -77,4 +77,28 @@ public class ClienteAdminServiceTests
         Assert.False(cliente.Activo);
         _clienteRepo.Verify(r => r.UpdateAsync(cliente), Times.Once);
     }
+
+    /// <summary> CU-15, listar: devuelve los clientes como `{ mensaje, items }` (mensaje nulo si hay datos). </summary>
+    [Fact]
+    public async Task ListarClientesAsync_ReturnsListadoWithItems()
+    {
+        _clienteRepo.Setup(r => r.GetAllAsync()).ReturnsAsync([new Cliente { Id = Guid.NewGuid(), Nombre = "Ana" }, new Cliente { Id = Guid.NewGuid(), Nombre = "Luis" }]);
+
+        var resultado = await _sut.ListarClientesAsync();
+
+        Assert.Equal(2, resultado.Items.Count);
+        Assert.Null(resultado.Mensaje);
+    }
+
+    /// <summary> CU-15, listar sin clientes: lista vacía con mensaje (no es error). </summary>
+    [Fact]
+    public async Task ListarClientesAsync_WithNoClientes_ReturnsEmptyListWithMessage()
+    {
+        _clienteRepo.Setup(r => r.GetAllAsync()).ReturnsAsync([]);
+
+        var resultado = await _sut.ListarClientesAsync();
+
+        Assert.Empty(resultado.Items);
+        Assert.Equal("No hay clientes registrados", resultado.Mensaje);
+    }
 }

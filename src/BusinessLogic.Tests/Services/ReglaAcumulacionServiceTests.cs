@@ -40,8 +40,21 @@ public class ReglaAcumulacionServiceTests
 
         var resultado = await _sut.ObtenerReglasAcumulacionAsync();
 
-        Assert.Equal(2, resultado.Count);
-        Assert.Equal(nueva.Id, resultado[0].Id);
+        Assert.Equal(2, resultado.Items.Count);
+        Assert.Equal(nueva.Id, resultado.Items[0].Id);
+        Assert.Null(resultado.Mensaje);
+    }
+
+    /// <summary> CU-19, listar sin reglas: lista vacía con mensaje (no es error). </summary>
+    [Fact]
+    public async Task ObtenerReglasAcumulacionAsync_WithNoRules_ReturnsEmptyListWithMessage()
+    {
+        _reglaRepo.Setup(r => r.GetAllAsync()).ReturnsAsync([]);
+
+        var resultado = await _sut.ObtenerReglasAcumulacionAsync();
+
+        Assert.Empty(resultado.Items);
+        Assert.Equal("No hay reglas de acumulación configuradas", resultado.Mensaje);
     }
 
     /// <summary> CU-19, detalle: un id existente devuelve la regla. </summary>

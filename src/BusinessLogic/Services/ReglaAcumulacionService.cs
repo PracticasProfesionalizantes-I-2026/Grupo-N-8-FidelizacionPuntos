@@ -1,6 +1,7 @@
 using FidelixAPI.BusinessLogic.Interfaces;
 using FidelixAPI.DataAccess.Entities;
 using FidelixAPI.DataAccess.Repositories.Interfaces;
+using FidelixAPI.Shared.DTOs.Comun;
 using FidelixAPI.Shared.DTOs.ReglaAcumulacion;
 using FidelixAPI.Shared.Exceptions;
 
@@ -9,14 +10,18 @@ namespace FidelixAPI.BusinessLogic.Services;
 /// <summary> Implementación de IReglaAcumulacionService (CU-19). </summary>
 public class ReglaAcumulacionService(IReglaAcumulacionRepository reglaRepository) : IReglaAcumulacionService
 {
-    /// <summary> Listar: todas las versiones, ordenadas por fecha de inicio descendente (la más nueva primero). </summary>
-    public async Task<IReadOnlyList<ReglaAcumulacionResponseDTO>> ObtenerReglasAcumulacionAsync()
+    /// <summary>
+    /// Listar: todas las versiones, ordenadas por fecha de inicio descendente (la más nueva primero), con
+    /// la forma común de los listados `{ mensaje, items }`; sin reglas no es error.
+    /// </summary>
+    public async Task<ListadoResponseDTO<ReglaAcumulacionResponseDTO>> ObtenerReglasAcumulacionAsync()
     {
         var reglas = await reglaRepository.GetAllAsync();
-        return reglas
+        var items = reglas
             .OrderByDescending(r => r.VigenciaDesde)
             .Select(MapToResponseDTO)
             .ToList();
+        return ListadoResponseDTO<ReglaAcumulacionResponseDTO>.Crear(items, "No hay reglas de acumulación configuradas");
     }
 
     /// <summary> Detalle de una versión por id, o 404 si no existe (flujo 3c). </summary>

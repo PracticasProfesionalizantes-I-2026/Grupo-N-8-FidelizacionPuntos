@@ -88,6 +88,7 @@ panel de administración.
 
 * En la modificación el admin puede cambiar la **categoría** (`0` = Estándar, `1` = Gold): así un cliente pasa a acumular x1.5 (N1, CU-10).
 * La baja es lógica (RN-14): el historial de movimientos se conserva.
+* **Listado:** responde la forma común de los listados de la API, `{ "mensaje", "items" }` (`ListadoResponseDTO`); sin clientes, `items` vacío y `mensaje` = "No hay clientes registrados".
 * **Colección Bruno:** `bruno/Admin/Clientes/`.
 
 ---
@@ -109,6 +110,7 @@ panel de administración.
 
 | Paso del CU | Excepción / Código | Test unitario (BusinessLogic) | Test integración (HTTP) |
 | --- | --- | --- | --- |
+| Flujo principal (listar) | `200 OK` | `ListarClientesAsync_ReturnsListadoWithItems`, `ListarClientesAsync_WithNoClientes_ReturnsEmptyListWithMessage` | `AbmCliente_List_Returns200WithListado` |
 | Flujo principal (alta) | `201 Created` | `CrearClienteAsync_WithValidData_CreatesAndReturnsCliente` | `AbmCliente_Create_WithValidData_Returns201Created` |
 | Flujo principal (modificación) | `200 OK` | `ActualizarClienteAsync_WithValidData_UpdatesAndReturnsCliente` | `AbmCliente_Update_WithValidData_Returns200OK` |
 | Flujo principal (baja) | `204 No Content` | `BajaClienteAsync_WithExistingId_DeactivatesCliente` | `AbmCliente_Delete_WithExistingId_Returns204NoContent` |

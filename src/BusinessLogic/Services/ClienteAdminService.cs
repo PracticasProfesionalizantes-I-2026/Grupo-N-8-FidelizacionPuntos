@@ -2,6 +2,7 @@ using FidelixAPI.BusinessLogic.Interfaces;
 using FidelixAPI.DataAccess.Entities;
 using FidelixAPI.DataAccess.Repositories.Interfaces;
 using FidelixAPI.Shared.DTOs.Cliente;
+using FidelixAPI.Shared.DTOs.Comun;
 using FidelixAPI.Shared.Exceptions;
 using FidelixAPI.Shared.Security;
 
@@ -10,11 +11,11 @@ namespace FidelixAPI.BusinessLogic.Services;
 /// <summary> Implementación de IClienteAdminService (CU-15). </summary>
 public class ClienteAdminService(IClienteRepository clienteRepository) : IClienteAdminService
 {
-    /// <summary> Lista todos los clientes. </summary>
-    public async Task<IReadOnlyList<ClienteResponseDTO>> ListarClientesAsync()
+    /// <summary> Lista todos los clientes con la forma común de los listados `{ mensaje, items }`; vacío no es error. </summary>
+    public async Task<ListadoResponseDTO<ClienteResponseDTO>> ListarClientesAsync()
     {
         var clientes = await clienteRepository.GetAllAsync();
-        return clientes.Select(MapToResponseDTO).ToList();
+        return ListadoResponseDTO<ClienteResponseDTO>.Crear(clientes.Select(MapToResponseDTO).ToList(), "No hay clientes registrados");
     }
 
     /// <summary> Alta: documento/email libres (RN-01, flujo 3a); si trae contraseña, tiene que cumplir RN-02. </summary>

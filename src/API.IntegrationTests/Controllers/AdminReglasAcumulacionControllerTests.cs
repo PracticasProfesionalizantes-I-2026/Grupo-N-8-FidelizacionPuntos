@@ -1,3 +1,4 @@
+using FidelixAPI.Shared.DTOs.Comun;
 using System.Net;
 using System.Net.Http.Json;
 using FidelixAPI.Shared.DTOs.ReglaAcumulacion;
@@ -51,10 +52,10 @@ public class AdminReglasAcumulacionControllerTests : IClassFixture<FidelixApiFac
         var client = _factory.CreateClientComo(Roles.Admin);
 
         var respuesta = await client.GetAsync(Url);
-        var reglas = await respuesta.Content.ReadFromJsonAsync<List<ReglaAcumulacionResponseDTO>>();
+        var reglas = await respuesta.Content.ReadFromJsonAsync<ListadoResponseDTO<ReglaAcumulacionResponseDTO>>();
 
         Assert.Equal(HttpStatusCode.OK, respuesta.StatusCode);
-        Assert.NotEmpty(reglas!);
+        Assert.NotEmpty(reglas!.Items);
     }
 
     /// <summary>CU-19, detalle: un id existente devuelve 200 OK con esa regla.</summary>

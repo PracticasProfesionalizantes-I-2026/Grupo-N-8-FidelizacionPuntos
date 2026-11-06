@@ -86,6 +86,7 @@ panel de administración.
 | `DELETE /api/admin/empleados/{id}` | Admin | `AdminEmpleadosController.Baja → EmpleadoAdminService.BajaEmpleadoAsync` |
 
 * La contraseña inicial se valida con RN-02 y se guarda hasheada (PBKDF2). Tras la baja, el login del empleado responde 403 (RN-15).
+* **Listado:** responde la forma común de los listados de la API, `{ "mensaje", "items" }` (`ListadoResponseDTO`); sin empleados, `items` vacío y `mensaje` = "No hay empleados registrados".
 * **Colección Bruno:** `bruno/Admin/Empleados/`.
 
 ---
@@ -107,6 +108,7 @@ panel de administración.
 
 | Paso del CU | Excepción / Código | Test unitario (BusinessLogic) | Test integración (HTTP) |
 | --- | --- | --- | --- |
+| Flujo principal (listar) | `200 OK` | `ListarEmpleadosAsync_ReturnsListadoWithItems`, `ListarEmpleadosAsync_WithNoEmpleados_ReturnsEmptyListWithMessage` | `AbmEmpleado_List_Returns200WithListado` |
 | Flujo principal (alta) | `201 Created` | `CrearEmpleadoAsync_WithValidData_CreatesAndReturnsEmpleado` | `AbmEmpleado_Create_WithValidData_Returns201Created` |
 | Flujo principal (modificación) | `200 OK` | `ActualizarEmpleadoAsync_WithValidData_UpdatesAndReturnsEmpleado` | `AbmEmpleado_Update_WithValidData_Returns200OK` |
 | Flujo principal (baja) | `204 No Content` | `BajaEmpleadoAsync_WithExistingId_DeactivatesEmpleado` | `AbmEmpleado_Delete_WithExistingId_Returns204NoContent` |

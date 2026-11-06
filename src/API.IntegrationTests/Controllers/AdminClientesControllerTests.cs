@@ -80,10 +80,10 @@ public class AdminClientesControllerTests : IClassFixture<FidelixApiFactory>, IA
         var admin = _factory.CreateClientComo(Roles.Admin);
 
         var respuesta = await admin.DeleteAsync($"{Url}/{cliente.Id}");
-        var clientes = await admin.GetFromJsonAsync<List<ClienteResponseDTO>>(Url);
+        var clientes = await admin.GetFromJsonAsync<ListadoResponseDTO<ClienteResponseDTO>>(Url);
 
         Assert.Equal(HttpStatusCode.NoContent, respuesta.StatusCode);
-        Assert.False(clientes!.Single(c => c.Id == cliente.Id).Activo);
+        Assert.False(clientes!.Items.Single(c => c.Id == cliente.Id).Activo);
     }
 
     /// <summary>CU-15, flujo 2a: sin nombre devuelve 400.</summary>
@@ -111,5 +111,17 @@ public class AdminClientesControllerTests : IClassFixture<FidelixApiFactory>, IA
         var respuesta = await _factory.CreateClientComo(Roles.Admin).PutAsJsonAsync($"{Url}/{Guid.NewGuid()}", new AdminClienteUpdateDTO { Nombre = "X" });
 
         Assert.Equal(HttpStatusCode.NotFound, respuesta.StatusCode);
+    }
+
+    /// <summary>CU-15, listar: 200 con la forma común `{ mensaje, items }` e incluye al cliente demo sembrado.</summary>
+    [Fact]
+    public async Task AbmCliente_List_Returns200WithListado()
+    {
+        var respuesta = await _factory.CreateClientComo(Roles.Admin).GetAsync(Url);
+        var clientes = await respuesta.Content.ReadFromJsonAsync<ListadoResponseDTO<ClienteResponseDTO>>();
+
+        Assert.Equal(HttpStatusCode.OK, respuesta.StatusCode);
+        Assert.Contains(clientes!.Items, c => c.Id == FidelixAPI.DataAccess.Seed.DbInitializer.ClienteDemoId);
+        Assert.Null(clientes.Mensaje);
     }
 }

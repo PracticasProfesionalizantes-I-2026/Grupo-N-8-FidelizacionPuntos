@@ -90,4 +90,28 @@ public class EmpleadoAdminServiceTests
         Assert.False(empleado.Activo);
         _empleadoRepo.Verify(r => r.UpdateAsync(empleado), Times.Once);
     }
+
+    /// <summary> CU-16, listar: devuelve los empleados como `{ mensaje, items }` (mensaje nulo si hay datos). </summary>
+    [Fact]
+    public async Task ListarEmpleadosAsync_ReturnsListadoWithItems()
+    {
+        _empleadoRepo.Setup(r => r.GetAllAsync()).ReturnsAsync([new Empleado { Id = Guid.NewGuid(), Nombre = "Julio" }]);
+
+        var resultado = await _sut.ListarEmpleadosAsync();
+
+        Assert.Single(resultado.Items);
+        Assert.Null(resultado.Mensaje);
+    }
+
+    /// <summary> CU-16, listar sin empleados: lista vacía con mensaje (no es error). </summary>
+    [Fact]
+    public async Task ListarEmpleadosAsync_WithNoEmpleados_ReturnsEmptyListWithMessage()
+    {
+        _empleadoRepo.Setup(r => r.GetAllAsync()).ReturnsAsync([]);
+
+        var resultado = await _sut.ListarEmpleadosAsync();
+
+        Assert.Empty(resultado.Items);
+        Assert.Equal("No hay empleados registrados", resultado.Mensaje);
+    }
 }

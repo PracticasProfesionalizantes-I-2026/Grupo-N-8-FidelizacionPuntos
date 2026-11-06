@@ -1,3 +1,4 @@
+using FidelixAPI.Shared.DTOs.Comun;
 using FidelixAPI.Shared.DTOs.Empleado;
 
 namespace FidelixAPI.BusinessLogic.Interfaces;
@@ -5,8 +6,8 @@ namespace FidelixAPI.BusinessLogic.Interfaces;
 /// <summary>ABM de empleados por el admin (CU-16).</summary>
 public interface IEmpleadoAdminService
 {
-    /// <summary>Lista todos los empleados (activos e inactivos).</summary>
-    Task<IReadOnlyList<EmpleadoResponseDTO>> ListarEmpleadosAsync();
+    /// <summary>Lista todos los empleados (activos e inactivos) como `{ mensaje, items }`.</summary>
+    Task<ListadoResponseDTO<EmpleadoResponseDTO>> ListarEmpleadosAsync();
 
     /// <summary>Alta: documento y email únicos (RN-01) y contraseña según la política (RN-02).</summary>
     Task<EmpleadoResponseDTO> CrearEmpleadoAsync(EmpleadoCreateDTO dto);

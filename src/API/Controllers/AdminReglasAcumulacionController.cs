@@ -16,13 +16,9 @@ namespace FidelixAPI.API.Controllers;
 [Route("api/admin/reglas-acumulacion")]
 public class AdminReglasAcumulacionController(IReglaAcumulacionService reglaService) : ControllerBase
 {
-    /// <summary> Lista todas las versiones de la regla. </summary>
+    /// <summary> Lista todas las versiones de la regla como `{ mensaje, items }`. </summary>
     [HttpGet]
-    public async Task<IActionResult> ObtenerReglas()
-    {
-        var reglas = await reglaService.ObtenerReglasAcumulacionAsync();
-        return Ok(reglas);
-    }
+    public async Task<IActionResult> ObtenerReglas() => Ok(await reglaService.ObtenerReglasAcumulacionAsync());
 
     /// <summary> Detalle de una versión (flujo 3c: 404 si no existe). </summary>
     [HttpGet("{id:guid}")]

@@ -1,3 +1,4 @@
+using FidelixAPI.Shared.DTOs.Comun;
 using FidelixAPI.Shared.DTOs.ReglaAcumulacion;
 
 namespace FidelixAPI.BusinessLogic.Interfaces;
@@ -5,8 +6,8 @@ namespace FidelixAPI.BusinessLogic.Interfaces;
 /// <summary>Consulta y configuración de la regla de acumulación de puntos por el admin (CU-19).</summary>
 public interface IReglaAcumulacionService
 {
-    /// <summary>Lista todas las versiones de la regla, de la más reciente a la más antigua.</summary>
-    Task<IReadOnlyList<ReglaAcumulacionResponseDTO>> ObtenerReglasAcumulacionAsync();
+    /// <summary>Lista todas las versiones de la regla, de la más reciente a la más antigua, como `{ mensaje, items }`.</summary>
+    Task<ListadoResponseDTO<ReglaAcumulacionResponseDTO>> ObtenerReglasAcumulacionAsync();
 
     /// <summary>Devuelve el detalle de una versión. Lanza 404 si el id no existe (flujo 3c).</summary>
     Task<ReglaAcumulacionResponseDTO> ObtenerReglaAcumulacionPorIdAsync(Guid id);

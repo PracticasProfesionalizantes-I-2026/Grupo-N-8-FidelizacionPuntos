@@ -123,4 +123,16 @@ public class AdminEmpleadosControllerTests : IClassFixture<FidelixApiFactory>, I
 
         Assert.Equal(HttpStatusCode.NotFound, respuesta.StatusCode);
     }
+
+    /// <summary>CU-16, listar: 200 con la forma común `{ mensaje, items }` e incluye al empleado demo sembrado.</summary>
+    [Fact]
+    public async Task AbmEmpleado_List_Returns200WithListado()
+    {
+        var respuesta = await _factory.CreateClientComo(Roles.Admin).GetAsync(Url);
+        var empleados = await respuesta.Content.ReadFromJsonAsync<ListadoResponseDTO<EmpleadoResponseDTO>>();
+
+        Assert.Equal(HttpStatusCode.OK, respuesta.StatusCode);
+        Assert.Contains(empleados!.Items, e => e.Id == FidelixAPI.DataAccess.Seed.DbInitializer.EmpleadoDemoId);
+        Assert.Null(empleados.Mensaje);
+    }
 }

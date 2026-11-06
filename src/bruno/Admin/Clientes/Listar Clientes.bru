@@ -14,4 +14,9 @@ tests {
   test("200 OK", function () {
     expect(res.status).to.equal(200);
   });
+
+  test("forma común de los listados: { mensaje, items } (CU-15)", function () {
+    expect(res.body).to.have.property("mensaje");
+    expect(res.body.items).to.be.an("array");
+  });
 }

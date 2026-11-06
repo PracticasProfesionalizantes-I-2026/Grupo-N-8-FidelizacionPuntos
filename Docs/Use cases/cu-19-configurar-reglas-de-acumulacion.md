@@ -109,6 +109,7 @@ administración web)._
   `FechaModificacion` deja registrado qué regla regía en cada momento. Registrar
   **qué admin** hizo el cambio lo registra la auditoría (CU-21): los endpoints exigen el
   token del login de admin (CU-14) y cada alta o modificación queda con el id del admin.
+* **Listado:** responde la forma común de los listados de la API, `{ "mensaje", "items" }` (`ListadoResponseDTO`), con la versión más nueva primero; sin reglas, `items` vacío y `mensaje` = "No hay reglas de acumulación configuradas".
 * **Datos iniciales:** el seed carga una regla vigente desde hace 30 días
   (`0.1` puntos por $1 y 180 días de vigencia), que es la que usa CU-10.
 * **Colección Bruno:** `bruno/Admin/Reglas Acumulacion/` (alta con fecha al azar,
@@ -139,7 +140,7 @@ administración web)._
 
 | Paso del CU | Excepción / Código | Test unitario (BusinessLogic) | Test integración (HTTP) |
 | --- | --- | --- | --- |
-| Flujo principal (listar) | `200 OK` | `ObtenerReglasAcumulacionAsync_ReturnsAllRules` | `ConsultarReglasAcumulacion_Returns200OK` |
+| Flujo principal (listar) | `200 OK` | `ObtenerReglasAcumulacionAsync_ReturnsAllRules`, `ObtenerReglasAcumulacionAsync_WithNoRules_ReturnsEmptyListWithMessage` | `ConsultarReglasAcumulacion_Returns200OK` |
 | Flujo principal (detalle) | `200 OK` | `ObtenerReglaAcumulacionPorIdAsync_WithExistingId_ReturnsRule` | `ConsultarReglaAcumulacionPorId_WithExistingId_Returns200OK` |
 | Flujo principal (alta) | `201 Created` | `CrearReglaAcumulacionAsync_WithValidData_CreatesAndLogsAudit` | `ConfigurarReglaAcumulacion_Create_WithValidData_Returns201Created` |
 | Flujo principal (modificación) | `200 OK` | `ActualizarReglaAcumulacionAsync_WithValidData_UpdatesAndLogsAudit` | `ConfigurarReglaAcumulacion_Update_WithValidData_Returns200OK` |

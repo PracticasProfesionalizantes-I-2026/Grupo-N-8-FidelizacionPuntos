@@ -1,6 +1,7 @@
 using FidelixAPI.BusinessLogic.Interfaces;
 using FidelixAPI.DataAccess.Entities;
 using FidelixAPI.DataAccess.Repositories.Interfaces;
+using FidelixAPI.Shared.DTOs.Comun;
 using FidelixAPI.Shared.DTOs.Empleado;
 using FidelixAPI.Shared.Exceptions;
 using FidelixAPI.Shared.Security;
@@ -10,11 +11,11 @@ namespace FidelixAPI.BusinessLogic.Services;
 /// <summary> Implementación de IEmpleadoAdminService (CU-16). </summary>
 public class EmpleadoAdminService(IEmpleadoRepository empleadoRepository) : IEmpleadoAdminService
 {
-    /// <summary> Lista todos los empleados. </summary>
-    public async Task<IReadOnlyList<EmpleadoResponseDTO>> ListarEmpleadosAsync()
+    /// <summary> Lista todos los empleados con la forma común de los listados `{ mensaje, items }`; vacío no es error. </summary>
+    public async Task<ListadoResponseDTO<EmpleadoResponseDTO>> ListarEmpleadosAsync()
     {
         var empleados = await empleadoRepository.GetAllAsync();
-        return empleados.Select(MapToResponseDTO).ToList();
+        return ListadoResponseDTO<EmpleadoResponseDTO>.Crear(empleados.Select(MapToResponseDTO).ToList(), "No hay empleados registrados");
     }
 
     /// <summary> Alta: contraseña válida (RN-02) y documento/email libres (RN-01, flujo 3a). </summary>
