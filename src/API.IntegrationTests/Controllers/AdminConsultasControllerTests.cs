@@ -108,6 +108,37 @@ public class AdminConsultasControllerTests : IClassFixture<FidelixApiFactory>, I
         Assert.Equal("No existen resultados para los filtros seleccionados", registros.Mensaje);
     }
 
+    /// <summary>
+    /// CU-21: una operación auditada a las 22:30 hora Argentina del 06/11 (07/11 01:30 UTC en la base)
+    /// aparece al filtrar el 06/11 y no el 07/11. Se filtra por un actor propio del test para aislarlo.
+    /// </summary>
+    [Fact]
+    public async Task ConsultarAuditoria_WithSameDayRange_IncludesOperationAfter21ArgentineTime()
+    {
+        var actorId = Guid.NewGuid();
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<FidelixDbContext>();
+            context.Auditorias.Add(new FidelixAPI.DataAccess.Entities.Auditoria
+            {
+                Id = Guid.NewGuid(),
+                Fecha = new DateTime(2026, 11, 7, 1, 30, 0, DateTimeKind.Utc),
+                TipoOperacion = "Test.OperacionNocturna",
+                ActorId = actorId,
+                ActorRol = Roles.Admin,
+                Detalle = "Operación de prueba a las 22:30 hora AR"
+            });
+            await context.SaveChangesAsync();
+        }
+        var admin = _factory.CreateClientComo(Roles.Admin);
+
+        var dia6 = await admin.GetFromJsonAsync<ListadoResponseDTO<AuditoriaResponseDTO>>($"/api/admin/auditoria?actorId={actorId}&fechaDesde=2026-11-06&fechaHasta=2026-11-06");
+        var dia7 = await admin.GetFromJsonAsync<ListadoResponseDTO<AuditoriaResponseDTO>>($"/api/admin/auditoria?actorId={actorId}&fechaDesde=2026-11-07&fechaHasta=2026-11-07");
+
+        Assert.Single(dia6!.Items);
+        Assert.Empty(dia7!.Items);
+    }
+
     /// <summary>CU-24: el resumen del período incluye los puntos del seed (200).</summary>
     [Fact]
     public async Task GenerarReporte_WithValidParams_Returns200OK()

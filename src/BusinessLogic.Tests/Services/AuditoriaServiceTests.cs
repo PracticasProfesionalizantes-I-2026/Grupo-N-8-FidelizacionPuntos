@@ -40,6 +40,24 @@ public class AuditoriaServiceTests
         _auditoriaRepo.Verify(r => r.BuscarAsync(It.IsAny<DateTime?>(), It.IsAny<DateTime?>(), It.IsAny<string?>(), It.IsAny<Guid?>()), Times.Never);
     }
 
+    /// <summary>
+    /// CU-21: mismo criterio de fechas que CU-05/CU-20/CU-24: un día sin hora se consulta completo en
+    /// hora Argentina, convertido a UTC (antes `fechaHasta` cortaba a las 00:00 y dejaba afuera ese día).
+    /// </summary>
+    [Fact]
+    public async Task ConsultarAuditoriaAsync_WithSameDayRange_QueriesWholeArgentineDayInUtc()
+    {
+        _auditoriaRepo.Setup(r => r.BuscarAsync(It.IsAny<DateTime?>(), It.IsAny<DateTime?>(), It.IsAny<string?>(), It.IsAny<Guid?>())).ReturnsAsync([]);
+        var dia = new DateTime(2026, 11, 6);
+
+        await _sut.ConsultarAuditoriaAsync(new AuditoriaFiltroDTO { FechaDesde = dia, FechaHasta = dia });
+
+        _auditoriaRepo.Verify(r => r.BuscarAsync(
+            new DateTime(2026, 11, 6, 3, 0, 0, DateTimeKind.Utc),
+            new DateTime(2026, 11, 7, 3, 0, 0, DateTimeKind.Utc).AddTicks(-1),
+            null, null), Times.Once);
+    }
+
     /// <summary> CU-21, flujo 4a: con criterios pero sin coincidencias devuelve una lista vacía con mensaje. </summary>
     [Fact]
     public async Task ConsultarAuditoriaAsync_WithNoMatches_ReturnsEmptyList()

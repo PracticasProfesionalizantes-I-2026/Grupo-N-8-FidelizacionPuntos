@@ -1,3 +1,4 @@
+using FidelixAPI.BusinessLogic.Helpers;
 using FidelixAPI.BusinessLogic.Interfaces;
 using FidelixAPI.DataAccess.Entities;
 using FidelixAPI.DataAccess.Repositories.Interfaces;
@@ -37,7 +38,9 @@ public class AuditoriaService(IAuditoriaRepository auditoriaRepository) : IAudit
             return new ListadoResponseDTO<AuditoriaResponseDTO> { Items = [], Mensaje = MensajeSinCriterios };
         }
 
-        var registros = await auditoriaRepository.BuscarAsync(filtro.FechaDesde, filtro.FechaHasta, filtro.TipoOperacion, filtro.ActorId);
+        // Mismo criterio de fechas que movimientos y reportes: hora Argentina, "hasta" sin hora = día completo.
+        var (desdeUtc, hastaUtc) = FechasNegocio.RangoUtc(filtro.FechaDesde, filtro.FechaHasta);
+        var registros = await auditoriaRepository.BuscarAsync(desdeUtc, hastaUtc, filtro.TipoOperacion, filtro.ActorId);
         return ListadoResponseDTO<AuditoriaResponseDTO>.Crear(registros.Select(MapToResponseDTO).ToList(), MensajeSinResultados);
     }
 

@@ -35,6 +35,8 @@ para fines de control y seguimiento.
    formato de los criterios recibidos.
 3. La **Capa de Negocio** (`AuditoriaService.ConsultarAuditoriaAsync`) aplica los
    criterios de consulta sobre los registros, que son de solo lectura (**RN-20**).
+   Las fechas se interpretan en hora Argentina; si `fechaHasta` no trae hora, se
+   incluye ese día completo.
 4. La **Capa de Persistencia** recupera los registros (`Auditoria`)
    correspondientes.
 5. El Sistema devuelve un código **200 OK** con los resultados; el admin puede
@@ -75,7 +77,8 @@ _No aplica: consulta de lectura simple, sin variantes de mecanismo relevantes._
 
 * **Cómo se registra (RN-13):** un filtro global (`AuditoriaFilter`) audita cada POST/PUT/PATCH/DELETE que termina en 2xx: operación (`Controller.Accion`), actor (id y rol del token), entidad afectada y ruta. Los procesos automáticos (CU-22, CU-26) se auditan con rol `Sistema`. Los logins no se auditan.
 * **Inmutable (RN-20):** `IAuditoriaRepository` no hereda del repositorio base y no tiene `UpdateAsync`: solo crea y consulta.
-* **Colección Bruno:** `bruno/Admin/Consultas/`.
+* **Fechas en hora Argentina:** `fechaDesde`/`fechaHasta` se interpretan en hora Argentina (UTC-3) y se convierten a UTC (como se guardan los registros) con `FechasNegocio.RangoUtc` (`BusinessLogic/Helpers`), el mismo criterio que CU-05, CU-20 y CU-24. Si `fechaHasta` no trae hora, se incluye el día completo; antes se cortaba a las 00:00 y los registros de ese día quedaban afuera.
+* **Colección Bruno:** `bruno/Admin/Consultas/` (`Auditoria`, `Auditoria - Sin Criterios`, `Auditoria - Mismo Dia`).
 
 ---
 
@@ -93,6 +96,7 @@ _No aplica: consulta de lectura simple, sin variantes de mecanismo relevantes._
 | --- | --- | --- | --- |
 | Flujo principal | `200 OK` | `ConsultarAuditoriaAsync_WithFilters_ReturnsMatchingRecords` | `ConsultarAuditoria_WithValidFilters_Returns200OK` |
 | 3a. Sin criterios de búsqueda | `200 OK` (lista vacía) | `ConsultarAuditoriaAsync_WithNoFilters_ReturnsEmptyList` | `ConsultarAuditoria_WithNoFilters_Returns200OKWithEmptyList` |
+| Paso 3: día completo en hora Argentina | `200 OK` | `ConsultarAuditoriaAsync_WithSameDayRange_QueriesWholeArgentineDayInUtc` | `ConsultarAuditoria_WithSameDayRange_IncludesOperationAfter21ArgentineTime` |
 | 4a. Sin resultados | `200 OK` (lista vacía) | `ConsultarAuditoriaAsync_WithNoMatches_ReturnsEmptyList` | `ConsultarAuditoria_WithNoMatches_Returns200OKWithEmptyList` |
 
 > Regla de oro: cada flujo del caso de uso debe tener al menos un test.

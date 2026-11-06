@@ -1,7 +1,7 @@
 meta {
   name: Movimientos - Filtros Combinados
   type: http
-  seq: 9
+  seq: 4
 }
 
 get {
@@ -21,7 +21,7 @@ tests {
   test("200 OK (CU-20)", function () {
     expect(res.status).to.equal(200);
   });
-
+  
   test("solo acumulaciones del cliente pedido", function () {
     res.body.items.forEach(function (m) {
       expect(m.tipo).to.equal("Acumulacion");
