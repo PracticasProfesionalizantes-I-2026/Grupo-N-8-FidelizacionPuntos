@@ -10,13 +10,13 @@ namespace FidelixAPI.BusinessLogic.Services;
 /// <summary>Implementación de <see cref="IBeneficioService"/> (CU-06, CU-17).</summary>
 public class BeneficioService(IBeneficioRepository beneficioRepository) : IBeneficioService
 {
-    /// <summary>Alta: nombre único (RN-23) y costo en puntos positivo (RN-16).</summary>
+    /// <summary>Costo máximo de un beneficio: hasta 6 dígitos enteros (RN-16).</summary>
+    private const int CostoMaximo = 999_999;
+
+    /// <summary>Alta: nombre único (RN-23) y costo en puntos válido (RN-16).</summary>
     public async Task<BeneficioResponseDTO> CrearAsync(BeneficioCreateDTO dto)
     {
-        if (dto.CostoPuntos <= 0)
-        {
-            throw new CostoInvalidoException("El costo en puntos debe ser mayor a cero.");
-        }
+        ValidarCosto(dto.CostoPuntos);
 
         if (await beneficioRepository.GetByNombreAsync(dto.Nombre) is not null)
         {
@@ -35,15 +35,15 @@ public class BeneficioService(IBeneficioRepository beneficioRepository) : IBenef
         return MapToResponseDTO(beneficio);
     }
 
-    /// <summary>Modifica solo los campos presentes; valida costo positivo (RN-16) y nombre único si cambió (RN-23).</summary>
+    /// <summary>Modifica solo los campos presentes; valida el costo (RN-16) y nombre único si cambió (RN-23).</summary>
     public async Task<BeneficioResponseDTO> ActualizarAsync(Guid id, BeneficioUpdateDTO dto)
     {
         var beneficio = await beneficioRepository.GetByIdAsync(id)
             ?? throw new BeneficioNotFoundException("No se encontró el beneficio.");
 
-        if (dto.CostoPuntos is <= 0)
+        if (dto.CostoPuntos is not null)
         {
-            throw new CostoInvalidoException("El costo en puntos debe ser mayor a cero.");
+            ValidarCosto(dto.CostoPuntos.Value);
         }
 
         if (dto.Nombre is not null && dto.Nombre != beneficio.Nombre)
@@ -82,6 +82,23 @@ public class BeneficioService(IBeneficioRepository beneficioRepository) : IBenef
         var beneficios = await beneficioRepository.GetAllAsync();
         var activos = beneficios.Where(b => b.Activo).OrderBy(b => b.CostoPuntos).Select(MapToResponseDTO).ToList();
         return ListadoResponseDTO<BeneficioResponseDTO>.Crear(activos, "No hay beneficios disponibles");
+    }
+
+    /// <summary>
+    /// RN-16: el costo en puntos debe ser mayor a 0 y no superar 999.999 (6 dígitos enteros).
+    /// Lo comparten el alta y la modificación. No hace falta validar decimales: es un int.
+    /// </summary>
+    private static void ValidarCosto(int costoPuntos)
+    {
+        if (costoPuntos <= 0)
+        {
+            throw new CostoInvalidoException("El costo en puntos debe ser mayor a cero.");
+        }
+
+        if (costoPuntos > CostoMaximo)
+        {
+            throw new CostoInvalidoException("El costo en puntos no puede superar 999999.");
+        }
     }
 
     /// <summary>Traduce la entidad al DTO público.</summary>

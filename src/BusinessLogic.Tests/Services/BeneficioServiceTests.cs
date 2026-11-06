@@ -41,6 +41,28 @@ public class BeneficioServiceTests
             _sut.CrearAsync(new BeneficioCreateDTO { Nombre = "Gratis", CostoPuntos = 0 }));
     }
 
+    /// <summary>CU-17, flujo 3a: un costo de más de 6 dígitos enteros lanza <see cref="CostoInvalidoException"/> (RN-16).</summary>
+    [Fact]
+    public async Task CrearBeneficioAsync_WithCostoAboveMaximum_ThrowsCostoInvalidoException()
+    {
+        await Assert.ThrowsAsync<CostoInvalidoException>(() =>
+            _sut.CrearAsync(new BeneficioCreateDTO { Nombre = "Muy Caro", CostoPuntos = 1_000_000 }));
+
+        _beneficioRepo.Verify(r => r.CreateAsync(It.IsAny<Beneficio>()), Times.Never);
+    }
+
+    /// <summary>CU-17, flujo 3a, caso borde: el costo máximo 999.999 sí se acepta (RN-16).</summary>
+    [Fact]
+    public async Task CrearBeneficioAsync_WithMaximumCosto_CreatesBeneficio()
+    {
+        _beneficioRepo.Setup(r => r.GetByNombreAsync(It.IsAny<string>())).ReturnsAsync((Beneficio?)null);
+        _beneficioRepo.Setup(r => r.CreateAsync(It.IsAny<Beneficio>())).ReturnsAsync((Beneficio b) => b);
+
+        var resultado = await _sut.CrearAsync(new BeneficioCreateDTO { Nombre = "Tope", CostoPuntos = 999_999 });
+
+        Assert.Equal(999_999, resultado.CostoPuntos);
+    }
+
     /// <summary>CU-17, flujo 3b: nombre repetido lanza <see cref="BeneficioDuplicadoException"/> (RN-23).</summary>
     [Fact]
     public async Task CrearBeneficioAsync_WhenNombreExists_ThrowsBeneficioDuplicadoException()
@@ -62,6 +84,19 @@ public class BeneficioServiceTests
 
         Assert.Equal(150, resultado.CostoPuntos);
         Assert.Equal("Descuento 10%", resultado.Nombre);
+    }
+
+    /// <summary>CU-17, flujo 3a en la modificación: un costo mayor a 999.999 no se guarda (RN-16).</summary>
+    [Fact]
+    public async Task ActualizarBeneficioAsync_WithCostoAboveMaximum_ThrowsCostoInvalidoException()
+    {
+        var beneficio = new Beneficio { Id = Guid.NewGuid(), Nombre = "Descuento 10%", CostoPuntos = 100, Activo = true };
+        _beneficioRepo.Setup(r => r.GetByIdAsync(beneficio.Id)).ReturnsAsync(beneficio);
+
+        await Assert.ThrowsAsync<CostoInvalidoException>(() =>
+            _sut.ActualizarAsync(beneficio.Id, new BeneficioUpdateDTO { CostoPuntos = 1_000_000 }));
+
+        _beneficioRepo.Verify(r => r.UpdateAsync(It.IsAny<Beneficio>()), Times.Never);
     }
 
     /// <summary>CU-17, flujo 3c: modificar un Id inexistente lanza <see cref="BeneficioNotFoundException"/>.</summary>

@@ -2,7 +2,7 @@
 
 > Especificación elaborada siguiendo la guía
 > `GUIA-Especificacion-Casos-de-Uso.md` (sección 3).
-> Reglas de negocio RN-16 (costo mayor a 0), RN-17 (beneficio inactivo no
+> Reglas de negocio RN-16 (costo mayor a 0 y hasta 999.999), RN-17 (beneficio inactivo no
 > canjeable) y RN-23 (nombre de beneficio único) **implementadas**; cada caso
 > borde cuenta con su test unitario e integración (ver matriz de
 > trazabilidad).
@@ -16,7 +16,7 @@
 | **Stakeholders e intereses** | Admin → mantener el catálogo de beneficios actualizado; Cliente → ver siempre beneficios vigentes y con un costo correcto |
 | **Disparador (Trigger)** | El admin accede a la gestión de beneficios |
 | **Prioridad / Frecuencia** | Media; uso ocasional |
-| **Reglas de negocio relacionadas** | RN-16 (costo en puntos mayor a 0); RN-17 (beneficio inactivo no canjeable); RN-23 (nombre de beneficio único) |
+| **Reglas de negocio relacionadas** | RN-16 (costo en puntos mayor a 0, con hasta 6 dígitos enteros: máximo 999.999); RN-17 (beneficio inactivo no canjeable); RN-23 (nombre de beneficio único) |
 
 ---
 
@@ -35,7 +35,7 @@ disponibles para los clientes.
 2. La **Capa de Presentación** (`AdminBeneficiosController`) valida que el JSON
    (en alta/modificación) sea estructuralmente correcto.
 3. La **Capa de Negocio** (`BeneficioService`) valida que el costo en puntos
-   sea mayor a 0 (**RN-16**) y que el nombre no esté ya registrado, en el alta
+   sea mayor a 0 y no supere 999.999 (**RN-16**) y que el nombre no esté ya registrado, en el alta
    (**RN-23**); y que el beneficio exista, en modificación o desactivación.
 4. La **Capa de Persistencia** registra los cambios en la tabla `Beneficios`.
 5. El Sistema devuelve un código **201 Created** (alta), **200 OK** (modificación)
@@ -51,11 +51,13 @@ disponibles para los clientes.
 
 * **3a. Costo en puntos inválido (HTTP 400 Bad Request):**
   1. El sistema detecta que en el Paso 3 (alta o modificación) el costo en puntos ingresado es menor o
-     igual a 0, violando **RN-16**.
+     igual a 0 o supera 999.999 (más de 6 dígitos enteros), violando **RN-16**.
   2. El Sistema (Capa de Negocio) lanza la excepción de dominio
      `CostoInvalidoException`.
-  3. El Sistema devuelve un código **400 Bad Request** con el mensaje: "El costo
-     en puntos debe ser mayor a 0". El flujo retorna al Paso 1.
+  3. El Sistema devuelve un código **400 Bad Request** con el mensaje que
+     corresponda: "El costo en puntos debe ser mayor a cero." o "El costo en
+     puntos no puede superar 999999.". El flujo retorna al Paso 1.
+  4. Si en la modificación no se envía costo, esta validación no se aplica.
 
 * **3b. Beneficio a crear ya existe (HTTP 409 Conflict):**
   1. El sistema detecta que en el Paso 3 (alta) el nombre ingresado ya corresponde a un
@@ -92,7 +94,10 @@ disponibles para los clientes.
 | `POST/PUT/PATCH /api/admin/beneficios…` | Admin | `AdminBeneficiosController → BeneficioService` |
 
 * Los endpoints exigen el token del login de admin (CU-14, RN-11); sin token responden 401.
-* **Colección Bruno:** `bruno/Admin/Beneficios/`.
+* **Validación del costo:** `BeneficioService.ValidarCosto` centraliza RN-16 para el
+  alta y la modificación (0 < costo ≤ 999.999). Como `CostoPuntos` es `int`, no
+  admite decimales: un valor como `1.5` lo rechaza el binding con 400 (flujo 2a).
+* **Colección Bruno:** `bruno/Admin/Beneficios/` (incluye costo inválido y costo excesivo).
 
 ---
 
@@ -104,7 +109,7 @@ disponibles para los clientes.
 | --- | --- | --- |
 | `200` | OK | Éxito al modificar o desactivar un beneficio existente. |
 | `201` | Created | Confirmación de persistencia exitosa del nuevo recurso Beneficio. |
-| `400` | Bad Request | Datos inválidos o costo en puntos ≤ 0 (RN-16). |
+| `400` | Bad Request | Datos inválidos o costo en puntos fuera de rango: ≤ 0 o > 999.999 (RN-16). |
 | `404` | Not Found | Beneficio inexistente en modificación o desactivación. |
 | `409` | Conflict | Violación de RN-23: nombre de beneficio ya existente en el alta. |
 
@@ -117,6 +122,8 @@ disponibles para los clientes.
 | Flujo principal (desactivación) | `200 OK` | `DesactivarBeneficioAsync_WithExistingId_DeactivatesBeneficio` | `AbmBeneficio_Deactivate_WithExistingId_Returns200OK` |
 | 2a. Datos inválidos | `400 Bad Request` | — (validación de esquema) | `AbmBeneficio_WithInvalidData_Returns400BadRequest` |
 | 3a. Costo en puntos inválido | `400 Bad Request` | `CrearBeneficioAsync_WithNonPositiveCosto_ThrowsCostoInvalidoException` | `AbmBeneficio_Create_WithNonPositiveCosto_Returns400BadRequest` |
+| 3a. Costo con más de 6 dígitos enteros | `400 Bad Request` | `CrearBeneficioAsync_WithCostoAboveMaximum_ThrowsCostoInvalidoException`, `ActualizarBeneficioAsync_WithCostoAboveMaximum_ThrowsCostoInvalidoException` | `AbmBeneficio_Create_WithCostoAboveMaximum_Returns400BadRequest` |
+| 3a. Caso borde: costo máximo 999.999 | `201 Created` | `CrearBeneficioAsync_WithMaximumCosto_CreatesBeneficio` | — |
 | 3b. Beneficio a crear ya existe | `409 Conflict` | `CrearBeneficioAsync_WhenNombreExists_ThrowsBeneficioDuplicadoException` | `AbmBeneficio_Create_WhenNombreExists_Returns409Conflict` |
 | 3c. Beneficio inexistente | `404 Not Found` | `ActualizarBeneficioAsync_WithNonExistentId_ThrowsBeneficioNotFoundException` | `AbmBeneficio_Update_WithNonExistentId_Returns404NotFound` |
 

@@ -69,6 +69,17 @@ public class AdminBeneficiosControllerTests : IClassFixture<FidelixApiFactory>, 
         Assert.Equal(HttpStatusCode.BadRequest, respuesta.StatusCode);
     }
 
+    /// <summary>CU-17, flujo 3a: un costo de más de 6 dígitos enteros devuelve 400 Bad Request (RN-16).</summary>
+    [Fact]
+    public async Task AbmBeneficio_Create_WithCostoAboveMaximum_Returns400BadRequest()
+    {
+        var client = _factory.CreateClientComo(Roles.Admin);
+
+        var respuesta = await client.PostAsJsonAsync("/api/admin/beneficios", new BeneficioCreateDTO { Nombre = "Costo Excesivo", CostoPuntos = 1_000_000 });
+
+        Assert.Equal(HttpStatusCode.BadRequest, respuesta.StatusCode);
+    }
+
     /// <summary>CU-17, flujo 3b: el nombre de un beneficio sembrado devuelve 409 Conflict (RN-23).</summary>
     [Fact]
     public async Task AbmBeneficio_Create_WhenNombreExists_Returns409Conflict()

@@ -63,7 +63,7 @@ Sin autenticación en esta etapa: se incorpora con el login (CU-02/09/14).
 | Cliente inexistente al consultar saldo | `ClienteService` | `ClienteNotFoundException` | 404 |
 | CU-04 4a: falla al leer los movimientos | `ClienteService` | `PersistenceException` | 500 |
 | RN-05: los lotes vencidos no suman al saldo | `MovimientoRepository` (filtro) | — | — |
-| RN-16: costo en puntos mayor a cero | `BeneficioService` | `CostoInvalidoException` | 400 |
+| RN-16: costo en puntos mayor a cero y hasta 999.999 (6 dígitos enteros) | `BeneficioService` | `CostoInvalidoException` | 400 |
 | RN-23: nombre de beneficio único | `BeneficioService` | `BeneficioDuplicadoException` | 409 |
 | Beneficio inexistente | `BeneficioService` | `BeneficioNotFoundException` | 404 |
 | RN-17: la desactivación es lógica | `BeneficioService` | — | — |
