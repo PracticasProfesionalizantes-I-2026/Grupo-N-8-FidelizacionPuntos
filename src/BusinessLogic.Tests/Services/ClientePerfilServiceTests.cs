@@ -259,4 +259,24 @@ public class ClientePerfilServiceTests
         Assert.NotEqual("12345678", _cliente.PasswordHash);
         _clienteRepo.Verify(r => r.UpdateAsync(_cliente), Times.Once);
     }
+
+    /// <summary> CU-03: modificar la fecha de nacimiento a una absurda (1900) se rechaza y no se guarda. </summary>
+    [Fact]
+    public async Task ActualizarPerfilAsync_WithInvalidBirthDate_ThrowsFechaNacimientoInvalidaException()
+    {
+        await Assert.ThrowsAsync<FechaNacimientoInvalidaException>(() =>
+            _sut.ActualizarPerfilAsync(_cliente.Id, new ClienteUpdateDTO { FechaNacimiento = new DateTime(1900, 1, 1) }));
+        _clienteRepo.Verify(r => r.UpdateAsync(It.IsAny<Cliente>()), Times.Never);
+    }
+
+    /// <summary> CU-12: el alta desde el punto de venta también valida la fecha (menor de edad: se rechaza). </summary>
+    [Fact]
+    public async Task CrearClienteDesdePOSAsync_WithUnderageBirthDate_ThrowsFechaNacimientoInvalidaException()
+    {
+        var menor = DateTime.UtcNow.Date.AddYears(-10);
+
+        await Assert.ThrowsAsync<FechaNacimientoInvalidaException>(() =>
+            _sut.CrearClienteDesdePOSAsync(new ClienteCreateDTO { Nombre = "Menor", Documento = "41222333", Email = "menor@test.com", FechaNacimiento = menor }));
+        _clienteRepo.Verify(r => r.CreateAsync(It.IsAny<Cliente>()), Times.Never);
+    }
 }

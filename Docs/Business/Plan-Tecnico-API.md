@@ -122,6 +122,7 @@ qué capas atraviesa cada grupo.
 | --- | --- | --- | --- |
 | RN-01: documento y email de cliente únicos | `ClienteService` | `ClienteDuplicadoException` | 409 |
 | RN-02: contraseña de al menos 8 caracteres (`PoliticaPassword`, una sola regla para todos los canales) | `ClienteService` (registro y perfil), `ClienteAdminService`, `EmpleadoAdminService`, `RecuperacionService` | `PasswordInvalidaException` | 400 |
+| Fecha de nacimiento: no futura y edad entre 18 y 120 años (`PoliticaFechaNacimiento`) | `ClienteService` (registro, perfil y punto de venta) y `ClienteAdminService` (alta y modificación) | `FechaNacimientoInvalidaException` | 400 |
 | Cliente inexistente (por id: saldo, compra, canje presencial, canjes de un cliente; o por DNI en la búsqueda) | `ClienteService` / `MovimientoService` / `CanjeService` | `ClienteNotFoundException` | 404 |
 | CU-04 4a: falla al leer los movimientos | `ClienteService` | `PersistenceException` | 500 |
 | RN-05: los lotes vencidos no suman al saldo | `MovimientoRepository` (filtro) | — | — |

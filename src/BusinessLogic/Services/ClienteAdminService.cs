@@ -1,3 +1,4 @@
+using FidelixAPI.BusinessLogic.Helpers;
 using FidelixAPI.BusinessLogic.Interfaces;
 using FidelixAPI.DataAccess.Entities;
 using FidelixAPI.DataAccess.Repositories.Interfaces;
@@ -25,6 +26,9 @@ public class ClienteAdminService(IClienteRepository clienteRepository) : IClient
         {
             throw new PasswordInvalidaException("La contraseña no cumple los requisitos mínimos.");
         }
+
+        // Fecha de nacimiento: no futura y con una edad entre 18 y 120 años.
+        PoliticaFechaNacimiento.Validar(dto.FechaNacimiento);
 
         if (await clienteRepository.GetByDocumentoAsync(dto.Documento) is not null)
         {
@@ -54,6 +58,9 @@ public class ClienteAdminService(IClienteRepository clienteRepository) : IClient
     {
         var cliente = await clienteRepository.GetByIdAsync(id)
             ?? throw new ClienteNotFoundException("El cliente no existe.");
+
+        // Fecha de nacimiento: no futura y con una edad entre 18 y 120 años.
+        PoliticaFechaNacimiento.Validar(dto.FechaNacimiento);
 
         if (dto.Email is not null && dto.Email != cliente.Email)
         {

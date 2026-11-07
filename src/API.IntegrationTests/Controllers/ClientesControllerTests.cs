@@ -94,6 +94,26 @@ public class ClientesControllerTests : IClassFixture<FidelixApiFactory>, IAsyncL
         Assert.Equal(HttpStatusCode.Conflict, respuesta.StatusCode);
     }
 
+    /// <summary>CU-01: fechas de nacimiento imposibles (las encontradas en Bruno: 1900 y 2100) devuelven 400.</summary>
+    [Theory]
+    [InlineData("1900-01-01")]
+    [InlineData("2100-01-01")]
+    public async Task RegistrarCliente_WithInvalidBirthDate_Returns400BadRequest(string fecha)
+    {
+        var documento = TestHelpers.DocumentoUnico();
+
+        var respuesta = await _factory.CreateClient().PostAsJsonAsync("/api/clientes/registro", new ClienteCreateDTO
+        {
+            Nombre = "Fecha Invalida",
+            Documento = documento,
+            Email = $"fecha.{documento}@test.com",
+            Password = "Password123!",
+            FechaNacimiento = DateTime.Parse(fecha)
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, respuesta.StatusCode);
+    }
+
     /// <summary>CU-01, flujo 3b: una contraseña corta devuelve 400 Bad Request.</summary>
     [Fact]
     public async Task RegistrarCliente_WithWeakPassword_Returns400BadRequest()

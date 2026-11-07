@@ -101,4 +101,25 @@ public class ClienteAdminServiceTests
         Assert.Empty(resultado.Items);
         Assert.Equal("No hay clientes registrados", resultado.Mensaje);
     }
+
+    /// <summary> CU-15, alta: una fecha de nacimiento futura se rechaza y no se crea el cliente. </summary>
+    [Fact]
+    public async Task CrearClienteAsync_WithFutureBirthDate_ThrowsFechaNacimientoInvalidaException()
+    {
+        await Assert.ThrowsAsync<FechaNacimientoInvalidaException>(() =>
+            _sut.CrearClienteAsync(new ClienteCreateDTO { Nombre = "Futuro", Documento = "41000333", Email = "f@test.com", FechaNacimiento = new DateTime(2100, 1, 1) }));
+        _clienteRepo.Verify(r => r.CreateAsync(It.IsAny<Cliente>()), Times.Never);
+    }
+
+    /// <summary> CU-15, modificación: una fecha de nacimiento de 1900 se rechaza y no se guarda. </summary>
+    [Fact]
+    public async Task ActualizarClienteAsync_WithInvalidBirthDate_ThrowsFechaNacimientoInvalidaException()
+    {
+        var cliente = new Cliente { Id = IdsDePrueba.Nuevo(), Nombre = "Ana", Email = "ana@test.com", Activo = true };
+        _clienteRepo.Setup(r => r.GetByIdAsync(cliente.Id)).ReturnsAsync(cliente);
+
+        await Assert.ThrowsAsync<FechaNacimientoInvalidaException>(() =>
+            _sut.ActualizarClienteAsync(cliente.Id, new AdminClienteUpdateDTO { FechaNacimiento = new DateTime(1900, 1, 1) }));
+        _clienteRepo.Verify(r => r.UpdateAsync(It.IsAny<Cliente>()), Times.Never);
+    }
 }

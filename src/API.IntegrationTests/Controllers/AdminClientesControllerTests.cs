@@ -124,4 +124,15 @@ public class AdminClientesControllerTests : IClassFixture<FidelixApiFactory>, IA
         Assert.Contains(clientes!.Items, c => c.Id == FidelixAPI.DataAccess.Seed.DbInitializer.ClienteDemoId);
         Assert.Null(clientes.Mensaje);
     }
+
+    /// <summary>CU-15: el admin no puede poner una fecha de nacimiento futura (400).</summary>
+    [Fact]
+    public async Task AbmCliente_Update_WithFutureBirthDate_Returns400BadRequest()
+    {
+        var cliente = await CrearClienteAsync();
+
+        var respuesta = await _factory.CreateClientComo(Roles.Admin).PutAsJsonAsync($"{Url}/{cliente.Id}", new AdminClienteUpdateDTO { FechaNacimiento = new DateTime(2100, 1, 1) });
+
+        Assert.Equal(HttpStatusCode.BadRequest, respuesta.StatusCode);
+    }
 }

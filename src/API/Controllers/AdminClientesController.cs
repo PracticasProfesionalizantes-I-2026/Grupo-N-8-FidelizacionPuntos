@@ -35,6 +35,10 @@ public class AdminClientesController(IClienteAdminService clienteAdminService) :
         {
             return BadRequest(new ErrorResponseDTO(ex.Message));
         }
+        catch (FechaNacimientoInvalidaException ex)
+        {
+            return BadRequest(new ErrorResponseDTO(ex.Message));
+        }
     }
 
     /// <summary> Modificación parcial de un cliente, incluida la categoría (N1). </summary>
@@ -52,6 +56,10 @@ public class AdminClientesController(IClienteAdminService clienteAdminService) :
         catch (ClienteDuplicadoException ex)
         {
             return Conflict(new ErrorResponseDTO(ex.Message));
+        }
+        catch (FechaNacimientoInvalidaException ex)
+        {
+            return BadRequest(new ErrorResponseDTO(ex.Message));
         }
     }
 

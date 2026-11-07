@@ -36,6 +36,10 @@ public class ClientesController(IClienteService clienteService) : ControllerBase
         {
             return BadRequest(new ErrorResponseDTO(ex.Message));
         }
+        catch (FechaNacimientoInvalidaException ex)
+        {
+            return BadRequest(new ErrorResponseDTO(ex.Message));
+        }
     }
 
     /// <summary>
@@ -104,6 +108,10 @@ public class ClientesController(IClienteService clienteService) : ControllerBase
         {
             return BadRequest(new ErrorResponseDTO(ex.Message));
         }
+        catch (FechaNacimientoInvalidaException ex)
+        {
+            return BadRequest(new ErrorResponseDTO(ex.Message));
+        }
         catch (EmailDuplicadoException ex)
         {
             return Conflict(new ErrorResponseDTO(ex.Message));
@@ -162,6 +170,10 @@ public class ClientesController(IClienteService clienteService) : ControllerBase
         catch (ClienteDuplicadoException ex)
         {
             return Conflict(new ErrorResponseDTO(ex.Message));
+        }
+        catch (FechaNacimientoInvalidaException ex)
+        {
+            return BadRequest(new ErrorResponseDTO(ex.Message));
         }
     }
 

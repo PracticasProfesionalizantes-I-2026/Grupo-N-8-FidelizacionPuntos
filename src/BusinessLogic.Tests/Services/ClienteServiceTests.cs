@@ -121,4 +121,14 @@ public class ClienteServiceTests
 
         await Assert.ThrowsAsync<ClienteNotFoundException>(() => _sut.ConsultarSaldoAsync(IdsDePrueba.Nuevo()));
     }
+
+    /// <summary>CU-01: una fecha de nacimiento futura (2100) se rechaza y no se crea el cliente.</summary>
+    [Fact]
+    public async Task RegistrarClienteAsync_WithFutureBirthDate_ThrowsFechaNacimientoInvalidaException()
+    {
+        var dto = new ClienteCreateDTO { Nombre = "Ana", Documento = "40555666", Email = "ana@test.com", Password = "Password123!", FechaNacimiento = new DateTime(2100, 1, 1) };
+
+        await Assert.ThrowsAsync<FechaNacimientoInvalidaException>(() => _sut.RegistrarAsync(dto));
+        _clienteRepo.Verify(r => r.CreateAsync(It.IsAny<Cliente>()), Times.Never);
+    }
 }

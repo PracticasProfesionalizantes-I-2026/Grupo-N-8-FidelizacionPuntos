@@ -1,0 +1,33 @@
+meta {
+  name: Registrar Cliente - Fecha Nacimiento Invalida
+  type: http
+  seq: 18
+}
+
+post {
+  url: {{baseUrl}}/api/clientes/registro
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "nombre": "Fecha Imposible",
+    "documento": "41999888",
+    "email": "fecha.imposible@fidelix.local",
+    "password": "Password123!",
+    "fechaNacimiento": "1900-01-01"
+  }
+}
+
+docs {
+  La fecha de nacimiento no puede ser futura y la edad tiene que estar entre 18 y 120 años.
+  Probar también con "2100-01-01" o con una fecha de hace menos de 18 años: todas dan 400.
+}
+
+tests {
+  test("400 Bad Request: edad fuera de 18-120 o fecha futura", function () {
+    expect(res.status).to.equal(400);
+    expect(res.body.mensaje).to.contain("fecha de nacimiento");
+  });
+}

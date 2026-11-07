@@ -72,6 +72,15 @@ puntos inicial en cero para poder acumular y canjear beneficios.
   3. El Sistema devuelve un código **400 Bad Request** con el mensaje: "Los datos
      ingresados son inválidos o están incompletos". Fin del caso de uso.
 
+* **3c. Fecha de nacimiento inválida (HTTP 400 Bad Request):**
+  1. El sistema detecta que en el Paso 3 la fecha de nacimiento informada es futura o no
+     corresponde a una edad entre 18 y 120 años (ej. 1900 o 2100).
+  2. El Sistema (Capa de Negocio, `PoliticaFechaNacimiento`) lanza
+     `FechaNacimientoInvalidaException`.
+  3. El Sistema devuelve un código **400 Bad Request** con el mensaje: "La fecha de
+     nacimiento no es válida: el cliente debe tener entre 18 y 120 años.". Si no se
+     informa la fecha, no se valida (el dato es opcional).
+
 * **4a. Error interno en la persistencia (HTTP 500 Internal Server Error):**
   1. EL sistema detecta que en el Paso 4 la Capa de Persistencia no puede guardar el registro.
   2. El Sistema interrumpe la operación y registra el error como no controlado.
@@ -96,7 +105,7 @@ puntos inicial en cero para poder acumular y canjear beneficios.
 | Código HTTP | Nombre Técnico | Contexto de Aplicación en el Caso de Uso |
 | --- | --- | --- |
 | `201` | Created | Confirmación de persistencia exitosa del nuevo recurso Cliente. |
-| `400` | Bad Request | Fallo en la validación de esquema/campos, o contraseña que no cumple RN-02. |
+| `400` | Bad Request | Fallo en la validación de esquema/campos, contraseña que no cumple RN-02 o fecha de nacimiento inválida (edad fuera de 18-120 o fecha futura). |
 | `409` | Conflict | Violación de RN-01: documento o email ya registrados. |
 | `500` | Internal Server Error | Error técnico no controlado durante la persistencia. |
 
@@ -110,6 +119,7 @@ puntos inicial en cero para poder acumular y canjear beneficios.
 | 3a. Documento/email duplicado | `409 Conflict` | `RegistrarClienteAsync_WhenDocumentoOrEmailExists_ThrowsClienteDuplicadoException` | `RegistrarCliente_WhenDuplicateDocumentoOrEmail_Returns409Conflict` |
 | 3b. Contraseña inválida | `400 Bad Request` | `RegistrarClienteAsync_WithWeakPassword_ThrowsPasswordInvalidaException`, `RegistrarClienteAsync_WithSevenCharacterPassword_ThrowsPasswordInvalidaException` | `RegistrarCliente_WithWeakPassword_Returns400BadRequest` |
 | 3b. Caso borde: contraseña de exactamente 8 caracteres (RN-02, `PoliticaPassword.LargoMinimo`) | `201 Created` | `RegistrarClienteAsync_WithPasswordOfMinimumLength_CreatesCliente` | — |
+| 3c. Fecha de nacimiento inválida | `400 Bad Request` | `RegistrarClienteAsync_WithFutureBirthDate_ThrowsFechaNacimientoInvalidaException` y los casos borde de `PoliticaFechaNacimientoTests` (cumple 18 hoy/mañana, 120/121 años, 29 de febrero) | `RegistrarCliente_WithInvalidBirthDate_Returns400BadRequest` (1900 y 2100) |
 
 > Regla de oro: cada flujo del caso de uso debe tener al menos un test. Los tests se
 > ejecutan con el runner de la suite del proyecto Fidelix.

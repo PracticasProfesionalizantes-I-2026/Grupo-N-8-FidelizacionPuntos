@@ -46,6 +46,15 @@ venta, con saldo de puntos inicial en cero.
   3. El Sistema devuelve un código **400 Bad Request** con el mensaje: "Los datos
      ingresados son inválidos o no existen". El flujo retorna al Paso 1.
 
+* **2b. Fecha de nacimiento inválida (HTTP 400 Bad Request):**
+  1. El sistema detecta que en el Paso 2 la fecha de nacimiento informada es futura o no
+     corresponde a una edad entre 18 y 120 años (ej. 1900 o 2100).
+  2. El Sistema (Capa de Negocio, `PoliticaFechaNacimiento`) lanza
+     `FechaNacimientoInvalidaException`.
+  3. El Sistema devuelve un código **400 Bad Request** con el mensaje: "La fecha de
+     nacimiento no es válida: el cliente debe tener entre 18 y 120 años.". Si no se
+     informa la fecha, no se valida (el dato es opcional).
+
 * **3a. Cliente ya existe (HTTP 409 Conflict):**
   1. El sistema detecta que en el Paso 3 el documento ingresado ya pertenece a un cliente registrado,
      violando **RN-01**.
@@ -80,7 +89,7 @@ _No aplica: el alta desde el punto de venta se realiza por un único canal
 | Código HTTP | Nombre Técnico | Contexto de Aplicación en el Caso de Uso |
 | --- | --- | --- |
 | `201` | Created | Confirmación de persistencia exitosa del nuevo recurso Cliente. |
-| `400` | Bad Request | Fallo en la validación de esquema o campos faltantes. |
+| `400` | Bad Request | Fallo en la validación de esquema, campos faltantes o fecha de nacimiento inválida. |
 | `409` | Conflict | Violación de RN-01: documento ya registrado. |
 
 ### Matriz de trazabilidad CU-12 → Test
@@ -89,6 +98,7 @@ _No aplica: el alta desde el punto de venta se realiza por un único canal
 | --- | --- | --- | --- |
 | Flujo principal | `201 Created` | `CrearClienteDesdePOSAsync_WithValidData_CreatesAndReturnsCliente` | `CrearClientePOS_WithValidData_Returns201Created` |
 | 2a. Datos inválidos | `400 Bad Request` | — (validación de esquema) | `CrearClientePOS_WithInvalidData_Returns400BadRequest` |
+| 2b. Fecha de nacimiento inválida (menor de edad) | `400 Bad Request` | `CrearClienteDesdePOSAsync_WithUnderageBirthDate_ThrowsFechaNacimientoInvalidaException` | — (misma política que CU-01) |
 | 3a. Cliente ya existe | `409 Conflict` | `CrearClienteDesdePOSAsync_WhenDocumentoExists_ThrowsClienteDuplicadoException` | `CrearClientePOS_WhenDocumentoExists_Returns409Conflict` |
 
 > Regla de oro: cada flujo del caso de uso debe tener al menos un test.

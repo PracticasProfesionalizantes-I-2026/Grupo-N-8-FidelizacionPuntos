@@ -28,6 +28,9 @@ public class ClienteService(IClienteRepository clienteRepository, IMovimientoRep
             throw new PasswordInvalidaException("La contraseña no cumple los requisitos mínimos.");
         }
 
+        // Fecha de nacimiento: no futura y con una edad entre 18 y 120 años.
+        PoliticaFechaNacimiento.Validar(dto.FechaNacimiento);
+
         await ValidarUnicidadAsync(dto.Documento, dto.Email);
 
         var cliente = await clienteRepository.CreateAsync(new Cliente
@@ -93,6 +96,9 @@ public class ClienteService(IClienteRepository clienteRepository, IMovimientoRep
             throw new PasswordInvalidaException("La contraseña no cumple los requisitos mínimos.");
         }
 
+        // Fecha de nacimiento: no futura y con una edad entre 18 y 120 años.
+        PoliticaFechaNacimiento.Validar(dto.FechaNacimiento);
+
         if (dto.Email is not null && dto.Email != cliente.Email)
         {
             var otro = await clienteRepository.GetByEmailAsync(dto.Email);
@@ -146,6 +152,9 @@ public class ClienteService(IClienteRepository clienteRepository, IMovimientoRep
     /// </summary>
     public async Task<ClienteResponseDTO> CrearClienteDesdePOSAsync(ClienteCreateDTO dto)
     {
+        // Fecha de nacimiento: no futura y con una edad entre 18 y 120 años.
+        PoliticaFechaNacimiento.Validar(dto.FechaNacimiento);
+
         if (await clienteRepository.GetByDocumentoAsync(dto.Documento) is not null)
         {
             throw new ClienteDuplicadoException("El documento ingresado pertenece a un cliente activo");

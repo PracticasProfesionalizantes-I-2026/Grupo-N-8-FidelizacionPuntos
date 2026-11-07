@@ -62,6 +62,15 @@ identificador inmutable, y darse de baja voluntariamente del sistema.
   3. El Sistema devuelve un código **400 Bad Request** con el mensaje: "El
      documento de identidad no puede ser modificado". Fin del caso de uso.
 
+* **2c. Fecha de nacimiento inválida (HTTP 400 Bad Request):**
+  1. El sistema detecta que en el Paso 2 la fecha de nacimiento informada es futura o no
+     corresponde a una edad entre 18 y 120 años (ej. 1900 o 2100).
+  2. El Sistema (Capa de Negocio, `PoliticaFechaNacimiento`) lanza
+     `FechaNacimientoInvalidaException`.
+  3. El Sistema devuelve un código **400 Bad Request** con el mensaje: "La fecha de
+     nacimiento no es válida: el cliente debe tener entre 18 y 120 años.". Si no se
+     informa la fecha, no se valida (el dato es opcional).
+
 * **3a. Email ya registrado por otro cliente (HTTP 409 Conflict):**
   1. El sistema detecta que en el Paso 3 el nuevo email ya pertenece a otro cliente, violando **RN-01**.
   2. El Sistema (Capa de Negocio) lanza la excepción de dominio
@@ -105,7 +114,7 @@ identificador inmutable, y darse de baja voluntariamente del sistema.
 | --- | --- | --- |
 | `200` | OK | Éxito al consultar o actualizar el perfil. |
 | `204` | No Content | Éxito en la baja lógica de la cuenta (sin cuerpo en la respuesta). |
-| `400` | Bad Request | Datos inválidos o intento de modificar el documento (RN-04). |
+| `400` | Bad Request | Datos inválidos, intento de modificar el documento (RN-04) o fecha de nacimiento inválida. |
 | `409` | Conflict | Violación de RN-01: email ya registrado por otro cliente. |
 
 ### Matriz de trazabilidad CU-03 → Test
@@ -116,6 +125,7 @@ identificador inmutable, y darse de baja voluntariamente del sistema.
 | Flujo principal (baja) | `204 No Content` | `DarseDeBajaAsync_WithAuthenticatedCliente_DeactivatesCliente` | `DarseDeBaja_WithAuthenticatedCliente_Returns204NoContent` |
 | 2a. Dato inválido | `400 Bad Request` | — (validación de esquema) | `ActualizarPerfil_WithInvalidField_Returns400BadRequest` |
 | 2b. Intento de modificar documento | `400 Bad Request` | `ActualizarPerfilAsync_WhenDocumentoChanged_ThrowsValidationException` | `ActualizarPerfil_WhenDocumentoChanged_Returns400BadRequest` |
+| 2c. Fecha de nacimiento inválida | `400 Bad Request` | `ActualizarPerfilAsync_WithInvalidBirthDate_ThrowsFechaNacimientoInvalidaException` | — (misma política que CU-01) |
 | 3a. Email duplicado | `409 Conflict` | `ActualizarPerfilAsync_WhenEmailAlreadyExists_ThrowsEmailDuplicadoException` | `ActualizarPerfil_WhenEmailAlreadyExists_Returns409Conflict` |
 | RN-02: contraseña nueva inválida (menos de 8 caracteres o solo espacios) | `400 Bad Request` | `ActualizarPerfilAsync_WithShortPassword_ThrowsPasswordInvalidaException`, `ActualizarPerfilAsync_WithWhitespacePassword_ThrowsPasswordInvalidaException` | — |
 | RN-02: contraseña nueva válida (se guarda hasheada) | `200 OK` | `ActualizarPerfilAsync_WithValidPassword_StoresHash` | — |

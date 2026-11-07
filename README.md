@@ -146,12 +146,12 @@ del login del rol indicado (`Authorization: Bearer ...`).
 | POST | `/api/movimientos/acumulaciones/{clienteId}` | Empleado | CU-10 | 201, 400, 404, 409, 500 |
 | POST | `/api/canjes/presencial/{clienteId}` | Empleado | CU-11, CU-23 | 201, 404, 409, 500 |
 | PATCH | `/api/canjes/{id}/entregar` | Empleado | CU-11 (RN-10) | 200, 404, 409 |
-| POST | `/api/clientes` | Empleado | CU-12 | 201, 409 |
+| POST | `/api/clientes` | Empleado | CU-12 | 201, 400, 409 |
 | GET | `/api/clientes/{id}/canjes` | Empleado | CU-13 | 200, 404 |
 | **Admin** | | | | |
 | GET | `/api/admin/clientes` | Admin | CU-15 | 200 |
 | POST | `/api/admin/clientes` | Admin | CU-15 | 201, 400, 409 |
-| PUT | `/api/admin/clientes/{id}` | Admin | CU-15 | 200, 404, 409 |
+| PUT | `/api/admin/clientes/{id}` | Admin | CU-15 | 200, 400, 404, 409 |
 | DELETE | `/api/admin/clientes/{id}` | Admin | CU-15 | 204, 404 |
 | GET | `/api/admin/empleados` | Admin | CU-16 | 200 |
 | POST | `/api/admin/empleados` | Admin | CU-16 | 201, 400, 409 |
