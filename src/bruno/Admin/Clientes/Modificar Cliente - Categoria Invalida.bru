@@ -1,0 +1,27 @@
+meta {
+  name: Modificar Cliente - Categoria Invalida
+  type: http
+  seq: 6
+}
+
+put {
+  url: {{baseUrl}}/api/admin/clientes/{{clienteAdminId}}
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "categoria": 9
+  }
+}
+
+docs {
+  Las categorías de cliente son 1 = Estándar y 2 = Gold (N1). Cualquier otro número da 400.
+}
+
+tests {
+  test("400 Bad Request: la categoría de cliente no existe (CU-15)", function () {
+    expect(res.status).to.equal(400);
+  });
+}

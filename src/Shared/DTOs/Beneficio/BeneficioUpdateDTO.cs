@@ -14,5 +14,7 @@ public class BeneficioUpdateDTO
 
     public int? CostoPuntos { get; set; }
 
+    /// <summary>Nueva categoría (opcional); un número que no corresponde a ninguna da 400.</summary>
+    [EnumDataType(typeof(CategoriaBeneficio), ErrorMessage = "La categoría no existe. Ver las categorías válidas en GET /api/admin/beneficios/categorias.")]
     public CategoriaBeneficio? Categoria { get; set; }
 }

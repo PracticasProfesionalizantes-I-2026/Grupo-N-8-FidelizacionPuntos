@@ -15,5 +15,11 @@ public class BeneficioCreateDTO
     [Required]
     public int CostoPuntos { get; set; }
 
+    /// <summary>
+    /// Categoría (1 = Descuento, 2 = Producto gratis, 3 = Experiencia, 4 = Otro). Si no se informa, es
+    /// "Otro". Un número que no corresponde a ninguna categoría (0, -5, 1234567890) da 400: el JSON de
+    /// .NET acepta cualquier entero para un enum, por eso hace falta <see cref="EnumDataTypeAttribute"/>.
+    /// </summary>
+    [EnumDataType(typeof(CategoriaBeneficio), ErrorMessage = "La categoría no existe. Ver las categorías válidas en GET /api/admin/beneficios/categorias.")]
     public CategoriaBeneficio Categoria { get; set; } = CategoriaBeneficio.Otro;
 }

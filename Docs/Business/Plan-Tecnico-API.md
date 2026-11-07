@@ -40,11 +40,13 @@ insertar; antes era un `Guid` y se cambió por observación del profesor: ids co
 **Cliente**: `Nombre`, `Documento` (único), `Email` (único), `PasswordHash?`
 (nulo si lo dio de alta el empleado y todavía no definió contraseña, CU-12),
 `Telefono?`, `FechaNacimiento?`, `FechaRegistro`, `Activo`, `Categoria` (enum
-`CategoriaCliente`: Estandar, Gold — N1), `IntentosFallidos` y
+`CategoriaCliente`: 1 = Estandar, 2 = Gold — N1), `IntentosFallidos` y
 `BloqueadoHasta?` (bloqueo temporal, RN-03), `Movimientos`.
 
 **Beneficio**: `Nombre` (único), `Descripcion?`, `CostoPuntos`,
-`Categoria` (enum `CategoriaBeneficio`), `Activo`, `Canjes`.
+`Categoria` (enum `CategoriaBeneficio`: 1 = Descuento, 2 = Producto gratis,
+3 = Experiencia, 4 = Otro; numerado desde 1 para que el 0 no sea una categoría
+válida), `Activo`, `Canjes`.
 
 **Movimiento**: `ClienteId` (FK), `Tipo` (enum `TipoMovimiento`: Acumulacion,
 Canje, BonoCumpleanos, Vencimiento), `Puntos`, `PuntosDisponibles` (lo que

@@ -1,0 +1,30 @@
+meta {
+  name: Crear Beneficio - Categoria Invalida
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/api/admin/beneficios
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "nombre": "Beneficio Categoria Invalida",
+    "costoPuntos": 10,
+    "categoria": 1234567890
+  }
+}
+
+docs {
+  Un número que no corresponde a ninguna categoría (0, negativos, 1234567890) da 400.
+  Ver las válidas en "Listar Categorias".
+}
+
+tests {
+  test("400 Bad Request: la categoría no existe (CU-17)", function () {
+    expect(res.status).to.equal(400);
+  });
+}

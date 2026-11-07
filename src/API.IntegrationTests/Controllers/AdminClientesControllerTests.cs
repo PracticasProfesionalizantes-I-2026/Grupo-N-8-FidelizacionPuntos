@@ -135,4 +135,17 @@ public class AdminClientesControllerTests : IClassFixture<FidelixApiFactory>, IA
 
         Assert.Equal(HttpStatusCode.BadRequest, respuesta.StatusCode);
     }
+
+    /// <summary>CU-15: una categoría de cliente que no existe (0 o 9) da 400; solo valen 1 = Estándar y 2 = Gold.</summary>
+    [Theory]
+    [InlineData(0)]
+    [InlineData(9)]
+    public async Task AbmCliente_Update_WithUnknownCategoria_Returns400BadRequest(int categoria)
+    {
+        var cliente = await CrearClienteAsync();
+
+        var respuesta = await _factory.CreateClientComo(Roles.Admin).PutAsJsonAsync($"{Url}/{cliente.Id}", new AdminClienteUpdateDTO { Categoria = (CategoriaCliente)categoria });
+
+        Assert.Equal(HttpStatusCode.BadRequest, respuesta.StatusCode);
+    }
 }

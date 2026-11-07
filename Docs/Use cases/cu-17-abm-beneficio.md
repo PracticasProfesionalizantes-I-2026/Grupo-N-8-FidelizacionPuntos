@@ -49,6 +49,13 @@ disponibles para los clientes.
   3. El Sistema devuelve un código **400 Bad Request** con el mensaje: "Los datos
      ingresados son inválidos o no existen". El flujo retorna al Paso 1.
 
+* **2b. Categoría inexistente (HTTP 400 Bad Request):**
+  1. El sistema detecta que en el Paso 2 la `categoria` enviada no corresponde a ninguna
+     categoría válida (ej. 0, -5 o 1234567890).
+  2. El Sistema (Capa de Presentación, `[EnumDataType]` en el DTO) rechaza la petición.
+  3. El Sistema devuelve un código **400 Bad Request**. El admin consulta las categorías
+     válidas en `GET /api/admin/beneficios/categorias`. Fin del caso de uso.
+
 * **3a. Costo en puntos inválido (HTTP 400 Bad Request):**
   1. El sistema detecta que en el Paso 3 (alta o modificación) el costo en puntos ingresado es menor o
      igual a 0 o supera 999.999 (más de 6 dígitos enteros), violando **RN-16**.
@@ -92,12 +99,20 @@ disponibles para los clientes.
 | Endpoint | Rol (token JWT) | Controller → Service |
 | --- | --- | --- |
 | `POST/PUT/PATCH /api/admin/beneficios…` | Admin | `AdminBeneficiosController → BeneficioService` |
+| `GET /api/admin/beneficios/categorias` | Admin | `AdminBeneficiosController.ListarCategorias → BeneficioService.ListarCategorias` |
 
 * Los endpoints exigen el token del login de admin (CU-14, RN-11); sin token responden 401.
 * **Validación del costo:** `BeneficioService.ValidarCosto` centraliza RN-16 para el
   alta y la modificación (0 < costo ≤ 999.999). Como `CostoPuntos` es `int`, no
   admite decimales: un valor como `1.5` lo rechaza el binding con 400 (flujo 2a).
-* **Colección Bruno:** `bruno/Admin/Beneficios/` (incluye costo inválido y costo excesivo).
+* **Categorías:** se numeran desde 1 (1 = Descuento, 2 = Producto gratis, 3 = Experiencia,
+  4 = Otro; si no se informa, es "Otro"). `GET /api/admin/beneficios/categorias` devuelve
+  `{ mensaje, items: [{ id, nombre }] }`, armado a partir del enum `CategoriaBeneficio`, así la
+  lista no puede quedar desincronizada con lo que la API acepta. Un número que no corresponde a
+  ninguna categoría da 400: el JSON de .NET acepta cualquier entero para un enum, por eso el DTO
+  lo valida con `[EnumDataType]`.
+* **Colección Bruno:** `bruno/Admin/Beneficios/` (incluye costo inválido, costo excesivo,
+  categoría inválida y "Listar Categorias").
 
 ---
 
@@ -107,9 +122,9 @@ disponibles para los clientes.
 
 | Código HTTP | Nombre Técnico | Contexto de Aplicación en el Caso de Uso |
 | --- | --- | --- |
-| `200` | OK | Éxito al modificar o desactivar un beneficio existente. |
+| `200` | OK | Éxito al modificar o desactivar un beneficio existente, o al listar las categorías. |
 | `201` | Created | Confirmación de persistencia exitosa del nuevo recurso Beneficio. |
-| `400` | Bad Request | Datos inválidos o costo en puntos fuera de rango: ≤ 0 o > 999.999 (RN-16). |
+| `400` | Bad Request | Datos inválidos, categoría inexistente o costo en puntos fuera de rango: ≤ 0 o > 999.999 (RN-16). |
 | `404` | Not Found | Beneficio inexistente en modificación o desactivación. |
 | `409` | Conflict | Violación de RN-23: nombre de beneficio ya existente en el alta. |
 
@@ -121,6 +136,9 @@ disponibles para los clientes.
 | Flujo principal (modificación) | `200 OK` | `ActualizarBeneficioAsync_WithValidData_UpdatesAndReturnsBeneficio` | `AbmBeneficio_Update_WithValidData_Returns200OK` |
 | Flujo principal (desactivación) | `200 OK` | `DesactivarBeneficioAsync_WithExistingId_DeactivatesBeneficio` | `AbmBeneficio_Deactivate_WithExistingId_Returns200OK` |
 | 2a. Datos inválidos | `400 Bad Request` | — (validación de esquema) | `AbmBeneficio_WithInvalidData_Returns400BadRequest` |
+| 2b. Categoría inexistente | `400 Bad Request` | — (validación de esquema) | `AbmBeneficio_Create_WithUnknownCategoria_Returns400BadRequest` (0, -5, 1234567890) |
+| Categoría válida | `201 Created` | — | `AbmBeneficio_Create_WithValidCategoria_Returns201WithThatCategoria` |
+| Listar categorías | `200 OK` | `ListarCategorias_ReturnsCategoriesStartingAtOneWithReadableNames` | `ListarCategorias_Returns200WithCategoriesStartingAtOne` |
 | 3a. Costo en puntos inválido | `400 Bad Request` | `CrearBeneficioAsync_WithNonPositiveCosto_ThrowsCostoInvalidoException` | `AbmBeneficio_Create_WithNonPositiveCosto_Returns400BadRequest` |
 | 3a. Costo con más de 6 dígitos enteros | `400 Bad Request` | `CrearBeneficioAsync_WithCostoAboveMaximum_ThrowsCostoInvalidoException`, `ActualizarBeneficioAsync_WithCostoAboveMaximum_ThrowsCostoInvalidoException` | `AbmBeneficio_Create_WithCostoAboveMaximum_Returns400BadRequest` |
 | 3a. Caso borde: costo máximo 999.999 | `201 Created` | `CrearBeneficioAsync_WithMaximumCosto_CreatesBeneficio` | — |

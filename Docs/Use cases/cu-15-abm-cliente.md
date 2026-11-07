@@ -95,7 +95,7 @@ panel de administración.
 | `PUT /api/admin/clientes/{id}` | Admin | `AdminClientesController.Actualizar → ClienteAdminService.ActualizarClienteAsync` |
 | `DELETE /api/admin/clientes/{id}` | Admin | `AdminClientesController.Baja → ClienteAdminService.BajaClienteAsync` |
 
-* En la modificación el admin puede cambiar la **categoría** (`0` = Estándar, `1` = Gold): así un cliente pasa a acumular x1.5 (N1, CU-10).
+* En la modificación el admin puede cambiar la **categoría** (`1` = Estándar, `2` = Gold): así un cliente pasa a acumular x1.5 (N1, CU-10). Cualquier otro número (0, 9, ...) da 400 (`[EnumDataType]` en el DTO).
 * La baja es lógica (RN-14): el historial de movimientos se conserva.
 * **Listado:** responde la forma común de los listados de la API, `{ "mensaje", "items" }` (`ListadoResponseDTO`); sin clientes, `items` vacío y `mensaje` = "No hay clientes registrados".
 * **Colección Bruno:** `bruno/Admin/Clientes/`.
@@ -125,6 +125,7 @@ panel de administración.
 | Flujo principal (baja) | `204 No Content` | `BajaClienteAsync_WithExistingId_DeactivatesCliente` | `AbmCliente_Delete_WithExistingId_Returns204NoContent` |
 | 2a. Datos inválidos | `400 Bad Request` | — (validación de esquema) | `AbmCliente_WithInvalidData_Returns400BadRequest` |
 | 2b. Fecha de nacimiento inválida | `400 Bad Request` | `CrearClienteAsync_WithFutureBirthDate_ThrowsFechaNacimientoInvalidaException`, `ActualizarClienteAsync_WithInvalidBirthDate_ThrowsFechaNacimientoInvalidaException` | `AbmCliente_Update_WithFutureBirthDate_Returns400BadRequest` |
+| 2c. Categoría inexistente | `400 Bad Request` | — (validación de esquema) | `AbmCliente_Update_WithUnknownCategoria_Returns400BadRequest` (0 y 9) |
 | 3a. Cliente a crear ya existe | `409 Conflict` | `CrearClienteAsync_WhenDocumentoExists_ThrowsClienteDuplicadoException` | `AbmCliente_Create_WhenDocumentoExists_Returns409Conflict` |
 | 3b. Cliente inexistente | `404 Not Found` | `ActualizarClienteAsync_WithNonExistentId_ThrowsClienteNotFoundException` | `AbmCliente_Update_WithNonExistentId_Returns404NotFound` |
 

@@ -157,6 +157,7 @@ del login del rol indicado (`Authorization: Bearer ...`).
 | POST | `/api/admin/empleados` | Admin | CU-16 | 201, 400, 409 |
 | PUT | `/api/admin/empleados/{id}` | Admin | CU-16 | 200, 400, 404, 409 |
 | DELETE | `/api/admin/empleados/{id}` | Admin | CU-16 | 204, 404 |
+| GET | `/api/admin/beneficios/categorias` | Admin | CU-17 | 200 |
 | POST | `/api/admin/beneficios` | Admin | CU-17 | 201, 400, 409 |
 | PUT | `/api/admin/beneficios/{id}` | Admin | CU-17 | 200, 400, 404, 409 |
 | PATCH | `/api/admin/beneficios/{id}/desactivar` | Admin | CU-17 | 200, 404 |
@@ -221,7 +222,7 @@ Los procesos de CU-22 y CU-26 también corren solos una vez por día
   "fechaNacimiento": "1998-03-10T00:00:00Z",
   "activo": true,
   "fechaRegistro": "…",
-  "categoria": 0
+  "categoria": 1
 }
 ```
 
@@ -249,11 +250,13 @@ Los procesos de CU-22 y CU-26 también corren solos una vez por día
 **Crear beneficio** — `POST /api/admin/beneficios` (token de admin)
 
 ```json
-{ "nombre": "Café gratis", "descripcion": "Un café de regalo", "costoPuntos": 50, "categoria": 1 }
+{ "nombre": "Café gratis", "descripcion": "Un café de regalo", "costoPuntos": 50, "categoria": 2 }
 ```
 
 `201 Created` con el beneficio; `400` si `costoPuntos` no está entre 1 y
-999.999; `409` si el nombre ya existe.
+999.999 o si la categoría no existe; `409` si el nombre ya existe. Las categorías
+válidas (1 = Descuento, 2 = Producto gratis, 3 = Experiencia, 4 = Otro) se consultan
+en `GET /api/admin/beneficios/categorias`.
 
 **Modificar beneficio** — `PUT /api/admin/beneficios/{id}`: solo cambian
 los campos enviados (`{ "costoPuntos": 80 }`).

@@ -1,8 +1,10 @@
+using System.ComponentModel;
 using FidelixAPI.BusinessLogic.Interfaces;
 using FidelixAPI.DataAccess.Entities;
 using FidelixAPI.DataAccess.Repositories.Interfaces;
 using FidelixAPI.Shared.DTOs.Beneficio;
 using FidelixAPI.Shared.DTOs.Comun;
+using FidelixAPI.Shared.Enums;
 using FidelixAPI.Shared.Exceptions;
 
 namespace FidelixAPI.BusinessLogic.Services;
@@ -100,6 +102,26 @@ public class BeneficioService(IBeneficioRepository beneficioRepository) : IBenef
             throw new CostoInvalidoException("El costo en puntos no puede superar 999999.");
         }
     }
+
+    /// <summary>
+    /// Categorías válidas, tomadas del enum <see cref="CategoriaBeneficio"/>: el número que se envía en
+    /// `categoria` y su nombre legible (atributo `[Description]`). No consulta la base: la lista sale del
+    /// código, así no puede quedar desincronizada con lo que la API acepta.
+    /// </summary>
+    public ListadoResponseDTO<CategoriaBeneficioDTO> ListarCategorias()
+    {
+        var categorias = Enum.GetValues<CategoriaBeneficio>()
+            .Select(c => new CategoriaBeneficioDTO { Id = (int)c, Nombre = NombreLegible(c) })
+            .ToList();
+        return ListadoResponseDTO<CategoriaBeneficioDTO>.Crear(categorias, "No hay categorías definidas");
+    }
+
+    /// <summary>Nombre para mostrar de una categoría: su `[Description]`, o el nombre del enum si no tiene.</summary>
+    private static string NombreLegible(CategoriaBeneficio categoria) =>
+        typeof(CategoriaBeneficio).GetField(categoria.ToString())?
+            .GetCustomAttributes(typeof(DescriptionAttribute), false)
+            .Cast<DescriptionAttribute>()
+            .FirstOrDefault()?.Description ?? categoria.ToString();
 
     /// <summary>Traduce la entidad al DTO público.</summary>
     private static BeneficioResponseDTO MapToResponseDTO(Beneficio b) => new()

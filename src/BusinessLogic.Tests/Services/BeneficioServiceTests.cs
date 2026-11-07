@@ -121,4 +121,14 @@ public class BeneficioServiceTests
         Assert.False(resultado.Activo);
         _beneficioRepo.Verify(r => r.UpdateAsync(beneficio), Times.Once);
     }
+
+    /// <summary>CU-17: las categorías se listan numeradas desde 1, con su nombre legible.</summary>
+    [Fact]
+    public void ListarCategorias_ReturnsCategoriesStartingAtOneWithReadableNames()
+    {
+        var resultado = _sut.ListarCategorias();
+
+        Assert.Equal([1, 2, 3, 4], resultado.Items.Select(c => c.Id));
+        Assert.Equal(["Descuento", "Producto gratis", "Experiencia", "Otro"], resultado.Items.Select(c => c.Nombre));
+    }
 }

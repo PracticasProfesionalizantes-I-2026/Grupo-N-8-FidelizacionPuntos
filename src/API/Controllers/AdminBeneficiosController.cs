@@ -16,6 +16,13 @@ namespace FidelixAPI.API.Controllers;
 [Route("api/admin/beneficios")]
 public class AdminBeneficiosController(IBeneficioService beneficioService) : ControllerBase
 {
+    /// <summary>
+    /// Categorías de beneficio válidas (`{ id, nombre }`): el `id` es el número que se envía en
+    /// `categoria` al crear o modificar un beneficio.
+    /// </summary>
+    [HttpGet("categorias")]
+    public IActionResult ListarCategorias() => Ok(beneficioService.ListarCategorias());
+
     /// <summary>Alta de un beneficio (RN-16, RN-23).</summary>
     [HttpPost]
     public async Task<IActionResult> Crear(BeneficioCreateDTO dto)

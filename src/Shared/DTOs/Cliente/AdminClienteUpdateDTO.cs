@@ -22,5 +22,7 @@ public class AdminClienteUpdateDTO
 
     public DateTime? FechaNacimiento { get; set; }
 
+    /// <summary>Nueva categoría (opcional): 1 = Estándar, 2 = Gold (N1). Otro número da 400.</summary>
+    [EnumDataType(typeof(CategoriaCliente), ErrorMessage = "La categoría no existe: 1 = Estándar, 2 = Gold.")]
     public CategoriaCliente? Categoria { get; set; }
 }

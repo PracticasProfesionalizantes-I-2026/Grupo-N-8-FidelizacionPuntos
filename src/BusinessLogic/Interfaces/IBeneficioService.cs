@@ -17,4 +17,7 @@ public interface IBeneficioService
 
     /// <summary>Catálogo: solo los beneficios activos (CU-06, RN-07).</summary>
     Task<ListadoResponseDTO<BeneficioResponseDTO>> ListarBeneficiosAsync();
+
+    /// <summary>Lista las categorías de beneficio válidas (número y nombre), para el ABM del admin (CU-17).</summary>
+    ListadoResponseDTO<CategoriaBeneficioDTO> ListarCategorias();
 }
