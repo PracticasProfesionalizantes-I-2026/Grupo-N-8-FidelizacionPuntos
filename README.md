@@ -22,7 +22,7 @@ marcaron los patrones que siguen todos los demás.
 | Recurso | Dónde |
 | --- | --- |
 | Documentación del proyecto y Lista y especificación de casos de uso | [Carpeta de Google Drive](https://drive.google.com/drive/folders/1xrh83MMljIAtshCEMXHefF7_iGJS0XPV?usp=sharing) |
-| Mockups del prototipo | [Excalidraw](https://excalidraw.com/#json=k5sguR8Ws19egQjdaGBxU,6IKMDhQLMnmGIIyi8ZfhNg) (capturas en `Docs/Mockups/`) |
+| Prototipo Navegable (Datos Simulados | [Fidelix](https://practicasprofesionalizantes-i-2026.github.io/Grupo-N-8-FidelizacionPuntos/prototipo/) |
 | Especificación de cada caso de uso (en el repo) | `Docs/Use cases/` (CU-01 a CU-26, con su matriz de trazabilidad a tests) |
 | Reglas de negocio, requerimientos y niveles de complejidad | `Docs/Business/Documentacion-Fidelix.md` |
 | Plan técnico: entidades y capas | `Docs/Business/Plan-Tecnico-API.md` |
