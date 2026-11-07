@@ -22,7 +22,7 @@ public static class PoliticaFechaNacimiento
     /// </summary>
     public static void Validar(DateTime? fechaNacimiento)
     {
-        if (fechaNacimiento is not null && !EsValida(fechaNacimiento.Value, HoyArgentina()))
+        if (fechaNacimiento is not null && !EsValida(fechaNacimiento.Value, FechasNegocio.HoyArgentina()))
         {
             throw new FechaNacimientoInvalidaException(
                 $"La fecha de nacimiento no es válida: el cliente debe tener entre {EdadMinima} y {EdadMaxima} años.");
@@ -56,7 +56,4 @@ public static class PoliticaFechaNacimiento
         var edad = hoy.Year - nacimiento.Year;
         return nacimiento.AddYears(edad) > hoy ? edad - 1 : edad;
     }
-
-    /// <summary>Fecha de hoy en hora Argentina (la fecha del negocio, no la del servidor).</summary>
-    private static DateOnly HoyArgentina() => DateOnly.FromDateTime(FechasNegocio.AHoraArgentina(DateTime.UtcNow));
 }

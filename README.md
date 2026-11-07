@@ -168,7 +168,7 @@ del login del rol indicado (`Authorization: Bearer ...`).
 | GET | `/api/admin/reglas-acumulacion` | Admin | CU-19 | 200 |
 | GET | `/api/admin/reglas-acumulacion/{id}` | Admin | CU-19 | 200, 404 |
 | POST | `/api/admin/reglas-acumulacion` | Admin | CU-19 | 201, 400 |
-| PUT | `/api/admin/reglas-acumulacion/{id}` | Admin | CU-19 | 200, 400, 404 |
+| PUT | `/api/admin/reglas-acumulacion/{id}` | Admin | CU-19 | 200, 400, 404, 409 |
 | GET | `/api/admin/movimientos?clienteId&tipoMovimiento&fechaDesde&fechaHasta` | Admin | CU-20 | 200 |
 | GET | `/api/admin/auditoria?fechaDesde&fechaHasta&tipoOperacion&actorId` | Admin | CU-21 | 200 |
 | GET | `/api/admin/auditoria/{id}` | Admin | CU-21 | 200, 404 |

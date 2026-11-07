@@ -1,0 +1,29 @@
+meta {
+  name: Crear Regla - Puntos Con Muchos Decimales
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/api/admin/reglas-acumulacion
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "puntosPorMonto": 0.123,
+    "vigenciaDesde": "2099-01-01",
+    "diasVigenciaPuntos": 90
+  }
+}
+
+docs {
+  Los puntos por peso van de 0.01 a 99.99, con 2 decimales como máximo.
+}
+
+tests {
+  test("400 Bad Request (CU-19, 3a)", function () {
+    expect(res.status).to.equal(400);
+  });
+}

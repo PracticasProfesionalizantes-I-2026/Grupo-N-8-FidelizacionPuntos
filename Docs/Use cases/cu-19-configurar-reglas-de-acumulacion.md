@@ -61,14 +61,27 @@ calcular la cantidad de puntos que recibe el cliente por sus compras.
 
 * **3a. Configuración inválida (HTTP 400 Bad Request):**
   1. El sistema detecta que en el Paso 3 hay una inconsistencia en la configuración:
-     `puntosPorMonto` o `diasVigenciaPuntos` menores o iguales a 0, o una
-     `vigenciaDesde` igual a la de otra versión ya registrada (superposición,
-     violando **RN-18**).
+     * `puntosPorMonto` fuera de rango: tiene que estar entre 0,01 y 99,99, con 2
+       decimales como máximo (ej. 0.123 o 100 se rechazan);
+     * `diasVigenciaPuntos` fuera de rango: entre 30 y 730 días (ej. 1 se rechaza);
+     * `vigenciaDesde` anterior a hoy (ej. 2025-01-01): una regla con fecha pasada
+       cambiaría con qué regla se calcularon compras ya registradas;
+     * `vigenciaDesde` igual a la de otra versión ya registrada (superposición,
+       violando **RN-18**).
   2. El Sistema (Capa de Negocio) lanza la excepción de dominio
      `ReglaAcumulacionInvalidaException`.
   3. El Sistema devuelve un código **400 Bad Request** con el motivo, por ejemplo:
      "Ya existe una regla que entra en vigencia en esa fecha.". El flujo retorna
      al Paso 1.
+
+* **3d. Regla ya vigente (HTTP 409 Conflict):**
+  1. El sistema detecta que en el Paso 3 (modificación) la regla ya entró en vigencia
+     (su `vigenciaDesde` ya llegó).
+  2. El Sistema (Capa de Negocio) lanza `ReglaAcumulacionVigenteException`: modificarla
+     cambiaría con qué regla se calcularon compras ya registradas.
+  3. El Sistema devuelve un código **409 Conflict** con el mensaje: "La regla ya está
+     vigente y no se puede modificar: creá una versión nueva con fecha de inicio
+     futura.". Solo se pueden modificar las reglas que todavía no empezaron.
 
 * **3b. Falta de datos (HTTP 400 Bad Request):**
   1. El sistema detecta que en el Paso 2 (creación) faltan datos obligatorios de la regla.
@@ -118,7 +131,9 @@ administración web)._
 | Regla / Validación | Dónde se aplica | Respuesta |
 | --- | --- | --- |
 | Campos obligatorios (alta) | DTO: `[Required]` sobre tipos nullable | 400 |
-| Valores mayores a 0 | `ReglaAcumulacionService` (antes de consultar la base) | 400 |
+| `puntosPorMonto` entre 0,01 y 99,99 con 2 decimales; `diasVigenciaPuntos` entre 30 y 730 | `ReglaAcumulacionService.ValidarValores` (antes de consultar la base) | 400 |
+| `vigenciaDesde` de hoy en adelante (hora Argentina) | `ReglaAcumulacionService.ValidarFechaNoPasada` (alta y modificación) | 400 |
+| Solo se modifican reglas que todavía no entraron en vigencia | `ReglaAcumulacionService` (mismo criterio que la acumulación: `vigenciaDesde <= ahora`) | 409 |
 | RN-18: sin superposición de fechas | `ReglaAcumulacionService` + índice único | 400 |
 | Regla existente | `ReglaAcumulacionService`: `GetByIdAsync` | 404 |
 | RN-13: fechas de auditoría | `ReglaAcumulacionService` | — |
@@ -133,7 +148,8 @@ administración web)._
 | --- | --- | --- |
 | `200` | OK | Éxito al listar, consultar el detalle o modificar una regla existente. |
 | `201` | Created | Confirmación de persistencia exitosa de la nueva regla. |
-| `400` | Bad Request | Configuración inválida (valores ≤ 0 o superposición, RN-18) o campos obligatorios faltantes. |
+| `400` | Bad Request | Configuración inválida (valores fuera de rango, fecha de inicio pasada o superposición, RN-18) o campos obligatorios faltantes. |
+| `409` | Conflict | Se intentó modificar una regla que ya entró en vigencia. |
 | `404` | Not Found | El `id` de la regla consultada o modificada no existe. |
 
 ### Matriz de trazabilidad CU-19 → Test
@@ -146,6 +162,11 @@ administración web)._
 | Flujo principal (modificación) | `200 OK` | `ActualizarReglaAcumulacionAsync_WithValidData_UpdatesAndLogsAudit` | `ConfigurarReglaAcumulacion_Update_WithValidData_Returns200OK` |
 | 3a. Configuración inválida (superposición) | `400 Bad Request` | `CrearReglaAcumulacionAsync_WhenOverlappingActiveRule_ThrowsReglaAcumulacionInvalidaException` | `ConfigurarReglaAcumulacion_WithOverlappingActiveRule_Returns400BadRequest` |
 | 3a. Configuración inválida (valores ≤ 0) | `400 Bad Request` | `CrearReglaAcumulacionAsync_WithNonPositiveValues_ThrowsReglaAcumulacionInvalidaException` | — (cubierto por el unitario) |
+| 3a. Puntos por monto con más de 2 decimales o > 99,99 | `400 Bad Request` | `CrearReglaAcumulacionAsync_WithPuntosPorMontoOutOfFormat_ThrowsReglaAcumulacionInvalidaException` (0.123 y 100) | `ConfigurarReglaAcumulacion_Create_WithInvalidValues_Returns400BadRequest` |
+| 3a. Días de vigencia fuera de 30-730 | `400 Bad Request` | `CrearReglaAcumulacionAsync_WithDiasVigenciaOutOfRange_ThrowsReglaAcumulacionInvalidaException` (1, 29 y 731) | `ConfigurarReglaAcumulacion_Create_WithInvalidValues_Returns400BadRequest` |
+| 3a. Fecha de inicio pasada (alta y modificación) | `400 Bad Request` | `CrearReglaAcumulacionAsync_WithPastStartDate_ThrowsReglaAcumulacionInvalidaException`, `ActualizarReglaAcumulacionAsync_WithPastStartDate_ThrowsReglaAcumulacionInvalidaException` | `ConfigurarReglaAcumulacion_Create_WithInvalidValues_Returns400BadRequest` |
+| 3a. Casos borde válidos (30 y 730 días, 99,99, empieza hoy) | `201 Created` | `CrearReglaAcumulacionAsync_WithBoundaryValues_CreatesRule` | — |
+| 3d. Regla ya vigente | `409 Conflict` | `ActualizarReglaAcumulacionAsync_WhenRuleAlreadyActive_ThrowsReglaAcumulacionVigenteException` | `ConfigurarReglaAcumulacion_Update_WhenRuleAlreadyActive_Returns409Conflict` |
 | 3a. Superposición en la modificación | `400 Bad Request` | `ActualizarReglaAcumulacionAsync_WhenOverlappingOtherRule_ThrowsReglaAcumulacionInvalidaException` | — (cubierto por el unitario) |
 | 3b. Falta de datos | `400 Bad Request` | — (validación de esquema) | `ConfigurarReglaAcumulacion_WithMissingFields_Returns400BadRequest` |
 | 3c. Regla inexistente (detalle) | `404 Not Found` | `ObtenerReglaAcumulacionPorIdAsync_WithUnknownId_ThrowsReglaAcumulacionNotFoundException` | `ConsultarReglaAcumulacionPorId_WithUnknownId_Returns404NotFound` |

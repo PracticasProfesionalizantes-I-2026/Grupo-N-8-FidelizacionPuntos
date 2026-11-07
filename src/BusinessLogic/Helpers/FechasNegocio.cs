@@ -52,6 +52,9 @@ public static class FechasNegocio
     public static DateTime AHoraArgentina(DateTime fechaUtc) =>
         TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(fechaUtc, DateTimeKind.Utc), ZonaArgentina);
 
+    /// <summary>Fecha de hoy en hora Argentina (la fecha del negocio, no la del servidor).</summary>
+    public static DateOnly HoyArgentina() => DateOnly.FromDateTime(AHoraArgentina(DateTime.UtcNow));
+
     /// <summary>
     /// Busca la zona de Argentina de forma que funcione en Linux, macOS y Windows:
     /// 1. Id IANA (Linux/macOS, y Windows con .NET 6+ cuando tiene ICU).

@@ -1,0 +1,28 @@
+meta {
+  name: Actualizar Regla - Vigente
+  type: http
+  seq: 11
+}
+
+put {
+  url: {{baseUrl}}/api/admin/reglas-acumulacion/1
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "puntosPorMonto": 0.5
+  }
+}
+
+docs {
+  La regla sembrada (id 1) empezó hace 30 días: ya está vigente y no se puede modificar.
+  Para cambiar el criterio se crea una versión nueva con fecha futura.
+}
+
+tests {
+  test("409 Conflict: la regla ya está vigente (CU-19, 3d)", function () {
+    expect(res.status).to.equal(409);
+  });
+}

@@ -1,0 +1,30 @@
+meta {
+  name: Crear Regla - Fecha Pasada
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/api/admin/reglas-acumulacion
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "puntosPorMonto": 0.2,
+    "vigenciaDesde": "2025-01-01",
+    "diasVigenciaPuntos": 90
+  }
+}
+
+docs {
+  La fecha de inicio no puede ser anterior a hoy: cambiaría con qué regla se calcularon
+  compras ya registradas.
+}
+
+tests {
+  test("400 Bad Request (CU-19, 3a)", function () {
+    expect(res.status).to.equal(400);
+  });
+}

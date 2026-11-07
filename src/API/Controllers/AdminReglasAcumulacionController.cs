@@ -67,5 +67,9 @@ public class AdminReglasAcumulacionController(IReglaAcumulacionService reglaServ
         {
             return BadRequest(new ErrorResponseDTO(ex.Message));
         }
+        catch (ReglaAcumulacionVigenteException ex)
+        {
+            return Conflict(new ErrorResponseDTO(ex.Message));
+        }
     }
 }

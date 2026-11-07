@@ -1,0 +1,29 @@
+meta {
+  name: Crear Regla - Dias Vigencia Invalidos
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{baseUrl}}/api/admin/reglas-acumulacion
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "puntosPorMonto": 0.2,
+    "vigenciaDesde": "2099-01-02",
+    "diasVigenciaPuntos": 1
+  }
+}
+
+docs {
+  Los puntos tienen que durar entre 30 y 730 días una vez disponibles.
+}
+
+tests {
+  test("400 Bad Request (CU-19, 3a)", function () {
+    expect(res.status).to.equal(400);
+  });
+}

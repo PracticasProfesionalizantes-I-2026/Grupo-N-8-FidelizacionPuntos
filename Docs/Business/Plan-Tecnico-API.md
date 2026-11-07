@@ -142,7 +142,8 @@ qué capas atraviesa cada grupo.
 | RN-24: nombre de producto único | `ProductoService` | `ProductoDuplicadoException` | 409 |
 | RN-25: precio mayor a cero, hasta 999.999,99 y con 2 decimales como máximo | `ProductoService` | `PrecioInvalidoException` | 400 |
 | Producto inexistente | `ProductoService` | `ProductoNotFoundException` | 404 |
-| RN-18: regla de acumulación inválida o superpuesta | `ReglaAcumulacionService` | `ReglaAcumulacionInvalidaException` | 400 |
+| RN-18: regla de acumulación inválida o superpuesta (puntos por monto 0,01-99,99 con 2 decimales, vigencia de 30 a 730 días, fecha de inicio de hoy en adelante) | `ReglaAcumulacionService` | `ReglaAcumulacionInvalidaException` | 400 |
+| Modificar una regla de acumulación que ya entró en vigencia | `ReglaAcumulacionService` | `ReglaAcumulacionVigenteException` | 409 |
 | Regla de acumulación inexistente | `ReglaAcumulacionService` | `ReglaAcumulacionNotFoundException` | 404 |
 | RN-12: sin regla vigente al acumular | `MovimientoService` | `ReglaAcumulacionNoVigenteException` | 409 |
 | DNI con formato inválido en la búsqueda del punto de venta (`GET /api/clientes?documento=`; antes CU-10 3b) | `ClienteService` | `DocumentoInvalidoException` | 400 |

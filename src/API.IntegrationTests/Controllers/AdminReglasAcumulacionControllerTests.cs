@@ -143,4 +143,38 @@ public class AdminReglasAcumulacionControllerTests : IClassFixture<FidelixApiFac
 
         Assert.Equal(HttpStatusCode.BadRequest, respuesta.StatusCode);
     }
+
+    /// <summary>
+    /// CU-19, 3a: los casos encontrados en Bruno dan 400: puntos con más de 2 decimales, más de 99.99,
+    /// días de vigencia 1 (o más de 730) y fecha de inicio pasada.
+    /// </summary>
+    [Theory]
+    [InlineData("0.123", 90, false)]
+    [InlineData("100", 90, false)]
+    [InlineData("0.2", 1, false)]
+    [InlineData("0.2", 731, false)]
+    [InlineData("0.2", 90, true)]
+    public async Task ConfigurarReglaAcumulacion_Create_WithInvalidValues_Returns400BadRequest(string puntos, int dias, bool fechaPasada)
+    {
+        var respuesta = await _factory.CreateClientComo(Roles.Admin).PostAsJsonAsync(Url, new ReglaAcumulacionCreateDTO
+        {
+            PuntosPorMonto = decimal.Parse(puntos, System.Globalization.CultureInfo.InvariantCulture),
+            VigenciaDesde = fechaPasada ? new DateTime(2025, 1, 1) : FechaUnica(),
+            DiasVigenciaPuntos = dias
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, respuesta.StatusCode);
+    }
+
+    /// <summary>
+    /// CU-19: la regla sembrada ya está vigente (empezó hace 30 días), así que no se puede modificar: 409.
+    /// Para cambiar el criterio se crea una versión nueva con fecha futura.
+    /// </summary>
+    [Fact]
+    public async Task ConfigurarReglaAcumulacion_Update_WhenRuleAlreadyActive_Returns409Conflict()
+    {
+        var respuesta = await _factory.CreateClientComo(Roles.Admin).PutAsJsonAsync($"{Url}/1", new ReglaAcumulacionUpdateDTO { PuntosPorMonto = 0.5m });
+
+        Assert.Equal(HttpStatusCode.Conflict, respuesta.StatusCode);
+    }
 }
