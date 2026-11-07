@@ -11,13 +11,13 @@ post {
 }
 
 params:path {
-  clienteId: 00000000-0000-0000-0000-000000000000
+  clienteId: 2147483647
 }
 
 body:json {
   {
     "items": [
-      { "productoId": "{{productoCompraId}}", "cantidad": 2 }
+      { "productoId": {{productoCompraId}}, "cantidad": 2 }
     ]
   }
 }
