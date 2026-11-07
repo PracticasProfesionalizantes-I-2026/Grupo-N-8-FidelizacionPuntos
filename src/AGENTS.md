@@ -22,9 +22,11 @@ escribe el alumno**.
 ## Qué es esto
 
 API RESTful en .NET 10 / ASP.NET Core, arquitectura N-Tier, para el sistema
-de fidelización de puntos Fidelix. Hoy cubre 3 entidades (`Cliente`,
-`Beneficio`, `Movimiento`) y 3 casos de uso. Ver `README.md` para el
-catálogo de endpoints.
+de fidelización de puntos Fidelix. Cubre 10 entidades y los 26 casos de uso
+(CU-01 a CU-26), con autenticación JWT por roles (Cliente, Empleado, Admin),
+auditoría automática (`AuditoriaFilter`) y procesos diarios en segundo plano
+(`ProcesoDiarioJob`: CU-22 y CU-26). Ver `../README.md` (raíz del repo) para el catálogo de
+endpoints y `../Docs/Business/Plan-Tecnico-API.md` para entidades y capas.
 
 ## Comandos
 
@@ -101,9 +103,10 @@ comentario que diga a qué código HTTP se mapea:
   unitario (xUnit + Moq, sin base de datos) y uno de integración
   (`WebApplicationFactory`, SQLite en memoria).
 
-## Pendientes conocidos (a resolver por el alumno)
+## Pendientes conocidos
 
-- **Autenticación**: no hay JWT todavía. Cuando se implemente el login
-  (CU-02/09/14) hay que proteger `AdminBeneficiosController` con
-  `[Authorize(Roles = "Admin")]` y pasar el saldo a
-  `GET api/clientes/me/saldo` (Id del cliente tomado del token).
+- **Ninguno abierto en esta versión.** La autenticación JWT por roles ya
+  está implementada: cada controller declara `[Authorize(Roles = ...)]` y
+  los endpoints `/me` toman el id del cliente del token.
+- Fuera del alcance de la versión 1.0 (ver `../Docs/Business/Documentacion-Fidelix.md`):
+  los niveles de complejidad **N3** (pozo familiar) y **N4** (penalidad por inactividad).

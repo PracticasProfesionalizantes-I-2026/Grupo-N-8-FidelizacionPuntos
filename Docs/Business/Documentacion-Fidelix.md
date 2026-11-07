@@ -84,7 +84,7 @@ El catálogo del sistema define cuatro niveles de complejidad sobre las reglas b
 **Justificación de las versiones futuras:**
 
 * **N3** requiere modelar una nueva entidad (Familia) con su relación entre clientes y roles (Titular / miembro), y un caso de uso propio para administrarla; excede el alcance de la versión 1.0.
-* **N4** requiere un proceso automático en segundo plano (tarea programada) que recorra periódicamente las cuentas, componente que la arquitectura actual de la API todavía no incluye.
+* **N4** requiere un proceso automático en segundo plano que recorra las cuentas. La API ya cuenta con esa infraestructura (el proceso diario que aplica el vencimiento de puntos, CU-22, y el bono de cumpleaños, CU-26), pero N4 necesita además definir y especificar un caso de uso propio para la penalidad (cómo se calcula, cómo se notifica y cómo se audita), que excede el alcance de la versión 1.0.
 
 # **5\. Requerimientos**
 
