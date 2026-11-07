@@ -17,12 +17,15 @@ La estructura base y los casos de uso modelo **CU-01** (alta con reglas de
 negocio), **CU-04** (consulta calculada) y **CU-17** (ABM con baja lógica)
 marcaron los patrones que siguen todos los demás.
 
+El repo incluye además un **prototipo navegable** de la interfaz (carpeta
+`prototipo/`), con datos simulados: ver [Prototipo navegable](#prototipo-navegable).
+
 ## Documentación
 
 | Recurso | Dónde |
 | --- | --- |
 | Documentación del proyecto y Lista y especificación de casos de uso | [Carpeta de Google Drive](https://drive.google.com/drive/folders/1xrh83MMljIAtshCEMXHefF7_iGJS0XPV?usp=sharing) |
-| Prototipo Navegable (Datos Simulados | [Fidelix](https://practicasprofesionalizantes-i-2026.github.io/Grupo-N-8-FidelizacionPuntos/prototipo/) |
+| Prototipo navegable (datos simulados) | [Abrir el prototipo](https://practicasprofesionalizantes-i-2026.github.io/Grupo-N-8-FidelizacionPuntos/prototipo/) (código en `prototipo/index.html`) |
 | Especificación de cada caso de uso (en el repo) | `Docs/Use cases/` (CU-01 a CU-26, con su matriz de trazabilidad a tests) |
 | Reglas de negocio, requerimientos y niveles de complejidad | `Docs/Business/Documentacion-Fidelix.md` |
 | Plan técnico: entidades y capas | `Docs/Business/Plan-Tecnico-API.md` |
@@ -35,8 +38,10 @@ marcaron los patrones que siguen todos los demás.
 Docs/
 ├── Business/               Documento de negocio y plan técnico
 ├── Use cases/              Especificación de los 26 casos de uso
-├── Mockups/                Capturas del prototipo
+├── Mockups/                Capturas de los mockups iniciales
 └── Example/                Guía y ejemplo de especificación de la cátedra
+prototipo/
+└── index.html              Prototipo navegable (HTML único, datos simulados; publicado con GitHub Pages)
 src/
 ├── API/                    Presentación
 │   ├── Controllers/        16 controllers (cliente, empleado, admin y auth)
@@ -82,6 +87,33 @@ Cliente HTTP ──JSON──▶ Controller ──DTO──▶ Service ──Ent
 
 Cada capa depende de **interfaces** de la siguiente, registradas en
 `Program.cs` con `AddScoped<Interfaz, Implementacion>()`.
+
+## Prototipo navegable
+
+**[Abrir el prototipo](https://practicasprofesionalizantes-i-2026.github.io/Grupo-N-8-FidelizacionPuntos/prototipo/)**
+(publicado con GitHub Pages desde la carpeta `prototipo/` de `main`; también se puede
+abrir `prototipo/index.html` directo en el navegador, sin instalar nada).
+
+Muestra cómo usarían el sistema los tres roles, con las pantallas de los casos de uso:
+
+| Rol | Pantallas |
+| --- | --- |
+| Cliente | Mis puntos, beneficios y canje, historial de movimientos, mis canjes, mi perfil |
+| Empleado | Punto de venta (registrar compra), canje presencial, historial de canjes, clientes, alta de cliente |
+| Admin | Dashboard, ABM de clientes, empleados, beneficios y productos, categorías, movimientos, reportes, reglas de acumulación, procesos programados y auditoría |
+
+Cómo funciona:
+
+* **No está conectado a la API.** Todo corre en el navegador sobre una base simulada
+  en memoria: lo que se cargue se pierde al recargar la página.
+* **Usuarios de prueba:** los mismos emails y contraseñas que el seed de la API (ver
+  [Datos de prueba](#datos-de-prueba-dbinitializer)); el botón "Completar con datos de demo"
+  del login los carga solos.
+* **Reglas de negocio simuladas:** puntos pendientes 15 días (N2), multiplicador Gold,
+  canje FIFO, vencimiento y bono de cumpleaños. En "Procesos programados" se puede
+  avanzar el reloj para ver cómo los puntos pasan de pendientes a disponibles y cómo vencen.
+* Los datos de ejemplo (productos, beneficios, movimientos) son propios del prototipo
+  y no coinciden exactamente con los de la API.
 
 ## Cómo ejecutar
 
