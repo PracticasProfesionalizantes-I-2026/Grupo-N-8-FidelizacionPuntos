@@ -23,7 +23,7 @@ tests {
     expect(res.headers["content-type"]).to.contain("text/csv");
     expect(res.headers["content-disposition"]).to.contain("attachment");
   });
-
+  
   test("trae los mismos campos que el reporte en pantalla", function () {
     expect(res.body).to.contain("Campo,Valor");
     expect(res.body).to.contain("PuntosAcumulados,");

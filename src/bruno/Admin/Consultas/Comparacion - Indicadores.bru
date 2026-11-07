@@ -15,16 +15,11 @@ params:query {
   periodo1Hasta: 2026-11-30
 }
 
-docs {
-  Misma fecha, distinto movimiento: sin `indicador` devuelve una serie por cada uno
-  (Ventas, Canjes, PuntosOtorgados), con un valor por día para el gráfico del dashboard.
-}
-
 tests {
   test("200 OK (CU-24, comparación)", function () {
     expect(res.status).to.equal(200);
   });
-
+  
   test("una serie por indicador, con un valor por cada día del período", function () {
     const nombres = res.body.series.map(function (s) { return s.indicador; });
     expect(nombres).to.eql(["Ventas", "Canjes", "PuntosOtorgados"]);
@@ -32,4 +27,9 @@ tests {
       expect(s.valores.length).to.equal(30);
     });
   });
+}
+
+docs {
+  Misma fecha, distinto movimiento: sin `indicador` devuelve una serie por cada uno
+  (Ventas, Canjes, PuntosOtorgados), con un valor por día para el gráfico del dashboard.
 }

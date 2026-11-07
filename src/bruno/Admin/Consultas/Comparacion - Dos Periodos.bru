@@ -18,20 +18,20 @@ params:query {
   periodo2Hasta: 2026-11-30
 }
 
-docs {
-  Fechas distintas, mismo indicador ("Tipo 1 vs Tipo 2" del prototipo): una serie por período.
-  Indicadores posibles: Ventas (cantidad de compras), Canjes, PuntosOtorgados.
-}
-
 tests {
   test("200 OK (CU-24, comparación)", function () {
     expect(res.status).to.equal(200);
   });
-
+  
   test("una serie por período, las dos del indicador pedido", function () {
     expect(res.body.series.length).to.equal(2);
     res.body.series.forEach(function (s) {
       expect(s.indicador).to.equal("Ventas");
     });
   });
+}
+
+docs {
+  Fechas distintas, mismo indicador ("Tipo 1 vs Tipo 2" del prototipo): una serie por período.
+  Indicadores posibles: Ventas (cantidad de compras), Canjes, PuntosOtorgados.
 }
