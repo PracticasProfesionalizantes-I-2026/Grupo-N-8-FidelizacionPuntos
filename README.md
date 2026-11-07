@@ -18,14 +18,14 @@ negocio), **CU-04** (consulta calculada) y **CU-17** (ABM con baja lógica)
 marcaron los patrones que siguen todos los demás.
 
 El repo incluye además un **prototipo navegable** de la interfaz (carpeta
-`prototipo/`), con datos simulados: ver [Prototipo navegable](#prototipo-navegable).
+`Docs/Prototipo/`), con datos simulados: ver [Prototipo navegable](#prototipo-navegable).
 
 ## Documentación
 
 | Recurso | Dónde |
 | --- | --- |
 | Documentación del proyecto y Lista y especificación de casos de uso | [Carpeta de Google Drive](https://drive.google.com/drive/folders/1xrh83MMljIAtshCEMXHefF7_iGJS0XPV?usp=sharing) |
-| Prototipo navegable (datos simulados) | [Abrir el prototipo](https://practicasprofesionalizantes-i-2026.github.io/Grupo-N-8-FidelizacionPuntos/prototipo/) (código en `prototipo/index.html`) |
+| Prototipo navegable (datos simulados) | [Abrir el prototipo](https://practicasprofesionalizantes-i-2026.github.io/Grupo-N-8-FidelizacionPuntos/Docs/Prototipo/) (código en `Docs/Prototipo/index.html`) |
 | Especificación de cada caso de uso (en el repo) | `Docs/Use cases/` (CU-01 a CU-26, con su matriz de trazabilidad a tests) |
 | Reglas de negocio, requerimientos y niveles de complejidad | `Docs/Business/Documentacion-Fidelix.md` |
 | Plan técnico: entidades y capas | `Docs/Business/Plan-Tecnico-API.md` |
@@ -39,9 +39,8 @@ Docs/
 ├── Business/               Documento de negocio y plan técnico
 ├── Use cases/              Especificación de los 26 casos de uso
 ├── Mockups/                Capturas de los mockups iniciales
+├── Prototipo/              Prototipo navegable: index.html único, datos simulados (publicado con GitHub Pages)
 └── Example/                Guía y ejemplo de especificación de la cátedra
-prototipo/
-└── index.html              Prototipo navegable (HTML único, datos simulados; publicado con GitHub Pages)
 src/
 ├── API/                    Presentación
 │   ├── Controllers/        16 controllers (cliente, empleado, admin y auth)
@@ -90,9 +89,9 @@ Cada capa depende de **interfaces** de la siguiente, registradas en
 
 ## Prototipo navegable
 
-**[Abrir el prototipo](https://practicasprofesionalizantes-i-2026.github.io/Grupo-N-8-FidelizacionPuntos/prototipo/)**
-(publicado con GitHub Pages desde la carpeta `prototipo/` de `main`; también se puede
-abrir `prototipo/index.html` directo en el navegador, sin instalar nada).
+**[Abrir el prototipo](https://practicasprofesionalizantes-i-2026.github.io/Grupo-N-8-FidelizacionPuntos/Docs/Prototipo/)**
+(publicado con GitHub Pages desde la carpeta `Docs/Prototipo/` de `main`; también se puede
+abrir `Docs/Prototipo/index.html` directo en el navegador, sin instalar nada).
 
 Muestra cómo usarían el sistema los tres roles, con las pantallas de los casos de uso:
 
