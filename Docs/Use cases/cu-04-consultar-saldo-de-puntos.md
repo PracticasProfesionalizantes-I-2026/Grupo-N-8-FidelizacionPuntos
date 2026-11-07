@@ -61,7 +61,7 @@ _No aplica: consulta de lectura simple, sin variantes de mecanismo relevantes._
 
 * El cliente consulta su saldo con su propio token (el id sale del claim, no de la URL). La ruta por id quedó para el personal.
 * El saldo no incluye los puntos **pendientes** (N2, CU-10) ni los vencidos (RN-05).
-* **Colección Bruno:** `bruno/Clientes/`.
+* **Colección Bruno:** `bruno/Clientes/` ("Mi Saldo", y "Saldo de Otro Cliente - Prohibido": 403) y `bruno/Empleado/` ("Consultar Saldo", el saldo de un cliente por id, para el empleado o el admin).
 
 ---
 

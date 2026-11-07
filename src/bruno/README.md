@@ -15,10 +15,11 @@ si `dotnet run` levanta en otro).
 | Orden | Carpeta | Casos de uso | Token que usa |
 | --- | --- | --- | --- |
 | 1 | **Auth** | CU-02, CU-09, CU-14, CU-25 | — (guarda `tokenCliente`, `tokenAdmin`, `tokenEmpleado`) |
-| 2 | **Clientes** | CU-01, CU-03, CU-04, CU-05, CU-08, CU-12, CU-13 y la búsqueda por DNI | `tokenCliente` (y `tokenEmpleado` en los del empleado) |
-| 3 | **Admin** | CU-15, CU-16, CU-17, CU-18, CU-19, CU-20, CU-21, CU-22, CU-24, CU-26 | `tokenAdmin` (heredado de la carpeta) |
-| 4 | **Movimientos** | CU-10 (N1 Gold x1.5, N2 pendientes) | `tokenEmpleado` |
-| 5 | **Canjes** | CU-06, CU-07 (FIFO), CU-11, RN-10 | `tokenCliente` / `tokenEmpleado` |
+| 2 | **Clientes** | Lo que hace el propio cliente: CU-01, CU-03, CU-04 ("Mi Saldo"), CU-05, CU-08, y dos requests que muestran que no puede usar los endpoints del empleado (403) | `tokenCliente` |
+| 3 | **Empleado** | Punto de venta sobre un cliente: búsqueda por DNI, saldo de un cliente por id (CU-04), CU-12, CU-13 | `tokenEmpleado` |
+| 4 | **Admin** | CU-15, CU-16, CU-17, CU-18, CU-19, CU-20, CU-21, CU-22, CU-24, CU-26 | `tokenAdmin` (heredado de la carpeta) |
+| 5 | **Movimientos** | CU-10 (N1 Gold x1.5, N2 pendientes) | `tokenEmpleado` |
+| 6 | **Canjes** | CU-06, CU-07 (FIFO), CU-11, RN-10 | `tokenCliente` / `tokenEmpleado` |
 
 ## Cuentas de prueba (seed)
 
@@ -52,4 +53,4 @@ si `dotnet run` levanta en otro).
   vencidos (CU-22) no se envían por email en desarrollo: aparecen en la
   consola de la API como `[EMAIL] ...`.
 * Toda la colección se puede correr también desde la terminal con el CLI de
-  Bruno: `npx @usebruno/cli run Auth Clientes Admin Movimientos Canjes -r --env Local`.
+  Bruno: `npx @usebruno/cli run Auth Clientes Empleado Admin Movimientos Canjes -r --env Local`.

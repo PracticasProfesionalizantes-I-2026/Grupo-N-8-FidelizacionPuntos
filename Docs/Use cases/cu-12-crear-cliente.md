@@ -78,7 +78,7 @@ _No aplica: el alta desde el punto de venta se realiza por un único canal
 | `POST /api/clientes` | Empleado | `ClientesController.CrearDesdePOS → ClienteService.CrearClienteDesdePOSAsync` |
 
 * El cliente se crea **sin contraseña**: la define después con la recuperación de contraseña (CU-25). Hasta entonces el login le responde 401.
-* **Colección Bruno:** `bruno/Clientes/ (Crear Cliente POS)`.
+* **Colección Bruno:** `bruno/Empleado/ (Crear Cliente POS)`.
 
 ---
 

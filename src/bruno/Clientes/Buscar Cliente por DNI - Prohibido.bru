@@ -1,0 +1,21 @@
+meta {
+  name: Buscar Cliente por DNI - Prohibido
+  type: http
+  seq: 20
+}
+
+get {
+  url: {{baseUrl}}/api/clientes?documento=40111222
+  body: none
+  auth: inherit
+}
+
+docs {
+  Con el token del cliente: buscar a otro cliente por DNI es solo para empleado o admin (RN-11).
+}
+
+tests {
+  test("403 Forbidden: el cliente no puede buscar a otros clientes (RN-11)", function () {
+    expect(res.status).to.equal(403);
+  });
+}

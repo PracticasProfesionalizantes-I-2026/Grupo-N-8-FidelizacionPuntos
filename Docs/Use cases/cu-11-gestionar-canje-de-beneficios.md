@@ -100,7 +100,7 @@ de venta operado por el empleado)._
 * El canje presencial comparte el núcleo con CU-07 (`EjecutarCanjeAsync`): mismas reglas RN-08, RN-09 (FIFO) y RN-17, y una sola transacción.
 * Queda con estado **Entregado** y con el `EmpleadoId` del token (RN-13). El segundo endpoint entrega un canje **Pendiente** hecho desde la app (RN-10); entregarlo dos veces da 409.
 * **El id es la clave, no el DNI:** el canje recibe `clienteId` (entero) **como parámetro de ruta** (el body lleva solo `beneficioId`); es la clave foránea del movimiento. El DNI solo se usa en la búsqueda previa (detalle en CU-10).
-* **Colección Bruno:** `bruno/Canjes/` y la búsqueda en `bruno/Clientes/` ("Buscar Cliente por DNI").
+* **Colección Bruno:** `bruno/Canjes/` y la búsqueda en `bruno/Empleado/` ("Buscar Cliente por DNI").
 
 ---
 

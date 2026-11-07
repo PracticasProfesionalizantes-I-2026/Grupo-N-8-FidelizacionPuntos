@@ -1,0 +1,22 @@
+meta {
+  name: Saldo de Otro Cliente - Prohibido
+  type: http
+  seq: 19
+}
+
+get {
+  url: {{baseUrl}}/api/clientes/3/saldo
+  body: none
+  auth: inherit
+}
+
+docs {
+  Con el token del cliente: consultar el saldo de otro cliente por id es solo para empleado o
+  admin (RN-11). El cliente ve el suyo con "Mi Saldo" (`/api/clientes/me/saldo`).
+}
+
+tests {
+  test("403 Forbidden: el cliente solo ve su propio saldo (RN-11)", function () {
+    expect(res.status).to.equal(403);
+  });
+}

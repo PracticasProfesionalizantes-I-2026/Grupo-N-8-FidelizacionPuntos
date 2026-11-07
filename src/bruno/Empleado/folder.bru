@@ -1,0 +1,19 @@
+meta {
+  name: Empleado
+  seq: 3
+}
+
+auth {
+  mode: bearer
+}
+
+auth:bearer {
+  token: {{tokenEmpleado}}
+}
+
+docs {
+  Operaciones del empleado en el punto de venta sobre un cliente: buscarlo por DNI (devuelve su id),
+  consultar su saldo, darlo de alta (CU-12) y ver sus canjes (CU-13). El cliente no puede usar
+  estos endpoints: ver "Saldo de Otro Cliente - Prohibido" y "Buscar Cliente por DNI - Prohibido"
+  en la carpeta Clientes (403). La compra y el canje en el local están en Movimientos y Canjes.
+}

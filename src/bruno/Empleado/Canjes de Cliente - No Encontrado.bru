@@ -1,11 +1,12 @@
 meta {
-  name: Consultar Saldo - Cliente No Encontrado
+  name: Canjes de Cliente - No Encontrado
   type: http
-  seq: 4
+  seq: 8
 }
 
 get {
-  url: {{baseUrl}}/api/clientes/2147483647/saldo
+  url: {{baseUrl}}/api/clientes/2147483647/canjes
+  body: none
   auth: bearer
 }
 

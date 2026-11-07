@@ -165,7 +165,7 @@ venta operado por el empleado)._
 * **Autenticación y RF-28:** el endpoint exige el token del login de empleado (CU-09,
   `[Authorize(Roles = "Empleado")]`); el movimiento guarda el `EmpleadoId` del token, y la
   operación queda además en la auditoría (CU-21).
-* **Colección Bruno:** `bruno/Movimientos/` y la búsqueda en `bruno/Clientes/` ("Buscar Cliente por DNI").
+* **Colección Bruno:** `bruno/Movimientos/` y la búsqueda en `bruno/Empleado/` ("Buscar Cliente por DNI").
 
 ---
 

@@ -80,7 +80,7 @@ empleado (punto de venta)._
 | `GET /api/clientes/{id}/canjes` | Empleado | `ClientesController.ConsultarCanjesDeCliente → ClienteService.ConsultarCanjesDeClienteAsync` |
 
 * **El id es la clave, no el DNI:** la ruta usa el id (entero) del cliente; el DNI solo se usa en la búsqueda previa. Reemplaza a la ruta anterior `GET /api/clientes/{documento}/canjes`.
-* **Colección Bruno:** `bruno/Clientes/` ("Buscar Cliente por DNI", "Canjes de Cliente", "Canjes de Cliente - No Encontrado").
+* **Colección Bruno:** `bruno/Empleado/` ("Buscar Cliente por DNI", "Canjes de Cliente", "Canjes de Cliente - No Encontrado").
 
 ---
 
