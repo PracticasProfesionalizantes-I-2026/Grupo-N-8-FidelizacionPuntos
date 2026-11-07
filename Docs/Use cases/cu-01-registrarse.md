@@ -37,7 +37,7 @@ puntos inicial en cero para poder acumular y canjear beneficios.
 3. La **Capa de Negocio** (`ClienteService.RegistrarClienteAsync`) verifica que el
    documento y el email no estén registrados (**RN-01**) y que la contraseña cumpla
    la política mínima de seguridad (**RN-02**).
-4. La **Capa de Persistencia** genera un nuevo `Id` (GUID), guarda el registro en la
+4. La **Capa de Persistencia** genera un nuevo `Id` (entero autoincremental, lo asigna la base), guarda el registro en la
    tabla `Clientes` y asigna un saldo inicial de puntos en cero.
 5. El Sistema devuelve un código **201 Created** con la información resultante
    (ID, nombre, documento, email; sin incluir la contraseña).
@@ -83,7 +83,7 @@ puntos inicial en cero para poder acumular y canjear beneficios.
 
 ### 6. POSTCONDICIONES
 1. Se ha creado un nuevo registro persistente en la tabla `Clientes` con ID único
-   (GUID) y estado activo.
+   (entero autoincremental) y estado activo.
 2. El cliente cuenta con un saldo de puntos inicial en cero, visible en `GET
    /api/clientes/me/saldo` (CU-04).
 

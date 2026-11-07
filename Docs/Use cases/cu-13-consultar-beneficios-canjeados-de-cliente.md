@@ -31,7 +31,7 @@ previamente, con su fecha y estado. El empleado ubica al cliente por su document
 1. El Actor busca al cliente por documento (`GET /api/clientes?documento={dni}`, ver
    CU-10), obtiene su id y envía una petición al endpoint `GET /api/clientes/{id}/canjes`.
 2. La **Capa de Presentación** (`ClientesController.ConsultarCanjesDeCliente`)
-   valida que el id sea un Guid (restricción de ruta `{id:guid}`).
+   valida que el id sea un número entero (restricción de ruta `{id:int}`).
 3. La **Capa de Negocio** (`ClienteService.ConsultarCanjesDeClienteAsync`)
    localiza al cliente por su id y recupera sus canjes, incluyendo el
    estado de cada uno (**RN-10**).
@@ -79,7 +79,7 @@ empleado (punto de venta)._
 | `GET /api/clientes?documento={dni}` (paso previo) | Empleado, Admin | `ClientesController.BuscarPorDocumento → ClienteService.BuscarPorDocumentoAsync` |
 | `GET /api/clientes/{id}/canjes` | Empleado | `ClientesController.ConsultarCanjesDeCliente → ClienteService.ConsultarCanjesDeClienteAsync` |
 
-* **El id es la clave, no el DNI:** la ruta usa el id (Guid) del cliente; el DNI solo se usa en la búsqueda previa. Reemplaza a la ruta anterior `GET /api/clientes/{documento}/canjes`.
+* **El id es la clave, no el DNI:** la ruta usa el id (entero) del cliente; el DNI solo se usa en la búsqueda previa. Reemplaza a la ruta anterior `GET /api/clientes/{documento}/canjes`.
 * **Colección Bruno:** `bruno/Clientes/` ("Buscar Cliente por DNI", "Canjes de Cliente", "Canjes de Cliente - No Encontrado").
 
 ---

@@ -41,7 +41,7 @@ si `dotnet run` levanta en otro).
   DNI" lo guarda en `clienteGoldId`, por eso tiene que correr antes que
   "Registrar Acumulacion - Cliente Gold" (ya está ordenado así en la carpeta).
 * Los errores de negocio responden `{ "mensaje": "..." }` y los listados
-  `{ "mensaje", "items": [...] }`. Un id que no es Guid en la ruta da 404.
+  `{ "mensaje", "items": [...] }`. Un id que no es un número entero en la ruta da 404. Los ids van sin comillas en los bodies JSON (`"productoId": {{productoCompraId}}`): un id entero enviado como texto da 400.
 
 * La carpeta **Canjes** da verde una sola vez por base limpia: el canje
   exitoso consume 100 de los 150 puntos del cliente demo.

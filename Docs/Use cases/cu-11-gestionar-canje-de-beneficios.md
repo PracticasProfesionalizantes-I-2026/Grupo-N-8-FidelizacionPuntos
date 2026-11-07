@@ -35,7 +35,7 @@ nombre de un cliente que se presenta físicamente en el local.
    `POST /api/canjes/presencial/{clienteId}`, con el id del cliente como **parámetro
    de ruta** y un JSON con el beneficio elegido (`beneficioId`).
 2. La **Capa de Presentación** (`CanjesController.CrearCanjePresencial`) valida
-   que el id de la ruta sea un Guid (`{clienteId:guid}`) y que el JSON sea
+   que el id de la ruta sea un número entero (`{clienteId:int}`) y que el JSON sea
    estructuralmente correcto (`beneficioId` obligatorio).
 3. La **Capa de Negocio** (`CanjeService.CrearCanjePresencialAsync`) localiza al
    cliente por su id, verifica que el beneficio esté activo (**RN-17**) y que el cliente posea puntos suficientes
@@ -99,7 +99,7 @@ de venta operado por el empleado)._
 
 * El canje presencial comparte el núcleo con CU-07 (`EjecutarCanjeAsync`): mismas reglas RN-08, RN-09 (FIFO) y RN-17, y una sola transacción.
 * Queda con estado **Entregado** y con el `EmpleadoId` del token (RN-13). El segundo endpoint entrega un canje **Pendiente** hecho desde la app (RN-10); entregarlo dos veces da 409.
-* **El id es la clave, no el DNI:** el canje recibe `clienteId` (Guid) **como parámetro de ruta** (el body lleva solo `beneficioId`); es la clave foránea del movimiento. El DNI solo se usa en la búsqueda previa (detalle en CU-10).
+* **El id es la clave, no el DNI:** el canje recibe `clienteId` (entero) **como parámetro de ruta** (el body lleva solo `beneficioId`); es la clave foránea del movimiento. El DNI solo se usa en la búsqueda previa (detalle en CU-10).
 * **Colección Bruno:** `bruno/Canjes/` y la búsqueda en `bruno/Clientes/` ("Buscar Cliente por DNI").
 
 ---
@@ -112,7 +112,7 @@ de venta operado por el empleado)._
 | --- | --- | --- |
 | `201` | Created | Confirmación de persistencia exitosa del nuevo recurso Canje. |
 | `400` | Bad Request | `beneficioId` faltante o inválido; DNI mal ingresado en la búsqueda. |
-| `404` | Not Found | DNI no registrado (búsqueda), `clienteId` que no corresponde a ningún cliente, o `clienteId` que no es un Guid (la ruta no coincide). |
+| `404` | Not Found | DNI no registrado (búsqueda), `clienteId` que no corresponde a ningún cliente, o `clienteId` que no es un número entero (la ruta no coincide). |
 | `409` | Conflict | Violación de RN-17 (beneficio inactivo) o RN-08 (saldo insuficiente). |
 | `500` | Internal Server Error | Error técnico no controlado durante la persistencia. |
 

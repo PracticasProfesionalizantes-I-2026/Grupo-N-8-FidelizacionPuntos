@@ -94,8 +94,8 @@ acumulación configuradas (CU-19).
 
 > El antiguo flujo 3b (documento mal ingresado en la compra) pasó a ser el 1b: la
 > compra ya no recibe el DNI, sino el id que devuelve la búsqueda, como parámetro de
-> ruta. Un `clienteId` que no es un Guid (o la ruta sin id) no coincide con la ruta
-> `{clienteId:guid}` y responde 404.
+> ruta. Un `clienteId` que no es un número entero (o la ruta sin id) no coincide con la ruta
+> `{clienteId:int}` y responde 404.
 
 * **3d. Cliente inactivo o sin regla vigente (HTTP 409 Conflict):**
   1. El sistema detecta que en el Paso 3 el cliente está dado de baja (RN-14) o que
@@ -139,7 +139,7 @@ venta operado por el empleado)._
 
 | Regla / Validación | Dónde se aplica | Respuesta |
 | --- | --- | --- |
-| `clienteId` con formato Guid | Ruta (`acumulaciones/{clienteId:guid}`) | 404 si no coincide |
+| `clienteId` entero | Ruta (`acumulaciones/{clienteId:int}`) | 404 si no coincide |
 | Ítems obligatorios, cantidad 1..1000 | DTO (`AcumulacionCreateDTO`, `ItemCompraDTO`) | 400 |
 | Formato del DNI en la búsqueda (7 a 10 dígitos) | `ClienteService.BuscarPorDocumentoAsync` (antes de consultar la base) | 400 |
 | Cliente existente (por id) / activo | `MovimientoService` | 404 / 409 |
@@ -156,7 +156,7 @@ venta operado por el empleado)._
   (`GET /api/clientes?documento={dni}`, roles Empleado y Admin). La búsqueda recibe un
   `ClienteBusquedaDTO` por `[FromQuery]` y responde un `ClienteBusquedaResponseDTO`
   reducido (`id`, `nombre`, `documento`, `categoria`), sin email ni teléfono. La compra
-  se registra con ese `clienteId` (Guid) **como parámetro de ruta**, no en el body (el
+  se registra con ese `clienteId` (entero) **como parámetro de ruta**, no en el body (el
   body lleva solo los ítems); es además la clave foránea del movimiento.
 * **Datos de prueba:** el seed incluye un cliente Gold (`40111222`,
   `cliente.gold@fidelix.local` / `Gold1234!`). Su id se genera al sembrar, por eso en
@@ -178,7 +178,7 @@ venta operado por el empleado)._
 | `201` | Created | Confirmación de persistencia exitosa del movimiento de acumulación. |
 | `200` | OK | Búsqueda por DNI exitosa (paso previo). |
 | `400` | Bad Request | Ítem de venta inválido o DNI mal ingresado en la búsqueda. |
-| `404` | Not Found | DNI no registrado (búsqueda), `clienteId` que no corresponde a ningún cliente, o `clienteId` que no es un Guid (la ruta no coincide). |
+| `404` | Not Found | DNI no registrado (búsqueda), `clienteId` que no corresponde a ningún cliente, o `clienteId` que no es un número entero (la ruta no coincide). |
 | `409` | Conflict | Cliente inactivo o sin regla de acumulación vigente. |
 | `500` | Internal Server Error | Error técnico no controlado durante la persistencia. |
 

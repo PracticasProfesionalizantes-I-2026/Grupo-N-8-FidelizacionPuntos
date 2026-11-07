@@ -31,7 +31,7 @@ venta, con saldo de puntos inicial en cero.
    JSON sea estructuralmente correcto y que los campos requeridos estén presentes.
 3. La **Capa de Negocio** (`ClienteService.CrearClienteDesdePOSAsync`) verifica
    que el documento no esté registrado (**RN-01**).
-4. La **Capa de Persistencia** genera un nuevo `Id` (GUID), guarda el registro en
+4. La **Capa de Persistencia** genera un nuevo `Id` (entero autoincremental, lo asigna la base), guarda el registro en
    la tabla `Clientes` y asigna un saldo inicial de puntos en cero.
 5. El Sistema devuelve un código **201 Created** con la confirmación de la
    creación del cliente.

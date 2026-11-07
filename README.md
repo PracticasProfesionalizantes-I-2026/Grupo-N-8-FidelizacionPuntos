@@ -78,7 +78,7 @@ Cliente HTTP ──JSON──▶ Controller ──DTO──▶ Service ──Ent
 | --- | --- | --- |
 | Controller | Recibe el HTTP, valida la sintaxis del DTO (DataAnnotations → 400), llama al service y traduce excepciones a códigos HTTP. | Reglas de negocio, acceso a datos. |
 | Service | Reglas de negocio, traduce DTO ↔ Entidad, lanza excepciones tipadas. | Conocer HTTP o EF Core. |
-| Repository | Operaciones de datos con EF Core (`AsNoTracking` en lecturas, `Guid` asignado al crear). | Reglas de negocio. |
+| Repository | Operaciones de datos con EF Core (`AsNoTracking` en lecturas; el `Id` entero lo genera la base al insertar). | Reglas de negocio. |
 
 Cada capa depende de **interfaces** de la siguiente, registradas en
 `Program.cs` con `AddScoped<Interfaz, Implementacion>()`.
@@ -103,12 +103,15 @@ dotnet test     # desde src/: tests unitarios + de integración
 
 | Rol | Email | Contraseña | Datos |
 | --- | --- | --- | --- |
-| Cliente demo | `cliente.demo@fidelix.local` | `Cliente123!` | Id `11111111-1111-1111-1111-111111111111`, DNI `40333444`, 150 puntos vigentes y un lote de 80 ya vencido |
-| Cliente Gold | `cliente.gold@fidelix.local` | `Gold1234!` | DNI `40111222`, acumula x1.5 (N1) |
+| Cliente demo | `cliente.demo@fidelix.local` | `Cliente123!` | Id `1`, DNI `40333444`, 150 puntos vigentes y un lote de 80 ya vencido |
+| Cliente Gold | `cliente.gold@fidelix.local` | `Gold1234!` | Id `3`, DNI `40111222`, acumula x1.5 (N1) |
 | Cliente inactivo | `cliente.inactivo@fidelix.local` | `Inactivo123!` | Dado de baja (RN-14) |
-| Admin | `admin@fidelix.local` | `Admin123!` | Id `22222222-2222-2222-2222-222222222222` |
-| Empleado | `empleado@fidelix.local` | `Empleado123!` | Id `33333333-3333-3333-3333-333333333333` |
+| Admin | `admin@fidelix.local` | `Admin123!` | Id `1` |
+| Empleado | `empleado@fidelix.local` | `Empleado123!` | Id `1` |
 | Empleado inactivo | `empleado.inactivo@fidelix.local` | `Inactivo123!` | Dado de baja (RN-15) |
+
+Cada tabla numera por separado: el cliente 1, el admin 1 y el empleado 1 son
+personas distintas (el token y la auditoría los distinguen por el rol).
 
 Además: beneficios "Descuento 10%" (100 pts) y "Producto Gratis Demo" (300 pts),
 y una regla de acumulación vigente (0,1 puntos por $1, puntos válidos 180 días).
@@ -177,14 +180,14 @@ Respuestas comunes a todos los endpoints, que no se repiten en la tabla:
 
 * **401** sin token o con token inválido; **403** con el token de otro rol (RN-11).
 * **400** con datos mal formados (JSON inválido, campo obligatorio faltante, filtro con formato incorrecto): lo responde ASP.NET antes de llegar al controller, con el formato estándar `ProblemDetails` (`{ "title", "status", "errors" }`).
-* **404** si un id de la ruta no es un Guid: la restricción `{id:guid}` hace que la ruta no coincida.
+* **404** si un id de la ruta no es un número entero: la restricción `{id:int}` hace que la ruta no coincida.
 
 Los procesos de CU-22 y CU-26 también corren solos una vez por día
 (`ProcesoDiarioJob`); los endpoints de `procesos` permiten ejecutarlos a mano.
 
 ### Convenciones
 
-* **El id (Guid) es la clave, no el DNI.** Las operaciones sobre un recurso
+* **El id (entero autoincremental) es la clave, no el DNI.** Las operaciones sobre un recurso
   reciben su id como parámetro de ruta, nunca en el body. El DNI solo se usa
   para buscar al cliente (`GET /api/clientes?documento=`), que devuelve su id.
 * **Filtros** de las consultas como query params, recibidos en un único DTO con `[FromQuery]`.
@@ -232,12 +235,12 @@ Los procesos de CU-22 y CU-26 también corren solos una vez por día
 
 1. Buscar al cliente por DNI — `GET /api/clientes?documento=40333444`
 
-   `200 OK`: `{ "id": "11111111-1111-1111-1111-111111111111", "nombre": "Cliente Demo", "documento": "40333444", "categoria": "Estandar" }`
+   `200 OK`: `{ "id": 1, "nombre": "Cliente Demo", "documento": "40333444", "categoria": "Estandar" }`
 
-2. Registrar la compra con ese id en la ruta — `POST /api/movimientos/acumulaciones/11111111-1111-1111-1111-111111111111`
+2. Registrar la compra con ese id en la ruta — `POST /api/movimientos/acumulaciones/1`
 
    ```json
-   { "items": [ { "productoId": "…", "cantidad": 2 } ] }
+   { "items": [ { "productoId": 1, "cantidad": 2 } ] }
    ```
 
    `201 Created` con el monto calculado, los puntos acreditados (pendientes 15

@@ -32,7 +32,8 @@ de complejidad N1 (Gold x1.5) y N2 (puntos pendientes 15 días).
 
 ## 2. Entidades
 
-Todas heredan de `EntidadBase` (`Id: Guid`, asignado en el repositorio).
+Todas heredan de `EntidadBase` (`Id: int` autoincremental, lo genera la base de datos al
+insertar; antes era un `Guid` y se cambió por observación del profesor: ids cortos y legibles).
 
 **Núcleo (las 3 entidades del plan inicial):**
 
@@ -155,11 +156,11 @@ Errores de sintaxis del JSON o DataAnnotations: 400 automático de
 
 **Formato de las respuestas:** los errores de negocio (las excepciones de esta
 tabla) responden un `ErrorResponseDTO` `{ "mensaje": "..." }`; los listados
-responden `ListadoResponseDTO` `{ "mensaje", "items" }`. Un id que no es Guid en
-una ruta con restricción `{id:guid}` no coincide con ningún endpoint: 404.
+responden `ListadoResponseDTO` `{ "mensaje", "items" }`. Un id que no es un número entero
+en una ruta con restricción `{id:int}` no coincide con ningún endpoint: 404.
 
 **Identificación del cliente:** las operaciones sobre un cliente reciben su id
-(Guid, clave primaria y foránea) como parámetro de ruta, por ejemplo
+(entero autoincremental, clave primaria y foránea) como parámetro de ruta, por ejemplo
 `POST /api/movimientos/acumulaciones/{clienteId}`. El DNI solo se usa para
 buscarlo (`GET /api/clientes?documento=`).
 
@@ -179,5 +180,12 @@ buscarlo (`GET /api/clientes?documento=`).
    recuperación de contraseña, cada uno con sus tests, requests de Bruno y su
    especificación actualizada en `Docs/Use cases/`.
 6. **Ajustes por observaciones del profesor**: el cliente se identifica por
-   id (Guid) y no por DNI, el id viaja como parámetro de ruta, y todas las
+   id y no por DNI, el id viaja como parámetro de ruta, y todas las
    respuestas son DTOs (`ErrorResponseDTO`, `ListadoResponseDTO`).
+7. **Ids enteros autoincrementales** (observación del profesor): todas las
+   entidades pasan de `Guid` a `int` generado por la base. Se reemplazaron las
+   migraciones anteriores por una única `InitialCreate` (SQLite no permite
+   cambiar el tipo de una clave primaria existente) y el seed usa ids fijos
+   (cliente demo 1, cliente Gold 3, admin 1, empleado 1). Los ids se repiten
+   entre tablas (el cliente 1 y el empleado 1 son personas distintas): el
+   token y la auditoría los distinguen por el rol.

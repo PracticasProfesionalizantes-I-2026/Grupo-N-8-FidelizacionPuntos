@@ -60,7 +60,7 @@ cd bruno && npx --yes @usebruno/cli run -r --env Local
   devuelven entidades: siempre DTOs de `Shared/DTOs/`, mapeados con un
   método privado `MapToResponseDTO`.
 - **Repositorios** (`DataAccess/Repositories/`): único lugar que toca
-  `FidelixDbContext`. Asignan el `Guid` en `CreateAsync`. Lecturas de solo
+  `FidelixDbContext`. No asignan el `Id`: es un `int` autoincremental que genera la base y EF carga en la entidad después de `SaveChanges`. Lecturas de solo
   lectura con `AsNoTracking()`. Devuelven `null` si no encuentran algo: el
   service decide si eso es un error.
 - **DbContext**: relaciones hijas con `DeleteBehavior.Restrict` (las bajas
@@ -69,8 +69,8 @@ cd bruno && npx --yes @usebruno/cli run -r --env Local
 
 ## Convenciones de la API (observaciones del profesor)
 
-- **El id (Guid) es la clave, no el DNI.** Las operaciones sobre un recurso
-  reciben su id como **parámetro de ruta** con restricción `{id:guid}`, nunca en
+- **El id (`int` autoincremental) es la clave, no el DNI.** Las operaciones sobre un recurso
+  reciben su id como **parámetro de ruta** con restricción `{id:int}`, nunca en
   el body (ej. `PUT /api/admin/productos/{id}`,
   `POST /api/movimientos/acumulaciones/{clienteId}`). El DNI solo se usa para
   buscar al cliente: `GET /api/clientes?documento=`.
