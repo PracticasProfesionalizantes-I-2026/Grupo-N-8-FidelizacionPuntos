@@ -62,7 +62,7 @@ public class ProductoServiceTests
     [Fact]
     public async Task ActualizarProductoAsync_WithValidData_UpdatesAndReturnsProducto()
     {
-        var producto = new Producto { Id = Guid.NewGuid(), Nombre = "Producto", Precio = 100, Activo = true };
+        var producto = new Producto { Id = IdsDePrueba.Nuevo(), Nombre = "Producto", Precio = 100, Activo = true };
         _productoRepo.Setup(r => r.GetByIdAsync(producto.Id)).ReturnsAsync(producto);
 
         var resultado = await _sut.ActualizarProductoAsync(producto.Id, new ProductoUpdateDTO { Precio = 200 });
@@ -76,17 +76,17 @@ public class ProductoServiceTests
     [Fact]
     public async Task ActualizarProductoAsync_WithNonExistentId_ThrowsProductoNotFoundException()
     {
-        _productoRepo.Setup(r => r.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync((Producto?)null);
+        _productoRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>())).ReturnsAsync((Producto?)null);
 
         await Assert.ThrowsAsync<ProductoNotFoundException>(() =>
-            _sut.ActualizarProductoAsync(Guid.NewGuid(), new ProductoUpdateDTO { Precio = 200 }));
+            _sut.ActualizarProductoAsync(IdsDePrueba.Nuevo(), new ProductoUpdateDTO { Precio = 200 }));
     }
 
     /// <summary> CU-18, Desactivar: baja logica </summary>
     [Fact]
     public async Task DesactivarProductoAsync_WithExistingId_DeactivatesProducto()
     {
-        var producto = new Producto { Id = Guid.NewGuid(), Nombre = "Producto", Precio = 100, Activo = true };
+        var producto = new Producto { Id = IdsDePrueba.Nuevo(), Nombre = "Producto", Precio = 100, Activo = true };
         _productoRepo.Setup(r => r.GetByIdAsync(producto.Id)).ReturnsAsync(producto);
 
         var resultado = await _sut.DesactivarProductoAsync(producto.Id);
@@ -99,9 +99,9 @@ public class ProductoServiceTests
     [Fact]
     public async Task ActualizarProductoAsync_WhenNombreExists_ThrowsProductoDuplicadoException()
     {
-        var producto = new Producto { Id = Guid.NewGuid(), Nombre = "Producto", Precio = 100, Activo = true };
+        var producto = new Producto { Id = IdsDePrueba.Nuevo(), Nombre = "Producto", Precio = 100, Activo = true };
         _productoRepo.Setup(r => r.GetByIdAsync(producto.Id)).ReturnsAsync(producto);
-        var otro = new Producto { Id = Guid.NewGuid(), Nombre = "Otro Producto", Precio = 50, Activo = true };
+        var otro = new Producto { Id = IdsDePrueba.Nuevo(), Nombre = "Otro Producto", Precio = 50, Activo = true };
         _productoRepo.Setup(r => r.GetByNombreAsync(otro.Nombre)).ReturnsAsync(otro);
 
         await Assert.ThrowsAsync<ProductoDuplicadoException>(() =>
@@ -143,7 +143,7 @@ public class ProductoServiceTests
     [Fact]
     public async Task ActualizarProductoAsync_WithTooManyDecimals_ThrowsPrecioInvalidoException()
     {
-        var producto = new Producto { Id = Guid.NewGuid(), Nombre = "Producto", Precio = 100, Activo = true };
+        var producto = new Producto { Id = IdsDePrueba.Nuevo(), Nombre = "Producto", Precio = 100, Activo = true };
         _productoRepo.Setup(r => r.GetByIdAsync(producto.Id)).ReturnsAsync(producto);
 
         await Assert.ThrowsAsync<PrecioInvalidoException>(() =>
@@ -158,8 +158,8 @@ public class ProductoServiceTests
     {
         _productoRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Producto>
         {
-            new() { Id = Guid.NewGuid(), Nombre = "Pizza", Precio = 100, Activo = true },
-            new() { Id = Guid.NewGuid(), Nombre = "Empanada", Precio = 50, Activo = false }
+            new() { Id = IdsDePrueba.Nuevo(), Nombre = "Pizza", Precio = 100, Activo = true },
+            new() { Id = IdsDePrueba.Nuevo(), Nombre = "Empanada", Precio = 50, Activo = false }
         });
 
         var resultado = await _sut.ListarProductosAsync();
@@ -174,8 +174,8 @@ public class ProductoServiceTests
     {
         _productoRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Producto>
         {
-            new() { Id = Guid.NewGuid(), Nombre = "Pizza", Precio = 100, Activo = true },
-            new() { Id = Guid.NewGuid(), Nombre = "Empanada", Precio = 50, Activo = false }
+            new() { Id = IdsDePrueba.Nuevo(), Nombre = "Pizza", Precio = 100, Activo = true },
+            new() { Id = IdsDePrueba.Nuevo(), Nombre = "Empanada", Precio = 50, Activo = false }
         });
 
         var resultado = await _sut.ListarProductosActivosAsync();

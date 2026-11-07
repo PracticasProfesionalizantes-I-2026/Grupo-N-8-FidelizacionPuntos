@@ -36,7 +36,7 @@ public class BeneficioService(IBeneficioRepository beneficioRepository) : IBenef
     }
 
     /// <summary>Modifica solo los campos presentes; valida el costo (RN-16) y nombre único si cambió (RN-23).</summary>
-    public async Task<BeneficioResponseDTO> ActualizarAsync(Guid id, BeneficioUpdateDTO dto)
+    public async Task<BeneficioResponseDTO> ActualizarAsync(int id, BeneficioUpdateDTO dto)
     {
         var beneficio = await beneficioRepository.GetByIdAsync(id)
             ?? throw new BeneficioNotFoundException("No se encontró el beneficio.");
@@ -66,7 +66,7 @@ public class BeneficioService(IBeneficioRepository beneficioRepository) : IBenef
     }
 
     /// <summary>Desactivación lógica (RN-17): a partir de ahora, no se puede canjear.</summary>
-    public async Task<BeneficioResponseDTO> DesactivarAsync(Guid id)
+    public async Task<BeneficioResponseDTO> DesactivarAsync(int id)
     {
         var beneficio = await beneficioRepository.GetByIdAsync(id)
             ?? throw new BeneficioNotFoundException("No se encontró el beneficio.");

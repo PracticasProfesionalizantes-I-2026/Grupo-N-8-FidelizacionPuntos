@@ -38,8 +38,8 @@ public class AdminClientesController(IClienteAdminService clienteAdminService) :
     }
 
     /// <summary> Modificación parcial de un cliente, incluida la categoría (N1). </summary>
-    [HttpPut("{id:guid}")]
-    public async Task<IActionResult> Actualizar(Guid id, AdminClienteUpdateDTO dto)
+    [HttpPut("{id:int}")]
+    public async Task<IActionResult> Actualizar(int id, AdminClienteUpdateDTO dto)
     {
         try
         {
@@ -56,8 +56,8 @@ public class AdminClientesController(IClienteAdminService clienteAdminService) :
     }
 
     /// <summary> Baja lógica de un cliente (RN-14): 204 sin contenido. </summary>
-    [HttpDelete("{id:guid}")]
-    public async Task<IActionResult> Baja(Guid id)
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> Baja(int id)
     {
         try
         {

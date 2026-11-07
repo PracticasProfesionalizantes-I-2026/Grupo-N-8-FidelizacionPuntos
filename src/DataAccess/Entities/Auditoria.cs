@@ -12,13 +12,13 @@ public class Auditoria : EntidadBase
     public string TipoOperacion { get; set; } = string.Empty;
 
     /// <summary>Quién lo hizo (id del token); `null` en operaciones anónimas o del sistema.</summary>
-    public Guid? ActorId { get; set; }
+    public int? ActorId { get; set; }
 
     /// <summary>Rol del actor ("Cliente", "Empleado", "Admin" o "Sistema").</summary>
     public string ActorRol { get; set; } = string.Empty;
 
     /// <summary>Id de la entidad afectada, si se puede identificar.</summary>
-    public Guid? EntidadId { get; set; }
+    public int? EntidadId { get; set; }
 
     public string Detalle { get; set; } = string.Empty;
 }

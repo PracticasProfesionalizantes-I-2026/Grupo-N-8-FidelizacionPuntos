@@ -77,7 +77,7 @@ public class BeneficioServiceTests
     [Fact]
     public async Task ActualizarBeneficioAsync_WithValidData_UpdatesAndReturnsBeneficio()
     {
-        var beneficio = new Beneficio { Id = Guid.NewGuid(), Nombre = "Descuento 10%", CostoPuntos = 100, Activo = true };
+        var beneficio = new Beneficio { Id = IdsDePrueba.Nuevo(), Nombre = "Descuento 10%", CostoPuntos = 100, Activo = true };
         _beneficioRepo.Setup(r => r.GetByIdAsync(beneficio.Id)).ReturnsAsync(beneficio);
 
         var resultado = await _sut.ActualizarAsync(beneficio.Id, new BeneficioUpdateDTO { CostoPuntos = 150 });
@@ -90,7 +90,7 @@ public class BeneficioServiceTests
     [Fact]
     public async Task ActualizarBeneficioAsync_WithCostoAboveMaximum_ThrowsCostoInvalidoException()
     {
-        var beneficio = new Beneficio { Id = Guid.NewGuid(), Nombre = "Descuento 10%", CostoPuntos = 100, Activo = true };
+        var beneficio = new Beneficio { Id = IdsDePrueba.Nuevo(), Nombre = "Descuento 10%", CostoPuntos = 100, Activo = true };
         _beneficioRepo.Setup(r => r.GetByIdAsync(beneficio.Id)).ReturnsAsync(beneficio);
 
         await Assert.ThrowsAsync<CostoInvalidoException>(() =>
@@ -103,17 +103,17 @@ public class BeneficioServiceTests
     [Fact]
     public async Task ActualizarBeneficioAsync_WithNonExistentId_ThrowsBeneficioNotFoundException()
     {
-        _beneficioRepo.Setup(r => r.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync((Beneficio?)null);
+        _beneficioRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>())).ReturnsAsync((Beneficio?)null);
 
         await Assert.ThrowsAsync<BeneficioNotFoundException>(() =>
-            _sut.ActualizarAsync(Guid.NewGuid(), new BeneficioUpdateDTO { CostoPuntos = 150 }));
+            _sut.ActualizarAsync(IdsDePrueba.Nuevo(), new BeneficioUpdateDTO { CostoPuntos = 150 }));
     }
 
     /// <summary>CU-17, desactivación: baja lógica (RN-17), el beneficio queda con `Activo = false`.</summary>
     [Fact]
     public async Task DesactivarBeneficioAsync_WithExistingId_DeactivatesBeneficio()
     {
-        var beneficio = new Beneficio { Id = Guid.NewGuid(), Nombre = "Descuento 10%", CostoPuntos = 100, Activo = true };
+        var beneficio = new Beneficio { Id = IdsDePrueba.Nuevo(), Nombre = "Descuento 10%", CostoPuntos = 100, Activo = true };
         _beneficioRepo.Setup(r => r.GetByIdAsync(beneficio.Id)).ReturnsAsync(beneficio);
 
         var resultado = await _sut.DesactivarAsync(beneficio.Id);

@@ -23,7 +23,7 @@ public class ReglaAcumulacionServiceTests
     /// <summary> Crea una regla válida de ejemplo, para no repetir el armado en cada test. </summary>
     private static ReglaAcumulacion NuevaRegla(DateTime vigenciaDesde) => new()
     {
-        Id = Guid.NewGuid(),
+        Id = IdsDePrueba.Nuevo(),
         PuntosPorMonto = 0.1m,
         VigenciaDesde = vigenciaDesde,
         DiasVigenciaPuntos = 180,
@@ -74,10 +74,10 @@ public class ReglaAcumulacionServiceTests
     [Fact]
     public async Task ObtenerReglaAcumulacionPorIdAsync_WithUnknownId_ThrowsReglaAcumulacionNotFoundException()
     {
-        _reglaRepo.Setup(r => r.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync((ReglaAcumulacion?)null);
+        _reglaRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>())).ReturnsAsync((ReglaAcumulacion?)null);
 
         await Assert.ThrowsAsync<ReglaAcumulacionNotFoundException>(() =>
-            _sut.ObtenerReglaAcumulacionPorIdAsync(Guid.NewGuid()));
+            _sut.ObtenerReglaAcumulacionPorIdAsync(IdsDePrueba.Nuevo()));
     }
 
     /// <summary> CU-19, alta: datos válidos crean la regla con fecha de alta registrada (RN-13). </summary>
@@ -167,9 +167,9 @@ public class ReglaAcumulacionServiceTests
     [Fact]
     public async Task ActualizarReglaAcumulacionAsync_WithUnknownId_ThrowsReglaAcumulacionNotFoundException()
     {
-        _reglaRepo.Setup(r => r.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync((ReglaAcumulacion?)null);
+        _reglaRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>())).ReturnsAsync((ReglaAcumulacion?)null);
 
         await Assert.ThrowsAsync<ReglaAcumulacionNotFoundException>(() =>
-            _sut.ActualizarReglaAcumulacionAsync(Guid.NewGuid(), new ReglaAcumulacionUpdateDTO { PuntosPorMonto = 0.5m }));
+            _sut.ActualizarReglaAcumulacionAsync(IdsDePrueba.Nuevo(), new ReglaAcumulacionUpdateDTO { PuntosPorMonto = 0.5m }));
     }
 }

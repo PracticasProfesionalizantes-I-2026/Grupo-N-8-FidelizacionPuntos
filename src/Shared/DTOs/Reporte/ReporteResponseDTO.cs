@@ -33,7 +33,7 @@ public class ReporteResponseDTO
 /// <summary>Una fila del ranking de beneficios más canjeados.</summary>
 public class RankingBeneficioDTO
 {
-    public Guid BeneficioId { get; set; }
+    public int BeneficioId { get; set; }
     public string Nombre { get; set; } = string.Empty;
     public int CantidadCanjes { get; set; }
     public int PuntosCanjeados { get; set; }

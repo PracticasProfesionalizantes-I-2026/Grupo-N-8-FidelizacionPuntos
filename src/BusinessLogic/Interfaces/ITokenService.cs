@@ -10,5 +10,5 @@ public interface ITokenService
     /// Genera un token JWT para un usuario dado su id y rol.
     /// CU-02, flujo principal paso 4.
     /// </summary>
-    string GenerarToken(Guid id, string rol);
+    string GenerarToken(int id, string rol);
 }

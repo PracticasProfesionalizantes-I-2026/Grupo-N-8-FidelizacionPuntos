@@ -37,7 +37,7 @@ public class AuditoriaServiceTests
 
         Assert.Empty(resultado.Items);
         Assert.NotNull(resultado.Mensaje);
-        _auditoriaRepo.Verify(r => r.BuscarAsync(It.IsAny<DateTime?>(), It.IsAny<DateTime?>(), It.IsAny<string?>(), It.IsAny<Guid?>()), Times.Never);
+        _auditoriaRepo.Verify(r => r.BuscarAsync(It.IsAny<DateTime?>(), It.IsAny<DateTime?>(), It.IsAny<string?>(), It.IsAny<int?>()), Times.Never);
     }
 
     /// <summary>
@@ -47,7 +47,7 @@ public class AuditoriaServiceTests
     [Fact]
     public async Task ConsultarAuditoriaAsync_WithSameDayRange_QueriesWholeArgentineDayInUtc()
     {
-        _auditoriaRepo.Setup(r => r.BuscarAsync(It.IsAny<DateTime?>(), It.IsAny<DateTime?>(), It.IsAny<string?>(), It.IsAny<Guid?>())).ReturnsAsync([]);
+        _auditoriaRepo.Setup(r => r.BuscarAsync(It.IsAny<DateTime?>(), It.IsAny<DateTime?>(), It.IsAny<string?>(), It.IsAny<int?>())).ReturnsAsync([]);
         var dia = new DateTime(2026, 11, 6);
 
         await _sut.ConsultarAuditoriaAsync(new AuditoriaFiltroDTO { FechaDesde = dia, FechaHasta = dia });
@@ -62,9 +62,9 @@ public class AuditoriaServiceTests
     [Fact]
     public async Task ConsultarAuditoriaAsync_WithNoMatches_ReturnsEmptyList()
     {
-        _auditoriaRepo.Setup(r => r.BuscarAsync(It.IsAny<DateTime?>(), It.IsAny<DateTime?>(), It.IsAny<string?>(), It.IsAny<Guid?>())).ReturnsAsync([]);
+        _auditoriaRepo.Setup(r => r.BuscarAsync(It.IsAny<DateTime?>(), It.IsAny<DateTime?>(), It.IsAny<string?>(), It.IsAny<int?>())).ReturnsAsync([]);
 
-        var resultado = await _sut.ConsultarAuditoriaAsync(new AuditoriaFiltroDTO { ActorId = Guid.NewGuid() });
+        var resultado = await _sut.ConsultarAuditoriaAsync(new AuditoriaFiltroDTO { ActorId = IdsDePrueba.Nuevo() });
 
         Assert.Empty(resultado.Items);
         Assert.Equal("No existen resultados para los filtros seleccionados", resultado.Mensaje);
@@ -74,7 +74,7 @@ public class AuditoriaServiceTests
     [Fact]
     public async Task RegistrarAsync_CreatesRecord()
     {
-        var actorId = Guid.NewGuid();
+        var actorId = IdsDePrueba.Nuevo();
 
         await _sut.RegistrarAsync("Canjes.CrearCanje", actorId, "Cliente", null, "POST /api/canjes -> 201");
 
@@ -85,8 +85,8 @@ public class AuditoriaServiceTests
     [Fact]
     public async Task ObtenerPorIdAsync_WithUnknownId_ThrowsAuditoriaNotFoundException()
     {
-        _auditoriaRepo.Setup(r => r.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync((Auditoria?)null);
+        _auditoriaRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>())).ReturnsAsync((Auditoria?)null);
 
-        await Assert.ThrowsAsync<AuditoriaNotFoundException>(() => _sut.ObtenerPorIdAsync(Guid.NewGuid()));
+        await Assert.ThrowsAsync<AuditoriaNotFoundException>(() => _sut.ObtenerPorIdAsync(IdsDePrueba.Nuevo()));
     }
 }

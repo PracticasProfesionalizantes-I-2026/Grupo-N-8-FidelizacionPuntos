@@ -26,7 +26,7 @@ public class MovimientoService(
     /// los precios de los productos (2a, RN-26), aplica la regla vigente (RN-12) con el
     /// multiplicador Gold (N1), guarda el lote como pendiente 15 días (N2) y devuelve el saldo.
     /// </summary>
-    public async Task<AcumulacionResponseDTO> RegistrarAcumulacionAsync(Guid clienteId, AcumulacionCreateDTO dto, Guid? empleadoId = null)
+    public async Task<AcumulacionResponseDTO> RegistrarAcumulacionAsync(int clienteId, AcumulacionCreateDTO dto, int? empleadoId = null)
     {
         // 1. El cliente tiene que existir (3a) y estar activo (RN-14). Se identifica por el id que llega
         //    en la ruta: el DNI solo se usa antes, en la búsqueda (`ClienteService.BuscarPorDocumentoAsync`).

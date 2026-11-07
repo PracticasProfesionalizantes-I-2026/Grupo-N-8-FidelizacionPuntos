@@ -3,8 +3,8 @@ namespace FidelixAPI.Shared.DTOs.Movimiento;
 /// <summary>Confirmación de la acumulación (CU-10): cuánto se acreditó, cómo se calculó y el saldo del cliente.</summary>
 public class AcumulacionResponseDTO
 {
-    public Guid MovimientoId { get; set; }
-    public Guid ClienteId { get; set; }
+    public int MovimientoId { get; set; }
+    public int ClienteId { get; set; }
 
     /// <summary>Total de la compra, calculado con los precios de los productos.</summary>
     public decimal MontoTotal { get; set; }

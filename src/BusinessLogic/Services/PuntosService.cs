@@ -158,7 +158,7 @@ public class PuntosService(
     }
 
     /// <summary> Avisa al cliente por email; si el aviso falla no se deshace el vencimiento, solo se registra. </summary>
-    private async Task NotificarVencimientoAsync(Guid clienteId, int puntos)
+    private async Task NotificarVencimientoAsync(int clienteId, int puntos)
     {
         try
         {

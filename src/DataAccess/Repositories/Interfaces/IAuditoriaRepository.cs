@@ -13,10 +13,10 @@ public interface IAuditoriaRepository
     Task<Auditoria> CreateAsync(Auditoria entity);
 
     /// <summary>Busca un registro por Id, en modo solo lectura.</summary>
-    Task<Auditoria?> GetByIdAsync(Guid id);
+    Task<Auditoria?> GetByIdAsync(int id);
 
     /// <summary>Registros que cumplen todos los filtros informados (los `null` no filtran), del más nuevo al más viejo.</summary>
-    Task<IReadOnlyList<Auditoria>> BuscarAsync(DateTime? fechaDesde, DateTime? fechaHasta, string? tipoOperacion, Guid? actorId);
+    Task<IReadOnlyList<Auditoria>> BuscarAsync(DateTime? fechaDesde, DateTime? fechaHasta, string? tipoOperacion, int? actorId);
 
     /// <summary>Cantidad de registros en un período (lo usa el reporte para mostrar su consistencia, RN-19).</summary>
     Task<int> ContarAsync(DateTime fechaDesde, DateTime fechaHasta);

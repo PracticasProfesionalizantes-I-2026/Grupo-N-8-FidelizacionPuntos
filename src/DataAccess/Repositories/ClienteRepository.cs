@@ -9,7 +9,7 @@ namespace FidelixAPI.DataAccess.Repositories;
 public class ClienteRepository(FidelixDbContext context) : IClienteRepository
 {
     /// <summary>Busca un cliente por Id, con tracking (permite modificarlo y guardarlo después).</summary>
-    public Task<Cliente?> GetByIdAsync(Guid id) =>
+    public Task<Cliente?> GetByIdAsync(int id) =>
         context.Clientes.FirstOrDefaultAsync(c => c.Id == id);
 
     /// <summary>Lista todos los clientes en modo solo lectura.</summary>
@@ -24,10 +24,9 @@ public class ClienteRepository(FidelixDbContext context) : IClienteRepository
     public Task<Cliente?> GetByEmailAsync(string email) =>
         context.Clientes.FirstOrDefaultAsync(c => c.Email == email);
 
-    /// <summary>Asigna un nuevo Id y persiste el cliente.</summary>
+    /// <summary>Persiste el cliente nuevo; el Id lo genera la base (autoincremental) y EF lo carga en la entidad.</summary>
     public async Task<Cliente> CreateAsync(Cliente entity)
     {
-        entity.Id = Guid.NewGuid();
         context.Clientes.Add(entity);
         await context.SaveChangesAsync();
         return entity;

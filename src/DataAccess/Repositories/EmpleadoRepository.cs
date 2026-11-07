@@ -9,7 +9,7 @@ namespace FidelixAPI.DataAccess.Repositories;
 public class EmpleadoRepository(FidelixDbContext context) : IEmpleadoRepository
 {
     /// <summary>Busca un empleado por Id, con tracking (permite modificarlo y guardarlo después).</summary>
-    public Task<Empleado?> GetByIdAsync(Guid id) =>
+    public Task<Empleado?> GetByIdAsync(int id) =>
         context.Empleados.FirstOrDefaultAsync(e => e.Id == id);
 
     /// <summary>Lista todos los empleados en modo solo lectura.</summary>
@@ -24,10 +24,9 @@ public class EmpleadoRepository(FidelixDbContext context) : IEmpleadoRepository
     public Task<Empleado?> GetByEmailAsync(string email) =>
         context.Empleados.FirstOrDefaultAsync(e => e.Email == email);
 
-    /// <summary>Asigna un nuevo Id y persiste el empleado.</summary>
+    /// <summary>Persiste el empleado nuevo; el Id lo genera la base (autoincremental) y EF lo carga en la entidad.</summary>
     public async Task<Empleado> CreateAsync(Empleado entity)
     {
-        entity.Id = Guid.NewGuid();
         context.Empleados.Add(entity);
         await context.SaveChangesAsync();
         return entity;

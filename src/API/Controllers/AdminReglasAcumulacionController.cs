@@ -21,8 +21,8 @@ public class AdminReglasAcumulacionController(IReglaAcumulacionService reglaServ
     public async Task<IActionResult> ObtenerReglas() => Ok(await reglaService.ObtenerReglasAcumulacionAsync());
 
     /// <summary> Detalle de una versión (flujo 3c: 404 si no existe). </summary>
-    [HttpGet("{id:guid}")]
-    public async Task<IActionResult> ObtenerReglaPorId(Guid id)
+    [HttpGet("{id:int}")]
+    public async Task<IActionResult> ObtenerReglaPorId(int id)
     {
         try
         {
@@ -51,8 +51,8 @@ public class AdminReglasAcumulacionController(IReglaAcumulacionService reglaServ
     }
 
     /// <summary> Modificación parcial de una versión existente (RN-18, RN-13). </summary>
-    [HttpPut("{id:guid}")]
-    public async Task<IActionResult> ActualizarRegla(Guid id, ReglaAcumulacionUpdateDTO dto)
+    [HttpPut("{id:int}")]
+    public async Task<IActionResult> ActualizarRegla(int id, ReglaAcumulacionUpdateDTO dto)
     {
         try
         {

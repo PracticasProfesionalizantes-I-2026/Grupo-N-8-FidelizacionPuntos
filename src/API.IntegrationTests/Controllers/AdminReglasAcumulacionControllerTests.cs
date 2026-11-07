@@ -78,7 +78,7 @@ public class AdminReglasAcumulacionControllerTests : IClassFixture<FidelixApiFac
     {
         var client = _factory.CreateClientComo(Roles.Admin);
 
-        var respuesta = await client.GetAsync($"{Url}/{Guid.NewGuid()}");
+        var respuesta = await client.GetAsync($"{Url}/{IdsDePrueba.Inexistente}");
 
         Assert.Equal(HttpStatusCode.NotFound, respuesta.StatusCode);
     }

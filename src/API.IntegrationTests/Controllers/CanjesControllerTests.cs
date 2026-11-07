@@ -46,7 +46,7 @@ public class CanjesControllerTests : IClassFixture<FidelixApiFactory>, IAsyncLif
     }
 
     /// <summary>Da de alta (como admin) un beneficio con nombre único (CU-17) y devuelve su Id.</summary>
-    private async Task<Guid> CrearBeneficioAsync(int costo)
+    private async Task<int> CrearBeneficioAsync(int costo)
     {
         var respuesta = await _factory.CreateClientComo(Roles.Admin).PostAsJsonAsync("/api/admin/beneficios", new BeneficioCreateDTO
         {
@@ -94,7 +94,7 @@ public class CanjesControllerTests : IClassFixture<FidelixApiFactory>, IAsyncLif
     {
         var client = _factory.CreateClient();
 
-        var respuesta = await client.PostAsJsonAsync(Url, new CanjeCreateDTO { BeneficioId = Guid.NewGuid() });
+        var respuesta = await client.PostAsJsonAsync(Url, new CanjeCreateDTO { BeneficioId = IdsDePrueba.Inexistente });
 
         Assert.Equal(HttpStatusCode.Unauthorized, respuesta.StatusCode);
     }
@@ -118,7 +118,7 @@ public class CanjesControllerTests : IClassFixture<FidelixApiFactory>, IAsyncLif
         var client = _factory.CreateClient();
         await AutenticarAsync(client, EmailDemo, PasswordDemo);
 
-        var respuesta = await client.PostAsJsonAsync(Url, new CanjeCreateDTO { BeneficioId = Guid.NewGuid() });
+        var respuesta = await client.PostAsJsonAsync(Url, new CanjeCreateDTO { BeneficioId = IdsDePrueba.Inexistente });
 
         Assert.Equal(HttpStatusCode.NotFound, respuesta.StatusCode);
     }

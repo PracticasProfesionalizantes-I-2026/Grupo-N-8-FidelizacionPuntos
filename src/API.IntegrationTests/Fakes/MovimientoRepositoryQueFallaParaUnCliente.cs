@@ -8,7 +8,7 @@ namespace FidelixAPI.API.IntegrationTests.Fakes;
 /// Envuelve al repositorio real y falla solo al guardar un movimiento de un cliente puntual. Sirve
 /// para probar que los procesos automáticos (CU-22, CU-26) siguen con el resto cuando uno falla.
 /// </summary>
-public class MovimientoRepositoryQueFallaParaUnCliente(IMovimientoRepository real, Guid clienteQueFalla) : IMovimientoRepository
+public class MovimientoRepositoryQueFallaParaUnCliente(IMovimientoRepository real, int clienteQueFalla) : IMovimientoRepository
 {
     /// <summary> Falla si el movimiento es del cliente elegido; si no, delega en el repositorio real. </summary>
     public Task<Movimiento> CreateAsync(Movimiento entity) =>
@@ -17,7 +17,7 @@ public class MovimientoRepositoryQueFallaParaUnCliente(IMovimientoRepository rea
             : real.CreateAsync(entity);
 
     /// <summary> Delega en el repositorio real. </summary>
-    public Task<Movimiento?> GetByIdAsync(Guid id) => real.GetByIdAsync(id);
+    public Task<Movimiento?> GetByIdAsync(int id) => real.GetByIdAsync(id);
 
     /// <summary> Delega en el repositorio real. </summary>
     public Task<IReadOnlyList<Movimiento>> GetAllAsync() => real.GetAllAsync();
@@ -26,20 +26,20 @@ public class MovimientoRepositoryQueFallaParaUnCliente(IMovimientoRepository rea
     public Task UpdateAsync(Movimiento entity) => real.UpdateAsync(entity);
 
     /// <summary> Delega en el repositorio real. </summary>
-    public Task<IReadOnlyList<Movimiento>> GetLotesVigentesPorClienteAsync(Guid clienteId, DateTime fechaReferencia) =>
+    public Task<IReadOnlyList<Movimiento>> GetLotesVigentesPorClienteAsync(int clienteId, DateTime fechaReferencia) =>
         real.GetLotesVigentesPorClienteAsync(clienteId, fechaReferencia);
 
     /// <summary> Delega en el repositorio real. </summary>
-    public Task<IReadOnlyList<Movimiento>> GetLotesParaCanjeAsync(Guid clienteId, DateTime fechaReferencia) =>
+    public Task<IReadOnlyList<Movimiento>> GetLotesParaCanjeAsync(int clienteId, DateTime fechaReferencia) =>
         real.GetLotesParaCanjeAsync(clienteId, fechaReferencia);
 
     /// <summary> Delega en el repositorio real. </summary>
-    public Task<IReadOnlyList<Movimiento>> BuscarAsync(Guid? clienteId, TipoMovimiento? tipo, DateTime? fechaDesde, DateTime? fechaHasta) =>
+    public Task<IReadOnlyList<Movimiento>> BuscarAsync(int? clienteId, TipoMovimiento? tipo, DateTime? fechaDesde, DateTime? fechaHasta) =>
         real.BuscarAsync(clienteId, tipo, fechaDesde, fechaHasta);
 
     /// <summary> Delega en el repositorio real. </summary>
     public Task<IReadOnlyList<Movimiento>> GetLotesVencidosAsync(DateTime fechaReferencia) => real.GetLotesVencidosAsync(fechaReferencia);
 
     /// <summary> Delega en el repositorio real. </summary>
-    public Task<bool> ExisteBonoEnAnioAsync(Guid clienteId, int anio) => real.ExisteBonoEnAnioAsync(clienteId, anio);
+    public Task<bool> ExisteBonoEnAnioAsync(int clienteId, int anio) => real.ExisteBonoEnAnioAsync(clienteId, anio);
 }

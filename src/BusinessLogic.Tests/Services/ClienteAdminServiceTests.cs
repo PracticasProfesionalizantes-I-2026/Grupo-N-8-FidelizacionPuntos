@@ -45,7 +45,7 @@ public class ClienteAdminServiceTests
     [Fact]
     public async Task ActualizarClienteAsync_WithValidData_UpdatesAndReturnsCliente()
     {
-        var cliente = new Cliente { Id = Guid.NewGuid(), Nombre = "Ana", Email = "ana@test.com", Categoria = CategoriaCliente.Estandar };
+        var cliente = new Cliente { Id = IdsDePrueba.Nuevo(), Nombre = "Ana", Email = "ana@test.com", Categoria = CategoriaCliente.Estandar };
         _clienteRepo.Setup(r => r.GetByIdAsync(cliente.Id)).ReturnsAsync(cliente);
 
         var resultado = await _sut.ActualizarClienteAsync(cliente.Id, new AdminClienteUpdateDTO { Categoria = CategoriaCliente.Gold });
@@ -59,17 +59,17 @@ public class ClienteAdminServiceTests
     [Fact]
     public async Task ActualizarClienteAsync_WithNonExistentId_ThrowsClienteNotFoundException()
     {
-        _clienteRepo.Setup(r => r.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync((Cliente?)null);
+        _clienteRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>())).ReturnsAsync((Cliente?)null);
 
         await Assert.ThrowsAsync<ClienteNotFoundException>(() =>
-            _sut.ActualizarClienteAsync(Guid.NewGuid(), new AdminClienteUpdateDTO { Nombre = "X" }));
+            _sut.ActualizarClienteAsync(IdsDePrueba.Nuevo(), new AdminClienteUpdateDTO { Nombre = "X" }));
     }
 
     /// <summary> CU-15, baja: el cliente queda inactivo (baja lógica, RN-14). </summary>
     [Fact]
     public async Task BajaClienteAsync_WithExistingId_DeactivatesCliente()
     {
-        var cliente = new Cliente { Id = Guid.NewGuid(), Activo = true };
+        var cliente = new Cliente { Id = IdsDePrueba.Nuevo(), Activo = true };
         _clienteRepo.Setup(r => r.GetByIdAsync(cliente.Id)).ReturnsAsync(cliente);
 
         await _sut.BajaClienteAsync(cliente.Id);
@@ -82,7 +82,7 @@ public class ClienteAdminServiceTests
     [Fact]
     public async Task ListarClientesAsync_ReturnsListadoWithItems()
     {
-        _clienteRepo.Setup(r => r.GetAllAsync()).ReturnsAsync([new Cliente { Id = Guid.NewGuid(), Nombre = "Ana" }, new Cliente { Id = Guid.NewGuid(), Nombre = "Luis" }]);
+        _clienteRepo.Setup(r => r.GetAllAsync()).ReturnsAsync([new Cliente { Id = IdsDePrueba.Nuevo(), Nombre = "Ana" }, new Cliente { Id = IdsDePrueba.Nuevo(), Nombre = "Luis" }]);
 
         var resultado = await _sut.ListarClientesAsync();
 

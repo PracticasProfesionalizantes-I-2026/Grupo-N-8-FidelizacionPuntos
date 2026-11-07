@@ -20,10 +20,10 @@ public class MovimientosController(IMovimientoService movimientoService) : Contr
 {
     /// <summary>
     /// Registra una compra del cliente indicado por id en la ruta y acredita los puntos (RN-12, N1, N2, RN-13).
-    /// Un id que no es Guid no coincide con la ruta (404); un cliente inexistente también da 404 (3a).
+    /// Un id que no es entero no coincide con la ruta (404); un cliente inexistente también da 404 (3a).
     /// </summary>
-    [HttpPost("acumulaciones/{clienteId:guid}")]
-    public async Task<IActionResult> RegistrarAcumulacion(Guid clienteId, AcumulacionCreateDTO dto)
+    [HttpPost("acumulaciones/{clienteId:int}")]
+    public async Task<IActionResult> RegistrarAcumulacion(int clienteId, AcumulacionCreateDTO dto)
     {
         try
         {

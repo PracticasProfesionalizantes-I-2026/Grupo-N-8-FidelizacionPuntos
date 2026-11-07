@@ -16,7 +16,7 @@ public static class TestHelpers
     /// Registra un cliente nuevo (CU-01) con documento y email únicos, inicia sesión (CU-02) y deja el
     /// token en el cliente HTTP. Devuelve el Id, el documento y el email del cliente creado.
     /// </summary>
-    public static async Task<(Guid Id, string Documento, string Email)> RegistrarYAutenticarClienteAsync(HttpClient client, DateTime? fechaNacimiento = null)
+    public static async Task<(int Id, string Documento, string Email)> RegistrarYAutenticarClienteAsync(HttpClient client, DateTime? fechaNacimiento = null)
     {
         var documento = DocumentoUnico();
         var email = $"cliente.{documento}@fidelix.local";
@@ -37,7 +37,7 @@ public static class TestHelpers
     /// Busca un cliente por DNI como empleado (`GET /api/clientes?documento=`) y devuelve su id: es el
     /// mismo paso que hace el punto de venta antes de registrar una compra o un canje.
     /// </summary>
-    public static async Task<Guid> BuscarIdPorDocumentoAsync(FidelixApiFactory factory, string documento)
+    public static async Task<int> BuscarIdPorDocumentoAsync(FidelixApiFactory factory, string documento)
     {
         var cliente = await factory.CreateClientComo(Roles.Empleado)
             .GetFromJsonAsync<ClienteBusquedaResponseDTO>($"/api/clientes?documento={documento}");

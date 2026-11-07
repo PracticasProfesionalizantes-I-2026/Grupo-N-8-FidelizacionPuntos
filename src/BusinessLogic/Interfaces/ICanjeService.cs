@@ -9,18 +9,18 @@ public interface ICanjeService
     /// Canjea un beneficio activo (RN-17) si el cliente tiene saldo suficiente (RN-08),
     /// descontando los puntos por FIFO (RN-09) en una única transacción.
     /// </summary>
-    Task<CanjeResponseDTO> CrearCanjeAsync(Guid clienteId, CanjeCreateDTO dto);
+    Task<CanjeResponseDTO> CrearCanjeAsync(int clienteId, CanjeCreateDTO dto);
 
     /// <summary>
     /// Canje presencial (CU-11): mismas reglas, pero el empleado indica el cliente por su id (que llega
     /// como parámetro de ruta), el beneficio se entrega en el momento y queda registrado qué empleado
     /// lo hizo (RN-13).
     /// </summary>
-    Task<CanjeResponseDTO> CrearCanjePresencialAsync(Guid clienteId, CanjePresencialCreateDTO dto, Guid? empleadoId);
+    Task<CanjeResponseDTO> CrearCanjePresencialAsync(int clienteId, CanjePresencialCreateDTO dto, int? empleadoId);
 
     /// <summary>
     /// El empleado entrega en el local un canje que el cliente hizo desde la app: pasa de "Pendiente"
     /// a "Entregado" y queda registrado qué empleado lo entregó (RN-10, RN-13).
     /// </summary>
-    Task<CanjeItemDTO> MarcarEntregadoAsync(Guid canjeId, Guid? empleadoId);
+    Task<CanjeItemDTO> MarcarEntregadoAsync(int canjeId, int? empleadoId);
 }

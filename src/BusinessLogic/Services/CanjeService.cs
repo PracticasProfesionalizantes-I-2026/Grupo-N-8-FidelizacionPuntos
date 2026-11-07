@@ -15,7 +15,7 @@ public class CanjeService(
     ILotePuntosService lotePuntosService) : ICanjeService
 {
     /// <summary> CU-07: el cliente sale del token; el canje queda "Pendiente" hasta que retire el beneficio. </summary>
-    public async Task<CanjeResponseDTO> CrearCanjeAsync(Guid clienteId, CanjeCreateDTO dto)
+    public async Task<CanjeResponseDTO> CrearCanjeAsync(int clienteId, CanjeCreateDTO dto)
     {
         var cliente = await clienteRepository.GetByIdAsync(clienteId)
             ?? throw new ClienteNotFoundException("No se encontró el cliente.");
@@ -24,7 +24,7 @@ public class CanjeService(
     }
 
     /// <summary> CU-11: el cliente llega por id en la ruta (1a: 404 si no existe); el beneficio se entrega en el momento. </summary>
-    public async Task<CanjeResponseDTO> CrearCanjePresencialAsync(Guid clienteId, CanjePresencialCreateDTO dto, Guid? empleadoId)
+    public async Task<CanjeResponseDTO> CrearCanjePresencialAsync(int clienteId, CanjePresencialCreateDTO dto, int? empleadoId)
     {
         var cliente = await clienteRepository.GetByIdAsync(clienteId)
             ?? throw new ClienteNotFoundException("El cliente no se encuentra registrado.");
@@ -33,7 +33,7 @@ public class CanjeService(
     }
 
     /// <summary> RN-10: solo un canje existente y pendiente puede pasar a "Entregado". </summary>
-    public async Task<CanjeItemDTO> MarcarEntregadoAsync(Guid canjeId, Guid? empleadoId)
+    public async Task<CanjeItemDTO> MarcarEntregadoAsync(int canjeId, int? empleadoId)
     {
         var canje = await movimientoRepository.GetByIdAsync(canjeId);
         if (canje is null || canje.Tipo != TipoMovimiento.Canje)
@@ -57,7 +57,7 @@ public class CanjeService(
     /// (3b, RN-17), saldo suficiente (3c, RN-08) y descuento FIFO (RN-09). El descuento de los
     /// lotes y el movimiento de canje se guardan en un único `SaveChanges`, o sea, en una sola transacción.
     /// </summary>
-    private async Task<CanjeResponseDTO> EjecutarCanjeAsync(Cliente cliente, Guid beneficioId, EstadoCanje estado, Guid? empleadoId)
+    private async Task<CanjeResponseDTO> EjecutarCanjeAsync(Cliente cliente, int beneficioId, EstadoCanje estado, int? empleadoId)
     {
         if (!cliente.Activo)
         {

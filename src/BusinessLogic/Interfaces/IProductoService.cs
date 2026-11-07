@@ -10,10 +10,10 @@ public interface IProductoService
     Task<ProductoResponseDTO> CrearProductoAsync(ProductoCreateDTO dto);
 
     /// <summary> Modificar un producto, es parcial ya que puede recibir solo ciertos campos (RN-24 y RN-25). </summary>
-    Task<ProductoResponseDTO> ActualizarProductoAsync(Guid id, ProductoUpdateDTO dto);
+    Task<ProductoResponseDTO> ActualizarProductoAsync(int id, ProductoUpdateDTO dto);
 
     /// <summary> Desactivación lógica (RN-26). El producto deja de estar disponible para la compra. </summary>
-    Task<ProductoResponseDTO> DesactivarProductoAsync(Guid id);
+    Task<ProductoResponseDTO> DesactivarProductoAsync(int id);
 
     /// <summary> Lista todos los productos, activos e inactivos, para que el admin gestione el catálogo. </summary>
     Task<ListadoResponseDTO<ProductoResponseDTO>> ListarProductosAsync();

@@ -50,7 +50,7 @@ public class ClienteAdminService(IClienteRepository clienteRepository) : IClient
     }
 
     /// <summary> Modificación parcial: 404 si no existe (3b) y email único si cambia (RN-01). </summary>
-    public async Task<ClienteResponseDTO> ActualizarClienteAsync(Guid id, AdminClienteUpdateDTO dto)
+    public async Task<ClienteResponseDTO> ActualizarClienteAsync(int id, AdminClienteUpdateDTO dto)
     {
         var cliente = await clienteRepository.GetByIdAsync(id)
             ?? throw new ClienteNotFoundException("El cliente no existe.");
@@ -76,7 +76,7 @@ public class ClienteAdminService(IClienteRepository clienteRepository) : IClient
     }
 
     /// <summary> Baja lógica (RN-14): conserva el historial de movimientos. </summary>
-    public async Task BajaClienteAsync(Guid id)
+    public async Task BajaClienteAsync(int id)
     {
         var cliente = await clienteRepository.GetByIdAsync(id)
             ?? throw new ClienteNotFoundException("El cliente no existe.");

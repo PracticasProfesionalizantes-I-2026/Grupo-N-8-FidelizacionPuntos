@@ -38,8 +38,8 @@ public class AdminEmpleadosController(IEmpleadoAdminService empleadoAdminService
     }
 
     /// <summary> Modificación parcial de un empleado. </summary>
-    [HttpPut("{id:guid}")]
-    public async Task<IActionResult> Actualizar(Guid id, EmpleadoUpdateDTO dto)
+    [HttpPut("{id:int}")]
+    public async Task<IActionResult> Actualizar(int id, EmpleadoUpdateDTO dto)
     {
         try
         {
@@ -60,8 +60,8 @@ public class AdminEmpleadosController(IEmpleadoAdminService empleadoAdminService
     }
 
     /// <summary> Baja lógica de un empleado (RN-15): pierde el acceso. 204 sin contenido. </summary>
-    [HttpDelete("{id:guid}")]
-    public async Task<IActionResult> Baja(Guid id)
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> Baja(int id)
     {
         try
         {

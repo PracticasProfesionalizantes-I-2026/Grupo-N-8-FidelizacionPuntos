@@ -23,7 +23,7 @@ public class AdminProductosControllerTests : IClassFixture<FidelixApiFactory>, I
 
     /// <summary>
     /// Crea un producto con nombre único y devuelve su DTO. Helper para los tests que necesitan
-    /// un producto existente (modificación, baja, duplicado). El nombre lleva un Guid para que
+    /// un producto existente (modificación, baja, duplicado). El nombre lleva un texto único (`Guid.NewGuid():N`) para que
     /// los tests no choquen entre sí, porque comparten la misma base.
     /// </summary>
     private async Task<ProductoResponseDTO> CrearProductoAsync(HttpClient client)
@@ -150,7 +150,7 @@ public class AdminProductosControllerTests : IClassFixture<FidelixApiFactory>, I
     {
         var client = _factory.CreateClientComo(Roles.Admin);
 
-        var respuesta = await client.PutAsJsonAsync($"/api/admin/productos/{Guid.NewGuid()}", new ProductoUpdateDTO { Precio = 750 });
+        var respuesta = await client.PutAsJsonAsync($"/api/admin/productos/{IdsDePrueba.Inexistente}", new ProductoUpdateDTO { Precio = 750 });
 
         Assert.Equal(HttpStatusCode.NotFound, respuesta.StatusCode);
     }

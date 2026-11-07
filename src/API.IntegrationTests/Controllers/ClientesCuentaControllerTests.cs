@@ -224,7 +224,7 @@ public class ClientesCuentaControllerTests : IClassFixture<FidelixApiFactory>, I
     [Fact]
     public async Task ConsultarCanjesDeCliente_WithUnknownId_Returns404NotFound()
     {
-        var respuesta = await _factory.CreateClientComo(Roles.Empleado).GetAsync($"/api/clientes/{Guid.NewGuid()}/canjes");
+        var respuesta = await _factory.CreateClientComo(Roles.Empleado).GetAsync($"/api/clientes/{IdsDePrueba.Inexistente}/canjes");
 
         Assert.Equal(HttpStatusCode.NotFound, respuesta.StatusCode);
     }

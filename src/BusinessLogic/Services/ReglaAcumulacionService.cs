@@ -25,7 +25,7 @@ public class ReglaAcumulacionService(IReglaAcumulacionRepository reglaRepository
     }
 
     /// <summary> Detalle de una versión por id, o 404 si no existe (flujo 3c). </summary>
-    public async Task<ReglaAcumulacionResponseDTO> ObtenerReglaAcumulacionPorIdAsync(Guid id)
+    public async Task<ReglaAcumulacionResponseDTO> ObtenerReglaAcumulacionPorIdAsync(int id)
     {
         var regla = await reglaRepository.GetByIdAsync(id)
             ?? throw new ReglaAcumulacionNotFoundException("La regla de acumulación no existe.");
@@ -57,7 +57,7 @@ public class ReglaAcumulacionService(IReglaAcumulacionRepository reglaRepository
     }
 
     /// <summary> Modificación parcial: valida solo lo que vino; registra la fecha de modificación (RN-13). </summary>
-    public async Task<ReglaAcumulacionResponseDTO> ActualizarReglaAcumulacionAsync(Guid id, ReglaAcumulacionUpdateDTO dto)
+    public async Task<ReglaAcumulacionResponseDTO> ActualizarReglaAcumulacionAsync(int id, ReglaAcumulacionUpdateDTO dto)
     {
         var regla = await reglaRepository.GetByIdAsync(id)
             ?? throw new ReglaAcumulacionNotFoundException("La regla de acumulación no existe.");
@@ -97,7 +97,7 @@ public class ReglaAcumulacionService(IReglaAcumulacionRepository reglaRepository
     /// RN-18: no puede haber dos versiones que empiecen el mismo día, porque ese día
     /// habría dos reglas vigentes a la vez. `idActual` excluye a la propia regla en la modificación.
     /// </summary>
-    private async Task ValidarSinSuperposicionAsync(DateTime vigenciaDesde, Guid? idActual)
+    private async Task ValidarSinSuperposicionAsync(DateTime vigenciaDesde, int? idActual)
     {
         var otra = await reglaRepository.GetByVigenciaDesdeAsync(vigenciaDesde);
         if (otra is not null && otra.Id != idActual)

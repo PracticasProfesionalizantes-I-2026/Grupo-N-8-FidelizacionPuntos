@@ -3,8 +3,8 @@ namespace FidelixAPI.Shared.DTOs.Canje;
 /// <summary>Confirmación del canje (CU-07).</summary>
 public class CanjeResponseDTO
 {
-    public Guid Id { get; set; }
-    public Guid BeneficioId { get; set; }
+    public int Id { get; set; }
+    public int BeneficioId { get; set; }
     public string BeneficioNombre { get; set; } = string.Empty;
     public int PuntosDescontados { get; set; }
     public int SaldoRestante { get; set; }

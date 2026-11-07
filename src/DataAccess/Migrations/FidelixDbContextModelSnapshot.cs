@@ -19,9 +19,9 @@ namespace FidelixAPI.DataAccess.Migrations
 
             modelBuilder.Entity("FidelixAPI.DataAccess.Entities.Admin", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -45,12 +45,12 @@ namespace FidelixAPI.DataAccess.Migrations
 
             modelBuilder.Entity("FidelixAPI.DataAccess.Entities.Auditoria", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("INTEGER");
 
-                    b.Property<Guid?>("ActorId")
-                        .HasColumnType("TEXT");
+                    b.Property<int?>("ActorId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("ActorRol")
                         .IsRequired()
@@ -60,8 +60,8 @@ namespace FidelixAPI.DataAccess.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid?>("EntidadId")
-                        .HasColumnType("TEXT");
+                    b.Property<int?>("EntidadId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("Fecha")
                         .HasColumnType("TEXT");
@@ -79,9 +79,9 @@ namespace FidelixAPI.DataAccess.Migrations
 
             modelBuilder.Entity("FidelixAPI.DataAccess.Entities.Beneficio", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("Activo")
                         .HasColumnType("INTEGER");
@@ -109,9 +109,9 @@ namespace FidelixAPI.DataAccess.Migrations
 
             modelBuilder.Entity("FidelixAPI.DataAccess.Entities.Cliente", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("Activo")
                         .HasColumnType("INTEGER");
@@ -162,9 +162,9 @@ namespace FidelixAPI.DataAccess.Migrations
 
             modelBuilder.Entity("FidelixAPI.DataAccess.Entities.CodigoRecuperacion", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("CodigoHash")
                         .IsRequired()
@@ -193,9 +193,9 @@ namespace FidelixAPI.DataAccess.Migrations
 
             modelBuilder.Entity("FidelixAPI.DataAccess.Entities.Empleado", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("Activo")
                         .HasColumnType("INTEGER");
@@ -232,21 +232,21 @@ namespace FidelixAPI.DataAccess.Migrations
 
             modelBuilder.Entity("FidelixAPI.DataAccess.Entities.Movimiento", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("INTEGER");
 
-                    b.Property<Guid?>("BeneficioId")
-                        .HasColumnType("TEXT");
+                    b.Property<int?>("BeneficioId")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<Guid>("ClienteId")
-                        .HasColumnType("TEXT");
+                    b.Property<int>("ClienteId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Detalle")
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid?>("EmpleadoId")
-                        .HasColumnType("TEXT");
+                    b.Property<int?>("EmpleadoId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int?>("EstadoCanje")
                         .HasColumnType("INTEGER");
@@ -280,9 +280,9 @@ namespace FidelixAPI.DataAccess.Migrations
 
             modelBuilder.Entity("FidelixAPI.DataAccess.Entities.Producto", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("Activo")
                         .HasColumnType("INTEGER");
@@ -307,9 +307,9 @@ namespace FidelixAPI.DataAccess.Migrations
 
             modelBuilder.Entity("FidelixAPI.DataAccess.Entities.ReglaAcumulacion", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("DiasVigenciaPuntos")
                         .HasColumnType("INTEGER");

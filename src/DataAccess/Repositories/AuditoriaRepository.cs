@@ -8,21 +8,20 @@ namespace FidelixAPI.DataAccess.Repositories;
 /// <summary>Implementación EF Core de <see cref="IAuditoriaRepository"/>: solo alta y lectura (RN-20).</summary>
 public class AuditoriaRepository(FidelixDbContext context) : IAuditoriaRepository
 {
-    /// <summary>Asigna un nuevo Id y persiste el registro.</summary>
+    /// <summary>Persiste el registro nuevo; el Id lo genera la base (autoincremental) y EF lo carga en la entidad.</summary>
     public async Task<Auditoria> CreateAsync(Auditoria entity)
     {
-        entity.Id = Guid.NewGuid();
         context.Auditorias.Add(entity);
         await context.SaveChangesAsync();
         return entity;
     }
 
     /// <summary>Busca un registro por Id, en modo solo lectura.</summary>
-    public Task<Auditoria?> GetByIdAsync(Guid id) =>
+    public Task<Auditoria?> GetByIdAsync(int id) =>
         context.Auditorias.AsNoTracking().FirstOrDefaultAsync(a => a.Id == id);
 
     /// <summary>Aplica solo los filtros informados y ordena del más nuevo al más viejo.</summary>
-    public async Task<IReadOnlyList<Auditoria>> BuscarAsync(DateTime? fechaDesde, DateTime? fechaHasta, string? tipoOperacion, Guid? actorId)
+    public async Task<IReadOnlyList<Auditoria>> BuscarAsync(DateTime? fechaDesde, DateTime? fechaHasta, string? tipoOperacion, int? actorId)
     {
         var query = context.Auditorias.AsNoTracking().AsQueryable();
 

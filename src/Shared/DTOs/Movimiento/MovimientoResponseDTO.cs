@@ -6,8 +6,8 @@ namespace FidelixAPI.Shared.DTOs.Movimiento;
 /// </summary>
 public class MovimientoResponseDTO
 {
-    public Guid Id { get; set; }
-    public Guid ClienteId { get; set; }
+    public int Id { get; set; }
+    public int ClienteId { get; set; }
     public string Tipo { get; set; } = string.Empty;
     public int Puntos { get; set; }
     public int PuntosDisponibles { get; set; }
@@ -20,12 +20,12 @@ public class MovimientoResponseDTO
     public DateTime? FechaVencimiento { get; set; }
 
     public string? Detalle { get; set; }
-    public Guid? BeneficioId { get; set; }
+    public int? BeneficioId { get; set; }
     public string? BeneficioNombre { get; set; }
 
     /// <summary>Solo en canjes: "Pendiente" o "Entregado" (RN-10).</summary>
     public string? EstadoCanje { get; set; }
 
     /// <summary>Empleado que registró el movimiento, si corresponde (RF-28).</summary>
-    public Guid? EmpleadoId { get; set; }
+    public int? EmpleadoId { get; set; }
 }

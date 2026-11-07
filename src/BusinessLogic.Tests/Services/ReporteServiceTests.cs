@@ -30,8 +30,8 @@ public class ReporteServiceTests
     [Fact]
     public async Task GenerarReporteAsync_WithValidParams_ReturnsConsistentReport()
     {
-        var beneficio = new Beneficio { Id = Guid.NewGuid(), Nombre = "Café" };
-        var cliente = Guid.NewGuid();
+        var beneficio = new Beneficio { Id = IdsDePrueba.Nuevo(), Nombre = "Café" };
+        var cliente = IdsDePrueba.Nuevo();
         _movimientoRepo.Setup(r => r.BuscarAsync(null, null, It.IsAny<DateTime?>(), It.IsAny<DateTime?>())).ReturnsAsync([
             new Movimiento { ClienteId = cliente, Tipo = TipoMovimiento.Acumulacion, Puntos = 300 },
             new Movimiento { ClienteId = cliente, Tipo = TipoMovimiento.Canje, Puntos = -100, BeneficioId = beneficio.Id, Beneficio = beneficio },

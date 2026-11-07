@@ -19,7 +19,7 @@ namespace FidelixAPI.API.IntegrationTests.Controllers;
 public class MovimientosControllerTests : IClassFixture<FidelixApiFactory>, IAsyncLifetime
 {
     /// <summary>Ruta de la compra: el id del cliente va como parámetro de ruta, no en el body.</summary>
-    private static string Url(Guid clienteId) => $"/api/movimientos/acumulaciones/{clienteId}";
+    private static string Url(int clienteId) => $"/api/movimientos/acumulaciones/{clienteId}";
     /// <summary>DNI del cliente Gold sembrado: su id se genera al sembrar, así que se obtiene buscándolo por DNI.</summary>
     private const string DocumentoGold = "40111222";
 
@@ -35,7 +35,7 @@ public class MovimientosControllerTests : IClassFixture<FidelixApiFactory>, IAsy
     public Task DisposeAsync() => Task.CompletedTask;
 
     /// <summary>Da de alta (como admin) un producto de $1000 con nombre único (CU-18) y devuelve su Id.</summary>
-    private async Task<Guid> CrearProductoAsync()
+    private async Task<int> CrearProductoAsync()
     {
         var respuesta = await _factory.CreateClientComo(Roles.Admin).PostAsJsonAsync("/api/admin/productos", new ProductoCreateDTO
         {
@@ -46,7 +46,7 @@ public class MovimientosControllerTests : IClassFixture<FidelixApiFactory>, IAsy
     }
 
     /// <summary>Cuerpo de la compra: 2 unidades de un producto ($2000). El cliente va en la ruta, no acá.</summary>
-    private static AcumulacionCreateDTO Compra(Guid productoId, int cantidad = 2) => new()
+    private static AcumulacionCreateDTO Compra(int productoId, int cantidad = 2) => new()
     {
         Items = [new ItemCompraDTO { ProductoId = productoId, Cantidad = cantidad }]
     };
@@ -102,13 +102,13 @@ public class MovimientosControllerTests : IClassFixture<FidelixApiFactory>, IAsy
         var client = _factory.CreateClientComo(Roles.Empleado);
         var productoId = await CrearProductoAsync();
 
-        var respuesta = await client.PostAsJsonAsync(Url(Guid.NewGuid()), Compra(productoId));
+        var respuesta = await client.PostAsJsonAsync(Url(IdsDePrueba.Inexistente), Compra(productoId));
 
         Assert.Equal(HttpStatusCode.NotFound, respuesta.StatusCode);
     }
 
     /// <summary>
-    /// CU-10: el id del cliente va en la ruta con restricción `{clienteId:guid}`. Un valor que no es Guid
+    /// CU-10: el id del cliente va en la ruta con restricción `{clienteId:int}`. Un valor que no es entero
     /// (o la ruta vieja sin id) no coincide con ningún endpoint y responde 404.
     /// </summary>
     [Theory]

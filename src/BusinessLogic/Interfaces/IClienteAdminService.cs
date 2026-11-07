@@ -13,8 +13,8 @@ public interface IClienteAdminService
     Task<ClienteResponseDTO> CrearClienteAsync(ClienteCreateDTO dto);
 
     /// <summary>Modificación parcial, incluida la categoría (N1); el email nuevo tiene que ser único (RN-01).</summary>
-    Task<ClienteResponseDTO> ActualizarClienteAsync(Guid id, AdminClienteUpdateDTO dto);
+    Task<ClienteResponseDTO> ActualizarClienteAsync(int id, AdminClienteUpdateDTO dto);
 
     /// <summary>Baja lógica: el cliente deja de acumular y canjear (RN-14), sin perder su historial.</summary>
-    Task BajaClienteAsync(Guid id);
+    Task BajaClienteAsync(int id);
 }

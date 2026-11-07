@@ -13,8 +13,8 @@ public interface IEmpleadoAdminService
     Task<EmpleadoResponseDTO> CrearEmpleadoAsync(EmpleadoCreateDTO dto);
 
     /// <summary>Modificación parcial; el email nuevo tiene que seguir siendo único (RN-01).</summary>
-    Task<EmpleadoResponseDTO> ActualizarEmpleadoAsync(Guid id, EmpleadoUpdateDTO dto);
+    Task<EmpleadoResponseDTO> ActualizarEmpleadoAsync(int id, EmpleadoUpdateDTO dto);
 
     /// <summary>Baja lógica: el empleado pierde el acceso (RN-15).</summary>
-    Task BajaEmpleadoAsync(Guid id);
+    Task BajaEmpleadoAsync(int id);
 }

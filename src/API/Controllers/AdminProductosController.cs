@@ -40,8 +40,8 @@ public class AdminProductosController(IProductoService productoService) : Contro
     }
 
     /// <summary> Modificación de un producto existente, actualización parcial (RN-25 y RN-24). </summary>
-    [HttpPut("{id:guid}")]
-    public async Task<IActionResult> ActualizarProducto(Guid id, ProductoUpdateDTO dto)
+    [HttpPut("{id:int}")]
+    public async Task<IActionResult> ActualizarProducto(int id, ProductoUpdateDTO dto)
     {
         try
         {
@@ -63,8 +63,8 @@ public class AdminProductosController(IProductoService productoService) : Contro
     }
 
     /// <summary> Desactivación lógica de un producto (RN-26). </summary>
-    [HttpPatch("{id:guid}/desactivar")]
-    public async Task<IActionResult> DesactivarProducto(Guid id)
+    [HttpPatch("{id:int}/desactivar")]
+    public async Task<IActionResult> DesactivarProducto(int id)
     {
         try
         {

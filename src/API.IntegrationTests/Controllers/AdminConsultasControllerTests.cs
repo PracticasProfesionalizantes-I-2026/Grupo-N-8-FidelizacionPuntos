@@ -64,7 +64,7 @@ public class AdminConsultasControllerTests : IClassFixture<FidelixApiFactory>, I
     public async Task ConsultarMovimientos_WithNoMatches_Returns200OKWithEmptyList()
     {
         var movimientos = await _factory.CreateClientComo(Roles.Admin)
-            .GetFromJsonAsync<ListadoResponseDTO<MovimientoResponseDTO>>($"/api/admin/movimientos?clienteId={Guid.NewGuid()}");
+            .GetFromJsonAsync<ListadoResponseDTO<MovimientoResponseDTO>>($"/api/admin/movimientos?clienteId={IdsDePrueba.Inexistente}");
 
         Assert.Empty(movimientos!.Items);
         Assert.Equal("No existen resultados para los filtros seleccionados", movimientos.Mensaje);
@@ -102,7 +102,7 @@ public class AdminConsultasControllerTests : IClassFixture<FidelixApiFactory>, I
     public async Task ConsultarAuditoria_WithNoMatches_Returns200OKWithEmptyList()
     {
         var registros = await _factory.CreateClientComo(Roles.Admin)
-            .GetFromJsonAsync<ListadoResponseDTO<AuditoriaResponseDTO>>($"/api/admin/auditoria?actorId={Guid.NewGuid()}");
+            .GetFromJsonAsync<ListadoResponseDTO<AuditoriaResponseDTO>>($"/api/admin/auditoria?actorId={IdsDePrueba.Inexistente}");
 
         Assert.Empty(registros!.Items);
         Assert.Equal("No existen resultados para los filtros seleccionados", registros.Mensaje);
@@ -115,13 +115,12 @@ public class AdminConsultasControllerTests : IClassFixture<FidelixApiFactory>, I
     [Fact]
     public async Task ConsultarAuditoria_WithSameDayRange_IncludesOperationAfter21ArgentineTime()
     {
-        var actorId = Guid.NewGuid();
+        var actorId = IdsDePrueba.Nuevo(); // actor propio del test, que nadie más usa
         using (var scope = _factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<FidelixDbContext>();
             context.Auditorias.Add(new FidelixAPI.DataAccess.Entities.Auditoria
             {
-                Id = Guid.NewGuid(),
                 Fecha = new DateTime(2026, 11, 7, 1, 30, 0, DateTimeKind.Utc),
                 TipoOperacion = "Test.OperacionNocturna",
                 ActorId = actorId,

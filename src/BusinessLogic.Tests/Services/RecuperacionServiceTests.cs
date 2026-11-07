@@ -20,7 +20,7 @@ public class RecuperacionServiceTests
     private readonly Mock<IEmailSender> _email = new();
     private readonly RecuperacionService _sut;
 
-    private readonly Cliente _cliente = new() { Id = Guid.NewGuid(), Email = "ana@test.com", Activo = true, IntentosFallidos = 3 };
+    private readonly Cliente _cliente = new() { Id = IdsDePrueba.Nuevo(), Email = "ana@test.com", Activo = true, IntentosFallidos = 3 };
 
     /// <summary> Arma el service con un cliente activo existente. </summary>
     public RecuperacionServiceTests()

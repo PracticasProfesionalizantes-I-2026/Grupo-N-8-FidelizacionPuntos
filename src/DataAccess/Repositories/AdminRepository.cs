@@ -9,7 +9,7 @@ namespace FidelixAPI.DataAccess.Repositories;
 public class AdminRepository(FidelixDbContext context) : IAdminRepository
 {
     /// <summary>Busca un admin por Id, con tracking.</summary>
-    public Task<Admin?> GetByIdAsync(Guid id) =>
+    public Task<Admin?> GetByIdAsync(int id) =>
         context.Admins.FirstOrDefaultAsync(a => a.Id == id);
 
     /// <summary>Lista todos los admins en modo solo lectura (RN-28: a quién avisar por un empleado).</summary>
@@ -20,10 +20,9 @@ public class AdminRepository(FidelixDbContext context) : IAdminRepository
     public Task<Admin?> GetByEmailAsync(string email) =>
         context.Admins.FirstOrDefaultAsync(a => a.Email == email);
 
-    /// <summary>Asigna un nuevo Id y persiste el admin.</summary>
+    /// <summary>Persiste el admin nuevo; el Id lo genera la base (autoincremental) y EF lo carga en la entidad.</summary>
     public async Task<Admin> CreateAsync(Admin entity)
     {
-        entity.Id = Guid.NewGuid();
         context.Admins.Add(entity);
         await context.SaveChangesAsync();
         return entity;

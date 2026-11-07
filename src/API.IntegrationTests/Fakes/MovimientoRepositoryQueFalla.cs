@@ -11,15 +11,15 @@ namespace FidelixAPI.API.IntegrationTests.Fakes;
 public class MovimientoRepositoryQueFalla : IMovimientoRepository
 {
     /// <summary>Simula una falla de conexión.</summary>
-    public Task<IReadOnlyList<Movimiento>> GetLotesVigentesPorClienteAsync(Guid clienteId, DateTime fechaReferencia) =>
+    public Task<IReadOnlyList<Movimiento>> GetLotesVigentesPorClienteAsync(int clienteId, DateTime fechaReferencia) =>
         throw new InvalidOperationException("Falla de conexión simulada");
 
     /// <summary>Simula una falla de conexión.</summary>
-    public Task<IReadOnlyList<Movimiento>> GetLotesParaCanjeAsync(Guid clienteId, DateTime fechaReferencia) =>
+    public Task<IReadOnlyList<Movimiento>> GetLotesParaCanjeAsync(int clienteId, DateTime fechaReferencia) =>
         throw new InvalidOperationException("Falla de conexión simulada");
 
     /// <summary>Simula una falla de conexión.</summary>
-    public Task<Movimiento?> GetByIdAsync(Guid id) => throw new InvalidOperationException("Falla de conexión simulada");
+    public Task<Movimiento?> GetByIdAsync(int id) => throw new InvalidOperationException("Falla de conexión simulada");
 
     /// <summary>Simula una falla de conexión.</summary>
     public Task<IReadOnlyList<Movimiento>> GetAllAsync() => throw new InvalidOperationException("Falla de conexión simulada");
@@ -31,7 +31,7 @@ public class MovimientoRepositoryQueFalla : IMovimientoRepository
     public Task UpdateAsync(Movimiento entity) => throw new InvalidOperationException("Falla de conexión simulada");
 
     /// <summary>Simula una falla de conexión.</summary>
-    public Task<IReadOnlyList<Movimiento>> BuscarAsync(Guid? clienteId, TipoMovimiento? tipo, DateTime? fechaDesde, DateTime? fechaHasta) =>
+    public Task<IReadOnlyList<Movimiento>> BuscarAsync(int? clienteId, TipoMovimiento? tipo, DateTime? fechaDesde, DateTime? fechaHasta) =>
         throw new InvalidOperationException("Falla de conexión simulada");
 
     /// <summary>Simula una falla de conexión.</summary>
@@ -39,6 +39,6 @@ public class MovimientoRepositoryQueFalla : IMovimientoRepository
         throw new InvalidOperationException("Falla de conexión simulada");
 
     /// <summary>Simula una falla de conexión.</summary>
-    public Task<bool> ExisteBonoEnAnioAsync(Guid clienteId, int anio) =>
+    public Task<bool> ExisteBonoEnAnioAsync(int clienteId, int anio) =>
         throw new InvalidOperationException("Falla de conexión simulada");
 }

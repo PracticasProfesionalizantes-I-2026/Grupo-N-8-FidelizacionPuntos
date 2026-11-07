@@ -48,7 +48,7 @@ public class ClienteService(IClienteRepository clienteRepository, IMovimientoRep
     /// el cliente no existe lanza <see cref="ClienteNotFoundException"/>; si
     /// falla la lectura de datos, <see cref="PersistenceException"/> (flujo 4a).
     /// </summary>
-    public async Task<SaldoResponseDTO> ConsultarSaldoAsync(Guid clienteId)
+    public async Task<SaldoResponseDTO> ConsultarSaldoAsync(int clienteId)
     {
         _ = await clienteRepository.GetByIdAsync(clienteId)
             ?? throw new ClienteNotFoundException("No se encontró el cliente.");
@@ -67,7 +67,7 @@ public class ClienteService(IClienteRepository clienteRepository, IMovimientoRep
     }
 
     /// <summary>Perfil del cliente autenticado (CU-03).</summary>
-    public async Task<ClienteResponseDTO> ObtenerPerfilAsync(Guid clienteId)
+    public async Task<ClienteResponseDTO> ObtenerPerfilAsync(int clienteId)
     {
         var cliente = await clienteRepository.GetByIdAsync(clienteId)
             ?? throw new ClienteNotFoundException("No se encontró el cliente.");
@@ -78,7 +78,7 @@ public class ClienteService(IClienteRepository clienteRepository, IMovimientoRep
     /// Modificación parcial del perfil (CU-03): rechaza cambiar el documento (2b, RN-04), valida la
     /// contraseña nueva (RN-02) y que el email nuevo no sea de otro cliente (3a, RN-01).
     /// </summary>
-    public async Task<ClienteResponseDTO> ActualizarPerfilAsync(Guid clienteId, ClienteUpdateDTO dto)
+    public async Task<ClienteResponseDTO> ActualizarPerfilAsync(int clienteId, ClienteUpdateDTO dto)
     {
         var cliente = await clienteRepository.GetByIdAsync(clienteId)
             ?? throw new ClienteNotFoundException("No se encontró el cliente.");
@@ -114,7 +114,7 @@ public class ClienteService(IClienteRepository clienteRepository, IMovimientoRep
     }
 
     /// <summary>Baja voluntaria (CU-03): `Activo = false`, el historial queda intacto (RN-14).</summary>
-    public async Task DarseDeBajaAsync(Guid clienteId)
+    public async Task DarseDeBajaAsync(int clienteId)
     {
         var cliente = await clienteRepository.GetByIdAsync(clienteId)
             ?? throw new ClienteNotFoundException("No se encontró el cliente.");
@@ -124,7 +124,7 @@ public class ClienteService(IClienteRepository clienteRepository, IMovimientoRep
     }
 
     /// <summary>Historial con filtros, en orden cronológico (CU-05, RN-06); vacío no es error (4a).</summary>
-    public async Task<ListadoResponseDTO<MovimientoResponseDTO>> ConsultarHistorialAsync(Guid clienteId, HistorialFiltroDTO filtro)
+    public async Task<ListadoResponseDTO<MovimientoResponseDTO>> ConsultarHistorialAsync(int clienteId, HistorialFiltroDTO filtro)
     {
         // Mismo criterio de fechas que la consulta del admin (CU-20): hora Argentina, día completo.
         var (desdeUtc, hastaUtc) = FechasNegocio.RangoUtc(filtro.FechaDesde, filtro.FechaHasta);
@@ -134,7 +134,7 @@ public class ClienteService(IClienteRepository clienteRepository, IMovimientoRep
     }
 
     /// <summary>Canjes del cliente autenticado con su estado (CU-08, RN-10); vacío no es error (4a).</summary>
-    public async Task<ListadoResponseDTO<CanjeItemDTO>> ConsultarCanjesAsync(Guid clienteId)
+    public async Task<ListadoResponseDTO<CanjeItemDTO>> ConsultarCanjesAsync(int clienteId)
     {
         var canjes = await movimientoRepository.BuscarAsync(clienteId, TipoMovimiento.Canje, null, null);
         return ListadoResponseDTO<CanjeItemDTO>.Crear(canjes.Select(MovimientoMapper.ToCanjeItemDTO).ToList(), "Aún no realizaste ningún canje");
@@ -193,7 +193,7 @@ public class ClienteService(IClienteRepository clienteRepository, IMovimientoRep
     }
 
     /// <summary>Canjes de un cliente por su id, para el empleado (CU-13): 404 si no existe (3a); vacío no es error (4a).</summary>
-    public async Task<ListadoResponseDTO<CanjeItemDTO>> ConsultarCanjesDeClienteAsync(Guid clienteId)
+    public async Task<ListadoResponseDTO<CanjeItemDTO>> ConsultarCanjesDeClienteAsync(int clienteId)
     {
         var cliente = await clienteRepository.GetByIdAsync(clienteId)
             ?? throw new ClienteNotFoundException("El cliente no se encuentra registrado.");

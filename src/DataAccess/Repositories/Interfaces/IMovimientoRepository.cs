@@ -11,13 +11,13 @@ public interface IMovimientoRepository : IRepositorioBase<Movimiento>
     /// disponibles (no pendientes, N2), del más antiguo al más nuevo (RN-09).
     /// Solo lectura: la base para calcular el saldo disponible (CU-04, RN-05).
     /// </summary>
-    Task<IReadOnlyList<Movimiento>> GetLotesVigentesPorClienteAsync(Guid clienteId, DateTime fechaReferencia);
+    Task<IReadOnlyList<Movimiento>> GetLotesVigentesPorClienteAsync(int clienteId, DateTime fechaReferencia);
 
     /// <summary>
     /// Mismos lotes que <see cref="GetLotesVigentesPorClienteAsync"/>, pero con tracking:
     /// el canje (CU-07) les descuenta puntos por FIFO y los guarda en la misma transacción.
     /// </summary>
-    Task<IReadOnlyList<Movimiento>> GetLotesParaCanjeAsync(Guid clienteId, DateTime fechaReferencia);
+    Task<IReadOnlyList<Movimiento>> GetLotesParaCanjeAsync(int clienteId, DateTime fechaReferencia);
 
     /// <summary>
     /// Movimientos que cumplen todos los filtros informados (los `null` no filtran), en orden
@@ -25,11 +25,11 @@ public interface IMovimientoRepository : IRepositorioBase<Movimiento>
     /// Solo lectura: lo usan el historial (CU-05), los canjes (CU-08, CU-13), la consulta del
     /// admin (CU-20) y los reportes (CU-24).
     /// </summary>
-    Task<IReadOnlyList<Movimiento>> BuscarAsync(Guid? clienteId, TipoMovimiento? tipo, DateTime? fechaDesde, DateTime? fechaHasta);
+    Task<IReadOnlyList<Movimiento>> BuscarAsync(int? clienteId, TipoMovimiento? tipo, DateTime? fechaDesde, DateTime? fechaHasta);
 
     /// <summary>Lotes con puntos sin consumir cuya fecha de vencimiento ya pasó, con tracking (CU-22 los deja en 0).</summary>
     Task<IReadOnlyList<Movimiento>> GetLotesVencidosAsync(DateTime fechaReferencia);
 
     /// <summary>Indica si el cliente ya recibió el bono de cumpleaños en ese año (RN-29, CU-26).</summary>
-    Task<bool> ExisteBonoEnAnioAsync(Guid clienteId, int anio);
+    Task<bool> ExisteBonoEnAnioAsync(int clienteId, int anio);
 }

@@ -36,8 +36,8 @@ public class AdminBeneficiosController(IBeneficioService beneficioService) : Con
     }
 
     /// <summary>Modificación de un beneficio existente.</summary>
-    [HttpPut("{id:guid}")]
-    public async Task<IActionResult> Actualizar(Guid id, BeneficioUpdateDTO dto)
+    [HttpPut("{id:int}")]
+    public async Task<IActionResult> Actualizar(int id, BeneficioUpdateDTO dto)
     {
         try
         {
@@ -59,8 +59,8 @@ public class AdminBeneficiosController(IBeneficioService beneficioService) : Con
     }
 
     /// <summary>Desactivación lógica (RN-17): el beneficio deja de estar disponible para canje.</summary>
-    [HttpPatch("{id:guid}/desactivar")]
-    public async Task<IActionResult> Desactivar(Guid id)
+    [HttpPatch("{id:int}/desactivar")]
+    public async Task<IActionResult> Desactivar(int id)
     {
         try
         {

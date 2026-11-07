@@ -14,7 +14,7 @@ public class JwtTokenService(IConfiguration configuration) : ITokenService
     /// Genera un token JWT firmado con el id y el rol como claims
     /// CU-02, flujo principal, paso 4.
     /// </summary>
-    public string GenerarToken(Guid id, string rol)
+    public string GenerarToken(int id, string rol)
     {
         var claveSecreta = configuration["Jwt:Key"]
             ?? throw new InvalidOperationException("Falta la clave del token en la configuracion.");

@@ -11,7 +11,7 @@ public interface IMovimientoService
     /// según la regla vigente (RN-12), con el multiplicador Gold (N1) y como pendientes por 15 días
     /// (N2); queda auditada con el empleado que la registró (RN-13, RF-28).
     /// </summary>
-    Task<AcumulacionResponseDTO> RegistrarAcumulacionAsync(Guid clienteId, AcumulacionCreateDTO dto, Guid? empleadoId = null);
+    Task<AcumulacionResponseDTO> RegistrarAcumulacionAsync(int clienteId, AcumulacionCreateDTO dto, int? empleadoId = null);
 
     /// <summary>Movimientos de todos los clientes con filtros opcionales: acumulaciones y canjes (CU-20, RN-06).</summary>
     Task<ListadoResponseDTO<MovimientoResponseDTO>> ConsultarMovimientosAsync(MovimientoFiltroDTO filtro);

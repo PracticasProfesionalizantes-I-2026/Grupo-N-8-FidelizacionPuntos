@@ -50,7 +50,7 @@ public class EmpleadoAdminService(IEmpleadoRepository empleadoRepository) : IEmp
     }
 
     /// <summary> Modificación parcial: 404 si no existe (3b), email único si cambia y contraseña válida si viene. </summary>
-    public async Task<EmpleadoResponseDTO> ActualizarEmpleadoAsync(Guid id, EmpleadoUpdateDTO dto)
+    public async Task<EmpleadoResponseDTO> ActualizarEmpleadoAsync(int id, EmpleadoUpdateDTO dto)
     {
         var empleado = await empleadoRepository.GetByIdAsync(id)
             ?? throw new EmpleadoNotFoundException("El empleado no existe.");
@@ -79,7 +79,7 @@ public class EmpleadoAdminService(IEmpleadoRepository empleadoRepository) : IEmp
     }
 
     /// <summary> Baja lógica (RN-15): el login lo rechaza a partir de ahora. </summary>
-    public async Task BajaEmpleadoAsync(Guid id)
+    public async Task BajaEmpleadoAsync(int id)
     {
         var empleado = await empleadoRepository.GetByIdAsync(id)
             ?? throw new EmpleadoNotFoundException("El empleado no existe.");

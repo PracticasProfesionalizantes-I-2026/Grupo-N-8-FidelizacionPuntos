@@ -80,13 +80,13 @@ public class FidelixApiFactory : WebApplicationFactory<Program>
     /// de otros CU. Por defecto queda disponible y vigente; con `fechaVencimiento` en el pasado sirve
     /// para probar el vencimiento (CU-22).
     /// </summary>
-    public async Task<Movimiento> AcreditarPuntosAsync(Guid clienteId, int puntos, DateTime? fechaVencimiento = null, DateTime? fecha = null)
+    public async Task<Movimiento> AcreditarPuntosAsync(int clienteId, int puntos, DateTime? fechaVencimiento = null, DateTime? fecha = null)
     {
         using var scope = Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<FidelixDbContext>();
         var lote = new Movimiento
         {
-            Id = Guid.NewGuid(),
+            // Sin Id: lo genera la base (autoincremental) al guardar.
             ClienteId = clienteId,
             Tipo = TipoMovimiento.Acumulacion,
             Puntos = puntos,

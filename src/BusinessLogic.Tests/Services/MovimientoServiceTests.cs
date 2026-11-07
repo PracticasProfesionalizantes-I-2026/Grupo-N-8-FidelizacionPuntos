@@ -18,8 +18,8 @@ public class MovimientoServiceTests
     private readonly Mock<IMovimientoRepository> _movimientoRepo = new();
     private readonly MovimientoService _sut;
 
-    private readonly Cliente _cliente = new() { Id = Guid.NewGuid(), Documento = "40333444", Activo = true, Categoria = CategoriaCliente.Estandar };
-    private readonly Producto _producto = new() { Id = Guid.NewGuid(), Nombre = "Hamburguesa", Precio = 1000, Activo = true };
+    private readonly Cliente _cliente = new() { Id = IdsDePrueba.Nuevo(), Documento = "40333444", Activo = true, Categoria = CategoriaCliente.Estandar };
+    private readonly Producto _producto = new() { Id = IdsDePrueba.Nuevo(), Nombre = "Hamburguesa", Precio = 1000, Activo = true };
 
     /// <summary>
     /// Arma el service y deja configurado el "camino feliz": cliente y producto existentes,
@@ -35,7 +35,7 @@ public class MovimientoServiceTests
         _reglaRepo.Setup(r => r.GetVigenteAsync(It.IsAny<DateTime>()))
             .ReturnsAsync(new ReglaAcumulacion { PuntosPorMonto = 0.1m, DiasVigenciaPuntos = 180 });
         _movimientoRepo.Setup(r => r.CreateAsync(It.IsAny<Movimiento>())).ReturnsAsync((Movimiento m) => m);
-        _movimientoRepo.Setup(r => r.GetLotesVigentesPorClienteAsync(It.IsAny<Guid>(), It.IsAny<DateTime>()))
+        _movimientoRepo.Setup(r => r.GetLotesVigentesPorClienteAsync(It.IsAny<int>(), It.IsAny<DateTime>()))
             .ReturnsAsync([new Movimiento { PuntosDisponibles = 150 }]);
     }
 
@@ -76,7 +76,7 @@ public class MovimientoServiceTests
     [Fact]
     public async Task RegistrarAcumulacionAsync_WithUnknownClienteId_ThrowsClienteNotFoundException()
     {
-        var idInexistente = Guid.NewGuid();
+        var idInexistente = IdsDePrueba.Nuevo();
         _clienteRepo.Setup(r => r.GetByIdAsync(idInexistente)).ReturnsAsync((Cliente?)null);
 
         await Assert.ThrowsAsync<ClienteNotFoundException>(() => _sut.RegistrarAcumulacionAsync(idInexistente, Compra()));
@@ -140,7 +140,7 @@ public class MovimientoServiceTests
     [Fact]
     public async Task ConsultarMovimientosAsync_WithSameDayRange_QueriesWholeArgentineDayInUtc()
     {
-        _movimientoRepo.Setup(r => r.BuscarAsync(It.IsAny<Guid?>(), It.IsAny<TipoMovimiento?>(), It.IsAny<DateTime?>(), It.IsAny<DateTime?>()))
+        _movimientoRepo.Setup(r => r.BuscarAsync(It.IsAny<int?>(), It.IsAny<TipoMovimiento?>(), It.IsAny<DateTime?>(), It.IsAny<DateTime?>()))
             .ReturnsAsync([]);
         var dia = new DateTime(2026, 11, 6);
 
@@ -155,7 +155,7 @@ public class MovimientoServiceTests
     [Fact]
     public async Task ConsultarMovimientosAsync_WithNoMatches_ReturnsEmptyList()
     {
-        _movimientoRepo.Setup(r => r.BuscarAsync(It.IsAny<Guid?>(), It.IsAny<TipoMovimiento?>(), It.IsAny<DateTime?>(), It.IsAny<DateTime?>()))
+        _movimientoRepo.Setup(r => r.BuscarAsync(It.IsAny<int?>(), It.IsAny<TipoMovimiento?>(), It.IsAny<DateTime?>(), It.IsAny<DateTime?>()))
             .ReturnsAsync([]);
 
         var resultado = await _sut.ConsultarMovimientosAsync(new MovimientoFiltroDTO());
@@ -168,7 +168,7 @@ public class MovimientoServiceTests
     [Fact]
     public async Task RegistrarAcumulacionAsync_WithEmpleado_StoresEmpleadoId()
     {
-        var empleadoId = Guid.NewGuid();
+        var empleadoId = IdsDePrueba.Nuevo();
 
         await _sut.RegistrarAcumulacionAsync(_cliente.Id, Compra(), empleadoId);
 

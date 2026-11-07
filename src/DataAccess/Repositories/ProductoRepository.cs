@@ -9,7 +9,7 @@ namespace FidelixAPI.DataAccess.Repositories;
 public class ProductoRepository(FidelixDbContext context) : IProductoRepository
 {
     /// <summary> busca un producto por Id </summary>
-    public async Task<Producto?> GetByIdAsync(Guid id) =>
+    public async Task<Producto?> GetByIdAsync(int id) =>
         await context.Productos.FirstOrDefaultAsync(p => p.Id == id);
 
     /// <summary> Obtiene todos los productos. </summary>
@@ -20,10 +20,9 @@ public class ProductoRepository(FidelixDbContext context) : IProductoRepository
     public async Task<Producto?> GetByNombreAsync(string nombre) =>
         await context.Productos.FirstOrDefaultAsync(p => p.Nombre == nombre);
 
-    /// <summary> Crea un nuevo producto. </summary>
+    /// <summary> Crea un nuevo producto; el Id lo genera la base (autoincremental) y EF lo carga en la entidad. </summary>
     public async Task<Producto> CreateAsync(Producto producto)
     {
-        producto.Id = Guid.NewGuid();
         context.Productos.Add(producto);
         await context.SaveChangesAsync();
         return producto;

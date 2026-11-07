@@ -111,7 +111,7 @@ public class AdminBeneficiosControllerTests : IClassFixture<FidelixApiFactory>, 
     {
         var client = _factory.CreateClientComo(Roles.Admin);
 
-        var respuesta = await client.PutAsJsonAsync($"/api/admin/beneficios/{Guid.NewGuid()}", new BeneficioUpdateDTO { CostoPuntos = 250 });
+        var respuesta = await client.PutAsJsonAsync($"/api/admin/beneficios/{IdsDePrueba.Inexistente}", new BeneficioUpdateDTO { CostoPuntos = 250 });
 
         Assert.Equal(HttpStatusCode.NotFound, respuesta.StatusCode);
     }

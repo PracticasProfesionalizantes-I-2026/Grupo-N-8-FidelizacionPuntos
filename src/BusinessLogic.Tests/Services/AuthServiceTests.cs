@@ -42,7 +42,7 @@ public class AuthServiceTests
     {
         var cliente = new Cliente
         {
-            Id = Guid.NewGuid(),
+            Id = IdsDePrueba.Nuevo(),
             Email = "demo@fidelix.local",
             PasswordHash = PasswordHasher.Hash("cliente1234!"),
             Activo = true
@@ -62,7 +62,7 @@ public class AuthServiceTests
     {
         var cliente = new Cliente
         {
-            Id = Guid.NewGuid(),
+            Id = IdsDePrueba.Nuevo(),
             Email = "demo@fidelix.local",
             Activo = true,
             BloqueadoHasta = DateTime.UtcNow.AddMinutes(30)
@@ -82,7 +82,7 @@ public class AuthServiceTests
     {
         var cliente = new Cliente
         {
-            Id = Guid.NewGuid(),
+            Id = IdsDePrueba.Nuevo(),
             Email = "demo@fidelix.local",
             PasswordHash = PasswordHasher.Hash("cliente123!"),
             IntentosFallidos = 2,

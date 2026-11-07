@@ -10,11 +10,11 @@ public interface IReglaAcumulacionService
     Task<ListadoResponseDTO<ReglaAcumulacionResponseDTO>> ObtenerReglasAcumulacionAsync();
 
     /// <summary>Devuelve el detalle de una versión. Lanza 404 si el id no existe (flujo 3c).</summary>
-    Task<ReglaAcumulacionResponseDTO> ObtenerReglaAcumulacionPorIdAsync(Guid id);
+    Task<ReglaAcumulacionResponseDTO> ObtenerReglaAcumulacionPorIdAsync(int id);
 
     /// <summary>Da de alta una versión nueva: valores positivos y sin superponerse con otra (RN-18); registra la fecha de alta (RN-13).</summary>
     Task<ReglaAcumulacionResponseDTO> CrearReglaAcumulacionAsync(ReglaAcumulacionCreateDTO dto);
 
     /// <summary>Modificación parcial de una versión: mismas validaciones que el alta; registra la fecha de modificación (RN-13).</summary>
-    Task<ReglaAcumulacionResponseDTO> ActualizarReglaAcumulacionAsync(Guid id, ReglaAcumulacionUpdateDTO dto);
+    Task<ReglaAcumulacionResponseDTO> ActualizarReglaAcumulacionAsync(int id, ReglaAcumulacionUpdateDTO dto);
 }

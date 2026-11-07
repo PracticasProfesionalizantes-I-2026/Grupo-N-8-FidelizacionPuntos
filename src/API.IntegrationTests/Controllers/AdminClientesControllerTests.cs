@@ -108,7 +108,7 @@ public class AdminClientesControllerTests : IClassFixture<FidelixApiFactory>, IA
     [Fact]
     public async Task AbmCliente_Update_WithNonExistentId_Returns404NotFound()
     {
-        var respuesta = await _factory.CreateClientComo(Roles.Admin).PutAsJsonAsync($"{Url}/{Guid.NewGuid()}", new AdminClienteUpdateDTO { Nombre = "X" });
+        var respuesta = await _factory.CreateClientComo(Roles.Admin).PutAsJsonAsync($"{Url}/{IdsDePrueba.Inexistente}", new AdminClienteUpdateDTO { Nombre = "X" });
 
         Assert.Equal(HttpStatusCode.NotFound, respuesta.StatusCode);
     }

@@ -88,7 +88,7 @@ public class ClienteServiceTests
     [Fact]
     public async Task ConsultarSaldoAsync_WithExpiredAndActiveLotes_ReturnsNetBalance()
     {
-        var clienteId = Guid.NewGuid();
+        var clienteId = IdsDePrueba.Nuevo();
         _clienteRepo.Setup(r => r.GetByIdAsync(clienteId)).ReturnsAsync(new Cliente { Id = clienteId });
         _movimientoRepo.Setup(r => r.GetLotesVigentesPorClienteAsync(clienteId, It.IsAny<DateTime>()))
             .ReturnsAsync([
@@ -105,7 +105,7 @@ public class ClienteServiceTests
     [Fact]
     public async Task ConsultarSaldoAsync_WhenRepositoryFails_ThrowsPersistenceException()
     {
-        var clienteId = Guid.NewGuid();
+        var clienteId = IdsDePrueba.Nuevo();
         _clienteRepo.Setup(r => r.GetByIdAsync(clienteId)).ReturnsAsync(new Cliente { Id = clienteId });
         _movimientoRepo.Setup(r => r.GetLotesVigentesPorClienteAsync(clienteId, It.IsAny<DateTime>()))
             .ThrowsAsync(new InvalidOperationException("Falla de conexión simulada"));
@@ -117,8 +117,8 @@ public class ClienteServiceTests
     [Fact]
     public async Task ConsultarSaldoAsync_WithNonExistentCliente_ThrowsClienteNotFoundException()
     {
-        _clienteRepo.Setup(r => r.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync((Cliente?)null);
+        _clienteRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>())).ReturnsAsync((Cliente?)null);
 
-        await Assert.ThrowsAsync<ClienteNotFoundException>(() => _sut.ConsultarSaldoAsync(Guid.NewGuid()));
+        await Assert.ThrowsAsync<ClienteNotFoundException>(() => _sut.ConsultarSaldoAsync(IdsDePrueba.Nuevo()));
     }
 }

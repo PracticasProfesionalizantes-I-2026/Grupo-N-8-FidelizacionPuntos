@@ -19,7 +19,7 @@ public class ClientePerfilServiceTests
     private readonly Mock<IClienteRepository> _clienteRepo = new();
     private readonly Mock<IMovimientoRepository> _movimientoRepo = new();
     private readonly ClienteService _sut;
-    private readonly Cliente _cliente = new() { Id = Guid.NewGuid(), Nombre = "Ana", Documento = "40555666", Email = "ana@test.com", Activo = true };
+    private readonly Cliente _cliente = new() { Id = IdsDePrueba.Nuevo(), Nombre = "Ana", Documento = "40555666", Email = "ana@test.com", Activo = true };
 
     /// <summary> Arma el service con un cliente existente. </summary>
     public ClientePerfilServiceTests()
@@ -52,7 +52,7 @@ public class ClientePerfilServiceTests
     [Fact]
     public async Task ActualizarPerfilAsync_WhenEmailAlreadyExists_ThrowsEmailDuplicadoException()
     {
-        _clienteRepo.Setup(r => r.GetByEmailAsync("otro@test.com")).ReturnsAsync(new Cliente { Id = Guid.NewGuid(), Email = "otro@test.com" });
+        _clienteRepo.Setup(r => r.GetByEmailAsync("otro@test.com")).ReturnsAsync(new Cliente { Id = IdsDePrueba.Nuevo(), Email = "otro@test.com" });
 
         await Assert.ThrowsAsync<EmailDuplicadoException>(() =>
             _sut.ActualizarPerfilAsync(_cliente.Id, new ClienteUpdateDTO { Email = "otro@test.com" }));
@@ -72,8 +72,8 @@ public class ClientePerfilServiceTests
     [Fact]
     public async Task ConsultarHistorialAsync_WithFilters_ReturnsOrderedMovimientos()
     {
-        var nuevo = new Movimiento { Id = Guid.NewGuid(), Fecha = new DateTime(2026, 10, 2), Tipo = TipoMovimiento.Acumulacion, Puntos = 50 };
-        var viejo = new Movimiento { Id = Guid.NewGuid(), Fecha = new DateTime(2026, 9, 1), Tipo = TipoMovimiento.Acumulacion, Puntos = 100 };
+        var nuevo = new Movimiento { Id = IdsDePrueba.Nuevo(), Fecha = new DateTime(2026, 10, 2), Tipo = TipoMovimiento.Acumulacion, Puntos = 50 };
+        var viejo = new Movimiento { Id = IdsDePrueba.Nuevo(), Fecha = new DateTime(2026, 9, 1), Tipo = TipoMovimiento.Acumulacion, Puntos = 100 };
         _movimientoRepo.Setup(r => r.BuscarAsync(_cliente.Id, TipoMovimiento.Acumulacion, It.IsAny<DateTime?>(), It.IsAny<DateTime?>()))
             .ReturnsAsync([nuevo, viejo]);
 
@@ -90,7 +90,7 @@ public class ClientePerfilServiceTests
     [Fact]
     public async Task ConsultarHistorialAsync_WithSameDayRange_QueriesWholeArgentineDayInUtc()
     {
-        _movimientoRepo.Setup(r => r.BuscarAsync(It.IsAny<Guid?>(), It.IsAny<TipoMovimiento?>(), It.IsAny<DateTime?>(), It.IsAny<DateTime?>()))
+        _movimientoRepo.Setup(r => r.BuscarAsync(It.IsAny<int?>(), It.IsAny<TipoMovimiento?>(), It.IsAny<DateTime?>(), It.IsAny<DateTime?>()))
             .ReturnsAsync([]);
         var dia = new DateTime(2026, 11, 6);
 
@@ -105,7 +105,7 @@ public class ClientePerfilServiceTests
     [Fact]
     public async Task ConsultarHistorialAsync_WithNoMovimientos_ReturnsEmptyList()
     {
-        _movimientoRepo.Setup(r => r.BuscarAsync(It.IsAny<Guid?>(), It.IsAny<TipoMovimiento?>(), It.IsAny<DateTime?>(), It.IsAny<DateTime?>()))
+        _movimientoRepo.Setup(r => r.BuscarAsync(It.IsAny<int?>(), It.IsAny<TipoMovimiento?>(), It.IsAny<DateTime?>(), It.IsAny<DateTime?>()))
             .ReturnsAsync([]);
 
         var resultado = await _sut.ConsultarHistorialAsync(_cliente.Id, new HistorialFiltroDTO());
@@ -183,7 +183,7 @@ public class ClientePerfilServiceTests
     [Fact]
     public async Task ConsultarCanjesDeClienteAsync_WithUnknownId_ThrowsClienteNotFoundException()
     {
-        await Assert.ThrowsAsync<ClienteNotFoundException>(() => _sut.ConsultarCanjesDeClienteAsync(Guid.NewGuid()));
+        await Assert.ThrowsAsync<ClienteNotFoundException>(() => _sut.ConsultarCanjesDeClienteAsync(IdsDePrueba.Nuevo()));
     }
 
     /// <summary> CU-13, flujo 4a: un cliente sin canjes devuelve una lista vacía con mensaje. </summary>

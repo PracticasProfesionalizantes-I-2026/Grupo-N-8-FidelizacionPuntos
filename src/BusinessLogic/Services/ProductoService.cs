@@ -37,7 +37,7 @@ public class ProductoService(IProductoRepository productoRepository) : IProducto
     }
 
     /// <summary> Modificar un producto, actualizacion parcial: nombre único (RN-24) y precio válido (RN-25). </summary>
-    public async Task<ProductoResponseDTO> ActualizarProductoAsync(Guid id, ProductoUpdateDTO dto)
+    public async Task<ProductoResponseDTO> ActualizarProductoAsync(int id, ProductoUpdateDTO dto)
     {
         var producto = await productoRepository.GetByIdAsync(id)
             ?? throw new ProductoNotFoundException("El producto no existe.");
@@ -66,7 +66,7 @@ public class ProductoService(IProductoRepository productoRepository) : IProducto
     }
 
     /// <summary> Desactivar un producto (RN-26). </summary>
-    public async Task<ProductoResponseDTO> DesactivarProductoAsync(Guid id)
+    public async Task<ProductoResponseDTO> DesactivarProductoAsync(int id)
     {
         var producto = await productoRepository.GetByIdAsync(id)
             ?? throw new ProductoNotFoundException("El producto no existe.");

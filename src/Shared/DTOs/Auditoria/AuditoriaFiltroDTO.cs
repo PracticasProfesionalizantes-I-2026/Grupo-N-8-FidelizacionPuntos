@@ -11,7 +11,7 @@ public class AuditoriaFiltroDTO : IValidatableObject
     [MaxLength(100)]
     public string? TipoOperacion { get; set; }
 
-    public Guid? ActorId { get; set; }
+    public int? ActorId { get; set; }
 
     /// <summary>Indica si no se informó ningún criterio (búsqueda completamente abierta).</summary>
     public bool SinCriterios() =>

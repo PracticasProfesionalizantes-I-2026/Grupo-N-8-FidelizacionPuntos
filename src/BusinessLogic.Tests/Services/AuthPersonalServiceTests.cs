@@ -18,8 +18,8 @@ public class AuthPersonalServiceTests
     private readonly Mock<IAdminRepository> _adminRepo = new();
     private readonly AuthPersonalService _sut;
 
-    private readonly Empleado _empleado = new() { Id = Guid.NewGuid(), Nombre = "Emp", Email = "emp@test.com", PasswordHash = PasswordHasher.Hash("Empleado123!"), Activo = true };
-    private readonly Admin _admin = new() { Id = Guid.NewGuid(), Nombre = "Adm", Email = "adm@test.com", PasswordHash = PasswordHasher.Hash("Admin123!") };
+    private readonly Empleado _empleado = new() { Id = IdsDePrueba.Nuevo(), Nombre = "Emp", Email = "emp@test.com", PasswordHash = PasswordHasher.Hash("Empleado123!"), Activo = true };
+    private readonly Admin _admin = new() { Id = IdsDePrueba.Nuevo(), Nombre = "Adm", Email = "adm@test.com", PasswordHash = PasswordHasher.Hash("Admin123!") };
 
     /// <summary> Arma el service con un empleado y un admin existentes y un token de prueba. </summary>
     public AuthPersonalServiceTests()
@@ -27,7 +27,7 @@ public class AuthPersonalServiceTests
         _sut = new AuthPersonalService(_tokenService.Object, _empleadoRepo.Object, _adminRepo.Object);
         _empleadoRepo.Setup(r => r.GetByEmailAsync(_empleado.Email)).ReturnsAsync(_empleado);
         _adminRepo.Setup(r => r.GetByEmailAsync(_admin.Email)).ReturnsAsync(_admin);
-        _tokenService.Setup(t => t.GenerarToken(It.IsAny<Guid>(), It.IsAny<string>())).Returns("token-de-prueba");
+        _tokenService.Setup(t => t.GenerarToken(It.IsAny<int>(), It.IsAny<string>())).Returns("token-de-prueba");
     }
 
     /// <summary> CU-09: credenciales válidas devuelven el token con rol Empleado (RN-11). </summary>
@@ -57,7 +57,7 @@ public class AuthPersonalServiceTests
 
         await Assert.ThrowsAsync<CuentaInactivaException>(() =>
             _sut.LoginEmpleadoAsync(new LoginRequestDTO { Email = _empleado.Email, Password = "Empleado123!" }));
-        _tokenService.Verify(t => t.GenerarToken(It.IsAny<Guid>(), It.IsAny<string>()), Times.Never);
+        _tokenService.Verify(t => t.GenerarToken(It.IsAny<int>(), It.IsAny<string>()), Times.Never);
     }
 
     /// <summary> CU-14: credenciales válidas devuelven el token con rol Admin (RN-11). </summary>

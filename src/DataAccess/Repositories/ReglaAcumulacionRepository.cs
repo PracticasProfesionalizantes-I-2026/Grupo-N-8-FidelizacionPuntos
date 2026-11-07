@@ -9,7 +9,7 @@ namespace FidelixAPI.DataAccess.Repositories;
 public class ReglaAcumulacionRepository(FidelixDbContext context) : IReglaAcumulacionRepository
 {
     /// <summary>Busca una regla por Id, con tracking (permite modificarla y guardarla después).</summary>
-    public Task<ReglaAcumulacion?> GetByIdAsync(Guid id) =>
+    public Task<ReglaAcumulacion?> GetByIdAsync(int id) =>
         context.ReglasAcumulacion.FirstOrDefaultAsync(r => r.Id == id);
 
     /// <summary>Lista todas las versiones de la regla en modo solo lectura.</summary>
@@ -27,10 +27,9 @@ public class ReglaAcumulacionRepository(FidelixDbContext context) : IReglaAcumul
             .OrderByDescending(r => r.VigenciaDesde)
             .FirstOrDefaultAsync();
 
-    /// <summary>Asigna un nuevo Id y persiste la regla.</summary>
+    /// <summary>Persiste la regla nueva; el Id lo genera la base (autoincremental) y EF lo carga en la entidad.</summary>
     public async Task<ReglaAcumulacion> CreateAsync(ReglaAcumulacion entity)
     {
-        entity.Id = Guid.NewGuid();
         context.ReglasAcumulacion.Add(entity);
         await context.SaveChangesAsync();
         return entity;

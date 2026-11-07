@@ -12,12 +12,12 @@ namespace FidelixAPI.DataAccess.Repositories.Interfaces;
 public interface IRepositorioBase<TEntity> where TEntity : EntidadBase
 {
     /// <summary>Busca por Id. Devuelve `null` si no existe (no lanza NotFound: eso lo decide el service).</summary>
-    Task<TEntity?> GetByIdAsync(Guid id);
+    Task<TEntity?> GetByIdAsync(int id);
 
     /// <summary>Lista todas las entidades, en modo solo lectura (`AsNoTracking`).</summary>
     Task<IReadOnlyList<TEntity>> GetAllAsync();
 
-    /// <summary>Genera el Id (GUID) y persiste una entidad nueva.</summary>
+    /// <summary>Persiste una entidad nueva; la base genera el Id (autoincremental) y EF lo carga en la entidad.</summary>
     Task<TEntity> CreateAsync(TEntity entity);
 
     /// <summary>Persiste cambios sobre una entidad existente (incluye bajas lógicas).</summary>

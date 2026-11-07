@@ -10,10 +10,10 @@ public interface IBeneficioService
     Task<BeneficioResponseDTO> CrearAsync(BeneficioCreateDTO dto);
 
     /// <summary>Modificación parcial de un beneficio existente (solo los campos informados).</summary>
-    Task<BeneficioResponseDTO> ActualizarAsync(Guid id, BeneficioUpdateDTO dto);
+    Task<BeneficioResponseDTO> ActualizarAsync(int id, BeneficioUpdateDTO dto);
 
     /// <summary>Desactivación lógica (RN-17): el beneficio deja de estar disponible para canje.</summary>
-    Task<BeneficioResponseDTO> DesactivarAsync(Guid id);
+    Task<BeneficioResponseDTO> DesactivarAsync(int id);
 
     /// <summary>Catálogo: solo los beneficios activos (CU-06, RN-07).</summary>
     Task<ListadoResponseDTO<BeneficioResponseDTO>> ListarBeneficiosAsync();

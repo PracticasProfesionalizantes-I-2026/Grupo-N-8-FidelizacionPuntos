@@ -26,7 +26,7 @@ namespace FidelixAPI.API.IntegrationTests.Controllers;
 public class CanjesPresencialControllerTests : IClassFixture<FidelixApiFactory>, IAsyncLifetime
 {
     /// <summary>Ruta del canje presencial: el id del cliente va como parámetro de ruta, no en el body.</summary>
-    private static string Url(Guid clienteId) => $"/api/canjes/presencial/{clienteId}";
+    private static string Url(int clienteId) => $"/api/canjes/presencial/{clienteId}";
 
     private readonly FidelixApiFactory _factory;
 
@@ -40,7 +40,7 @@ public class CanjesPresencialControllerTests : IClassFixture<FidelixApiFactory>,
     public Task DisposeAsync() => Task.CompletedTask;
 
     /// <summary>Da de alta (como admin) un beneficio con nombre único y devuelve su Id.</summary>
-    private async Task<Guid> CrearBeneficioAsync(int costo)
+    private async Task<int> CrearBeneficioAsync(int costo)
     {
         var respuesta = await _factory.CreateClientComo(Roles.Admin).PostAsJsonAsync("/api/admin/beneficios",
             new BeneficioCreateDTO { Nombre = $"Beneficio {Guid.NewGuid():N}", CostoPuntos = costo });
@@ -48,7 +48,7 @@ public class CanjesPresencialControllerTests : IClassFixture<FidelixApiFactory>,
     }
 
     /// <summary>Crea (como empleado) un cliente nuevo y le carga puntos disponibles; devuelve su id.</summary>
-    private async Task<Guid> ClienteConPuntosAsync(int puntos)
+    private async Task<int> ClienteConPuntosAsync(int puntos)
     {
         var documento = TestHelpers.DocumentoUnico();
         var respuesta = await _factory.CreateClientComo(Roles.Empleado).PostAsJsonAsync("/api/clientes",
@@ -79,7 +79,7 @@ public class CanjesPresencialControllerTests : IClassFixture<FidelixApiFactory>,
     {
         var beneficioId = await CrearBeneficioAsync(100);
 
-        var respuesta = await _factory.CreateClientComo(Roles.Empleado).PostAsJsonAsync(Url(Guid.NewGuid()), new CanjePresencialCreateDTO { BeneficioId = beneficioId });
+        var respuesta = await _factory.CreateClientComo(Roles.Empleado).PostAsJsonAsync(Url(IdsDePrueba.Inexistente), new CanjePresencialCreateDTO { BeneficioId = beneficioId });
 
         Assert.Equal(HttpStatusCode.NotFound, respuesta.StatusCode);
     }
@@ -128,7 +128,7 @@ public class CanjesPresencialControllerTests : IClassFixture<FidelixApiFactory>,
     [Fact]
     public async Task CrearCanjePresencial_WithClienteToken_Returns403Forbidden()
     {
-        var respuesta = await _factory.CreateClientComo(Roles.Cliente).PostAsJsonAsync(Url(Guid.NewGuid()), new CanjePresencialCreateDTO { BeneficioId = Guid.NewGuid() });
+        var respuesta = await _factory.CreateClientComo(Roles.Cliente).PostAsJsonAsync(Url(IdsDePrueba.Inexistente), new CanjePresencialCreateDTO { BeneficioId = IdsDePrueba.Inexistente });
 
         Assert.Equal(HttpStatusCode.Forbidden, respuesta.StatusCode);
     }
@@ -159,13 +159,13 @@ public class CanjesPresencialControllerTests : IClassFixture<FidelixApiFactory>,
     [Fact]
     public async Task MarcarEntregado_WithUnknownId_Returns404NotFound()
     {
-        var respuesta = await _factory.CreateClientComo(Roles.Empleado).PatchAsync($"/api/canjes/{Guid.NewGuid()}/entregar", null);
+        var respuesta = await _factory.CreateClientComo(Roles.Empleado).PatchAsync($"/api/canjes/{IdsDePrueba.Inexistente}/entregar", null);
 
         Assert.Equal(HttpStatusCode.NotFound, respuesta.StatusCode);
     }
 
     /// <summary>
-    /// CU-11: el id del cliente va en la ruta con restricción `{clienteId:guid}`. Un valor que no es Guid
+    /// CU-11: el id del cliente va en la ruta con restricción `{clienteId:int}`. Un valor que no es entero
     /// (o la ruta vieja sin id) no coincide con ningún endpoint y responde 404.
     /// </summary>
     [Theory]
@@ -173,7 +173,7 @@ public class CanjesPresencialControllerTests : IClassFixture<FidelixApiFactory>,
     [InlineData("/api/canjes/presencial")]
     public async Task CrearCanjePresencial_WithMalformedOrMissingClienteIdInRoute_Returns404NotFound(string ruta)
     {
-        var respuesta = await _factory.CreateClientComo(Roles.Empleado).PostAsJsonAsync(ruta, new CanjePresencialCreateDTO { BeneficioId = Guid.NewGuid() });
+        var respuesta = await _factory.CreateClientComo(Roles.Empleado).PostAsJsonAsync(ruta, new CanjePresencialCreateDTO { BeneficioId = IdsDePrueba.Inexistente });
 
         Assert.Equal(HttpStatusCode.NotFound, respuesta.StatusCode);
     }

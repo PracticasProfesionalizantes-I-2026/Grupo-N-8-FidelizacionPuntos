@@ -8,7 +8,7 @@ namespace FidelixAPI.Shared.DTOs.Cliente;
 /// </summary>
 public class ClienteResponseDTO
 {
-    public Guid Id { get; set; }
+    public int Id { get; set; }
     public string Nombre { get; set; } = string.Empty;
     public string Documento { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;

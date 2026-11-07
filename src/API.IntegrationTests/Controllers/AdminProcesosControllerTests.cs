@@ -43,7 +43,7 @@ public class AdminProcesosControllerTests : IClassFixture<FidelixApiFactory>, IA
     public Task DisposeAsync() => Task.CompletedTask;
 
     /// <summary>Registra un cliente nuevo y devuelve su Id y un cliente HTTP con su token.</summary>
-    private async Task<(Guid Id, HttpClient Client)> ClienteNuevoAsync(DateTime? fechaNacimiento = null)
+    private async Task<(int Id, HttpClient Client)> ClienteNuevoAsync(DateTime? fechaNacimiento = null)
     {
         var client = _factory.CreateClient();
         var (id, _, _) = await TestHelpers.RegistrarYAutenticarClienteAsync(client, fechaNacimiento);

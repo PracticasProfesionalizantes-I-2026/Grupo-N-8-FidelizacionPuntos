@@ -17,7 +17,7 @@ public class AuditoriaService(IAuditoriaRepository auditoriaRepository) : IAudit
     private const string MensajeSinResultados = "No existen resultados para los filtros seleccionados";
 
     /// <summary> Crea el registro con la fecha actual (RN-13). </summary>
-    public async Task RegistrarAsync(string tipoOperacion, Guid? actorId, string actorRol, Guid? entidadId, string detalle)
+    public async Task RegistrarAsync(string tipoOperacion, int? actorId, string actorRol, int? entidadId, string detalle)
     {
         await auditoriaRepository.CreateAsync(new Auditoria
         {
@@ -45,7 +45,7 @@ public class AuditoriaService(IAuditoriaRepository auditoriaRepository) : IAudit
     }
 
     /// <summary> Detalle de un registro o 404. </summary>
-    public async Task<AuditoriaResponseDTO> ObtenerPorIdAsync(Guid id)
+    public async Task<AuditoriaResponseDTO> ObtenerPorIdAsync(int id)
     {
         var registro = await auditoriaRepository.GetByIdAsync(id)
             ?? throw new AuditoriaNotFoundException("El registro de auditoría no existe.");

@@ -10,5 +10,5 @@ namespace FidelixAPI.Shared.DTOs.Canje;
 public class CanjePresencialCreateDTO
 {
     [Required(ErrorMessage = "El beneficio a canjear es obligatorio.")]
-    public Guid? BeneficioId { get; set; }
+    public int? BeneficioId { get; set; }
 }

@@ -59,7 +59,7 @@ public class EmpleadoAdminServiceTests
     [Fact]
     public async Task ActualizarEmpleadoAsync_WithValidData_UpdatesAndReturnsEmpleado()
     {
-        var empleado = new Empleado { Id = Guid.NewGuid(), Nombre = "Emp", Email = "emp@test.com" };
+        var empleado = new Empleado { Id = IdsDePrueba.Nuevo(), Nombre = "Emp", Email = "emp@test.com" };
         _empleadoRepo.Setup(r => r.GetByIdAsync(empleado.Id)).ReturnsAsync(empleado);
 
         var resultado = await _sut.ActualizarEmpleadoAsync(empleado.Id, new EmpleadoUpdateDTO { Nombre = "Empleado Nuevo" });
@@ -72,17 +72,17 @@ public class EmpleadoAdminServiceTests
     [Fact]
     public async Task ActualizarEmpleadoAsync_WithNonExistentId_ThrowsEmpleadoNotFoundException()
     {
-        _empleadoRepo.Setup(r => r.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync((Empleado?)null);
+        _empleadoRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>())).ReturnsAsync((Empleado?)null);
 
         await Assert.ThrowsAsync<EmpleadoNotFoundException>(() =>
-            _sut.ActualizarEmpleadoAsync(Guid.NewGuid(), new EmpleadoUpdateDTO { Nombre = "X" }));
+            _sut.ActualizarEmpleadoAsync(IdsDePrueba.Nuevo(), new EmpleadoUpdateDTO { Nombre = "X" }));
     }
 
     /// <summary> CU-16, baja: el empleado queda inactivo y pierde el acceso (RN-15). </summary>
     [Fact]
     public async Task BajaEmpleadoAsync_WithExistingId_DeactivatesEmpleado()
     {
-        var empleado = new Empleado { Id = Guid.NewGuid(), Activo = true };
+        var empleado = new Empleado { Id = IdsDePrueba.Nuevo(), Activo = true };
         _empleadoRepo.Setup(r => r.GetByIdAsync(empleado.Id)).ReturnsAsync(empleado);
 
         await _sut.BajaEmpleadoAsync(empleado.Id);
@@ -95,7 +95,7 @@ public class EmpleadoAdminServiceTests
     [Fact]
     public async Task ListarEmpleadosAsync_ReturnsListadoWithItems()
     {
-        _empleadoRepo.Setup(r => r.GetAllAsync()).ReturnsAsync([new Empleado { Id = Guid.NewGuid(), Nombre = "Julio" }]);
+        _empleadoRepo.Setup(r => r.GetAllAsync()).ReturnsAsync([new Empleado { Id = IdsDePrueba.Nuevo(), Nombre = "Julio" }]);
 
         var resultado = await _sut.ListarEmpleadosAsync();
 

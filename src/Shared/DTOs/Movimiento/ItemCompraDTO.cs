@@ -9,7 +9,7 @@ namespace FidelixAPI.Shared.DTOs.Movimiento;
 public class ItemCompraDTO
 {
     [Required(ErrorMessage = "Cada ítem debe indicar el producto.")]
-    public Guid? ProductoId { get; set; }
+    public int? ProductoId { get; set; }
 
     [Required(ErrorMessage = "Cada ítem debe indicar la cantidad.")]
     [Range(1, 1000, ErrorMessage = "La cantidad debe estar entre 1 y 1000.")]

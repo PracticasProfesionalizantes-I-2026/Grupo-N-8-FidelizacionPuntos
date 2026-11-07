@@ -10,7 +10,7 @@ namespace FidelixAPI.DataAccess.Repositories;
 public class MovimientoRepository(FidelixDbContext context) : IMovimientoRepository
 {
     /// <summary>Busca un movimiento por Id, con tracking (permite modificarlo y guardarlo después).</summary>
-    public Task<Movimiento?> GetByIdAsync(Guid id) =>
+    public Task<Movimiento?> GetByIdAsync(int id) =>
         context.Movimientos.FirstOrDefaultAsync(m => m.Id == id);
 
     /// <summary>Lista todos los movimientos en modo solo lectura.</summary>
@@ -22,15 +22,15 @@ public class MovimientoRepository(FidelixDbContext context) : IMovimientoReposit
     /// sin agotar, del más antiguo al más nuevo (RN-09). Solo lectura (`AsNoTracking`):
     /// se usa para calcular el saldo (CU-04, CU-10).
     /// </summary>
-    public async Task<IReadOnlyList<Movimiento>> GetLotesVigentesPorClienteAsync(Guid clienteId, DateTime fechaReferencia) =>
+    public async Task<IReadOnlyList<Movimiento>> GetLotesVigentesPorClienteAsync(int clienteId, DateTime fechaReferencia) =>
         await LotesVigentes(clienteId, fechaReferencia).AsNoTracking().ToListAsync();
 
     /// <summary>Mismos lotes, con tracking: el canje (CU-07) los modifica por FIFO y los guarda junto con el canje.</summary>
-    public async Task<IReadOnlyList<Movimiento>> GetLotesParaCanjeAsync(Guid clienteId, DateTime fechaReferencia) =>
+    public async Task<IReadOnlyList<Movimiento>> GetLotesParaCanjeAsync(int clienteId, DateTime fechaReferencia) =>
         await LotesVigentes(clienteId, fechaReferencia).ToListAsync();
 
     /// <summary>Aplica solo los filtros informados, en orden cronológico (RN-06), incluyendo el beneficio.</summary>
-    public async Task<IReadOnlyList<Movimiento>> BuscarAsync(Guid? clienteId, TipoMovimiento? tipo, DateTime? fechaDesde, DateTime? fechaHasta)
+    public async Task<IReadOnlyList<Movimiento>> BuscarAsync(int? clienteId, TipoMovimiento? tipo, DateTime? fechaDesde, DateTime? fechaHasta)
     {
         var query = context.Movimientos.AsNoTracking().Include(m => m.Beneficio).AsQueryable();
 
@@ -52,7 +52,7 @@ public class MovimientoRepository(FidelixDbContext context) : IMovimientoReposit
             .ToListAsync();
 
     /// <summary>Busca un bono de cumpleaños del cliente con fecha dentro del año indicado.</summary>
-    public Task<bool> ExisteBonoEnAnioAsync(Guid clienteId, int anio)
+    public Task<bool> ExisteBonoEnAnioAsync(int clienteId, int anio)
     {
         var desde = new DateTime(anio, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         var hasta = desde.AddYears(1);
@@ -67,7 +67,7 @@ public class MovimientoRepository(FidelixDbContext context) : IMovimientoReposit
     /// acumulación/bono, con puntos sin consumir, no vencidos (RN-05/RN-21) y ya
     /// disponibles (N2), ordenados del más antiguo al más nuevo (FIFO, RN-09).
     /// </summary>
-    private IQueryable<Movimiento> LotesVigentes(Guid clienteId, DateTime fechaReferencia) =>
+    private IQueryable<Movimiento> LotesVigentes(int clienteId, DateTime fechaReferencia) =>
         context.Movimientos
             .Where(m => m.ClienteId == clienteId
                      && (m.Tipo == TipoMovimiento.Acumulacion || m.Tipo == TipoMovimiento.BonoCumpleanos)
@@ -76,10 +76,9 @@ public class MovimientoRepository(FidelixDbContext context) : IMovimientoReposit
                      && (m.FechaDisponible == null || m.FechaDisponible <= fechaReferencia))
             .OrderBy(m => m.Fecha);
 
-    /// <summary>Asigna un nuevo Id y persiste el movimiento.</summary>
+    /// <summary>Persiste el movimiento nuevo; el Id lo genera la base (autoincremental) y EF lo carga en la entidad.</summary>
     public async Task<Movimiento> CreateAsync(Movimiento entity)
     {
-        entity.Id = Guid.NewGuid();
         context.Movimientos.Add(entity);
         await context.SaveChangesAsync();
         return entity;

@@ -20,8 +20,8 @@ public class CanjeServiceTests
     private readonly Mock<IMovimientoRepository> _movimientoRepo = new();
     private readonly CanjeService _sut;
 
-    private readonly Guid _clienteId = Guid.NewGuid();
-    private readonly Beneficio _beneficio = new() { Id = Guid.NewGuid(), Nombre = "Café gratis", CostoPuntos = 120, Activo = true };
+    private readonly int _clienteId = IdsDePrueba.Nuevo();
+    private readonly Beneficio _beneficio = new() { Id = IdsDePrueba.Nuevo(), Nombre = "Café gratis", CostoPuntos = 120, Activo = true };
 
     // Dos lotes disponibles: el más viejo con 100 y el más nuevo con 50 (saldo 150).
     private readonly Movimiento _loteViejo = new() { Fecha = DateTime.UtcNow.AddDays(-20), Tipo = TipoMovimiento.Acumulacion, PuntosDisponibles = 100 };
@@ -39,7 +39,7 @@ public class CanjeServiceTests
     }
 
     /// <summary> Pedido de canje del beneficio de prueba. </summary>
-    private CanjeCreateDTO Pedido(Guid? beneficioId = null) => new() { BeneficioId = beneficioId ?? _beneficio.Id };
+    private CanjeCreateDTO Pedido(int? beneficioId = null) => new() { BeneficioId = beneficioId ?? _beneficio.Id };
 
     /// <summary> CU-07, flujo principal: canjea 120 de 150 descontando por FIFO (RN-09): el lote viejo queda en 0 y el nuevo en 30. </summary>
     [Fact]
@@ -59,9 +59,9 @@ public class CanjeServiceTests
     [Fact]
     public async Task CrearCanjeAsync_WithNonExistentBeneficio_ThrowsBeneficioNotFoundException()
     {
-        _beneficioRepo.Setup(r => r.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync((Beneficio?)null);
+        _beneficioRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>())).ReturnsAsync((Beneficio?)null);
 
-        await Assert.ThrowsAsync<BeneficioNotFoundException>(() => _sut.CrearCanjeAsync(_clienteId, Pedido(Guid.NewGuid())));
+        await Assert.ThrowsAsync<BeneficioNotFoundException>(() => _sut.CrearCanjeAsync(_clienteId, Pedido(IdsDePrueba.Nuevo())));
     }
 
     /// <summary> CU-07, flujo 3b: un beneficio inactivo (RN-17) lanza excepción y no descuenta nada. </summary>
@@ -107,7 +107,7 @@ public class CanjeServiceTests
     public async Task CrearCanjePresencialAsync_WithSufficientBalance_CreatesCanjeAndLogsAudit()
     {
         ConfigurarClientePorId();
-        var empleadoId = Guid.NewGuid();
+        var empleadoId = IdsDePrueba.Nuevo();
 
         var resultado = await _sut.CrearCanjePresencialAsync(_clienteId, PedidoPresencial(), empleadoId);
 
@@ -120,9 +120,9 @@ public class CanjeServiceTests
     [Fact]
     public async Task CrearCanjePresencialAsync_WithUnknownClienteId_ThrowsClienteNotFoundException()
     {
-        _clienteRepo.Setup(r => r.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync((Cliente?)null);
+        _clienteRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>())).ReturnsAsync((Cliente?)null);
 
-        await Assert.ThrowsAsync<ClienteNotFoundException>(() => _sut.CrearCanjePresencialAsync(_clienteId, PedidoPresencial(), Guid.NewGuid()));
+        await Assert.ThrowsAsync<ClienteNotFoundException>(() => _sut.CrearCanjePresencialAsync(_clienteId, PedidoPresencial(), IdsDePrueba.Nuevo()));
     }
 
     /// <summary> CU-11, flujo 3a: un beneficio inactivo (RN-17) lanza BeneficioInactivoException. </summary>
@@ -132,7 +132,7 @@ public class CanjeServiceTests
         ConfigurarClientePorId();
         _beneficio.Activo = false;
 
-        await Assert.ThrowsAsync<BeneficioInactivoException>(() => _sut.CrearCanjePresencialAsync(_clienteId, PedidoPresencial(), Guid.NewGuid()));
+        await Assert.ThrowsAsync<BeneficioInactivoException>(() => _sut.CrearCanjePresencialAsync(_clienteId, PedidoPresencial(), IdsDePrueba.Nuevo()));
     }
 
     /// <summary> CU-11, flujo 3b: con saldo menor al costo (RN-08) lanza SaldoInsuficienteException. </summary>
@@ -142,7 +142,7 @@ public class CanjeServiceTests
         ConfigurarClientePorId();
         _beneficio.CostoPuntos = 500;
 
-        await Assert.ThrowsAsync<SaldoInsuficienteException>(() => _sut.CrearCanjePresencialAsync(_clienteId, PedidoPresencial(), Guid.NewGuid()));
+        await Assert.ThrowsAsync<SaldoInsuficienteException>(() => _sut.CrearCanjePresencialAsync(_clienteId, PedidoPresencial(), IdsDePrueba.Nuevo()));
     }
 
     /// <summary> CU-11, flujo 5a: si falla el guardado, se traduce a PersistenceException. </summary>
@@ -152,7 +152,7 @@ public class CanjeServiceTests
         ConfigurarClientePorId();
         _movimientoRepo.Setup(r => r.CreateAsync(It.IsAny<Movimiento>())).ThrowsAsync(new InvalidOperationException("Falla simulada"));
 
-        await Assert.ThrowsAsync<PersistenceException>(() => _sut.CrearCanjePresencialAsync(_clienteId, PedidoPresencial(), Guid.NewGuid()));
+        await Assert.ThrowsAsync<PersistenceException>(() => _sut.CrearCanjePresencialAsync(_clienteId, PedidoPresencial(), IdsDePrueba.Nuevo()));
     }
 
     /// <summary> RN-14: un cliente dado de baja no puede canjear. </summary>
@@ -168,9 +168,9 @@ public class CanjeServiceTests
     [Fact]
     public async Task MarcarEntregadoAsync_WithPendingCanje_MarksAsDelivered()
     {
-        var canje = new Movimiento { Id = Guid.NewGuid(), Tipo = TipoMovimiento.Canje, Puntos = -100, EstadoCanje = EstadoCanje.Pendiente };
+        var canje = new Movimiento { Id = IdsDePrueba.Nuevo(), Tipo = TipoMovimiento.Canje, Puntos = -100, EstadoCanje = EstadoCanje.Pendiente };
         _movimientoRepo.Setup(r => r.GetByIdAsync(canje.Id)).ReturnsAsync(canje);
-        var empleadoId = Guid.NewGuid();
+        var empleadoId = IdsDePrueba.Nuevo();
 
         var resultado = await _sut.MarcarEntregadoAsync(canje.Id, empleadoId);
 
@@ -183,10 +183,10 @@ public class CanjeServiceTests
     [Fact]
     public async Task MarcarEntregadoAsync_WhenAlreadyDelivered_ThrowsCanjeYaEntregadoException()
     {
-        var canje = new Movimiento { Id = Guid.NewGuid(), Tipo = TipoMovimiento.Canje, EstadoCanje = EstadoCanje.Entregado };
+        var canje = new Movimiento { Id = IdsDePrueba.Nuevo(), Tipo = TipoMovimiento.Canje, EstadoCanje = EstadoCanje.Entregado };
         _movimientoRepo.Setup(r => r.GetByIdAsync(canje.Id)).ReturnsAsync(canje);
 
-        await Assert.ThrowsAsync<CanjeYaEntregadoException>(() => _sut.MarcarEntregadoAsync(canje.Id, Guid.NewGuid()));
+        await Assert.ThrowsAsync<CanjeYaEntregadoException>(() => _sut.MarcarEntregadoAsync(canje.Id, IdsDePrueba.Nuevo()));
         _movimientoRepo.Verify(r => r.UpdateAsync(It.IsAny<Movimiento>()), Times.Never);
     }
 
@@ -194,9 +194,9 @@ public class CanjeServiceTests
     [Fact]
     public async Task MarcarEntregadoAsync_WithNonCanjeMovimiento_ThrowsCanjeNotFoundException()
     {
-        var acumulacion = new Movimiento { Id = Guid.NewGuid(), Tipo = TipoMovimiento.Acumulacion };
+        var acumulacion = new Movimiento { Id = IdsDePrueba.Nuevo(), Tipo = TipoMovimiento.Acumulacion };
         _movimientoRepo.Setup(r => r.GetByIdAsync(acumulacion.Id)).ReturnsAsync(acumulacion);
 
-        await Assert.ThrowsAsync<CanjeNotFoundException>(() => _sut.MarcarEntregadoAsync(acumulacion.Id, Guid.NewGuid()));
+        await Assert.ThrowsAsync<CanjeNotFoundException>(() => _sut.MarcarEntregadoAsync(acumulacion.Id, IdsDePrueba.Nuevo()));
     }
 }

@@ -9,7 +9,7 @@ namespace FidelixAPI.DataAccess.Repositories;
 public class BeneficioRepository(FidelixDbContext context) : IBeneficioRepository
 {
     /// <summary>Busca un beneficio por Id, con tracking (permite modificarlo y guardarlo después).</summary>
-    public Task<Beneficio?> GetByIdAsync(Guid id) =>
+    public Task<Beneficio?> GetByIdAsync(int id) =>
         context.Beneficios.FirstOrDefaultAsync(b => b.Id == id);
 
     /// <summary>Lista todos los beneficios en modo solo lectura.</summary>
@@ -20,10 +20,9 @@ public class BeneficioRepository(FidelixDbContext context) : IBeneficioRepositor
     public Task<Beneficio?> GetByNombreAsync(string nombre) =>
         context.Beneficios.FirstOrDefaultAsync(b => b.Nombre == nombre);
 
-    /// <summary>Asigna un nuevo Id y persiste el beneficio.</summary>
+    /// <summary>Persiste el beneficio nuevo; el Id lo genera la base (autoincremental) y EF lo carga en la entidad.</summary>
     public async Task<Beneficio> CreateAsync(Beneficio entity)
     {
-        entity.Id = Guid.NewGuid();
         context.Beneficios.Add(entity);
         await context.SaveChangesAsync();
         return entity;

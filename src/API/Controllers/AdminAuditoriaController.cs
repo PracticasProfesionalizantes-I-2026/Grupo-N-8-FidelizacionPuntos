@@ -20,8 +20,8 @@ public class AdminAuditoriaController(IAuditoriaService auditoriaService) : Cont
         Ok(await auditoriaService.ConsultarAuditoriaAsync(filtro));
 
     /// <summary> Detalle de una operación puntual. </summary>
-    [HttpGet("{id:guid}")]
-    public async Task<IActionResult> ObtenerPorId(Guid id)
+    [HttpGet("{id:int}")]
+    public async Task<IActionResult> ObtenerPorId(int id)
     {
         try
         {

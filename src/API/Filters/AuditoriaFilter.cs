@@ -53,15 +53,15 @@ public class AuditoriaFilter(IAuditoriaService auditoriaService, ILogger<Auditor
     }
 
     /// <summary> Id de la entidad afectada: el `{id}` de la ruta o, si no hay, la propiedad `Id` de la respuesta. </summary>
-    private static Guid? ObtenerEntidadId(ActionExecutingContext antes, ActionExecutedContext despues)
+    private static int? ObtenerEntidadId(ActionExecutingContext antes, ActionExecutedContext despues)
     {
-        if (antes.ActionArguments.TryGetValue("id", out var idRuta) && idRuta is Guid id)
+        if (antes.ActionArguments.TryGetValue("id", out var idRuta) && idRuta is int id)
         {
             return id;
         }
 
         var valor = (despues.Result as ObjectResult)?.Value;
         var propiedad = valor?.GetType().GetProperty("Id") ?? valor?.GetType().GetProperty("MovimientoId");
-        return propiedad?.GetValue(valor) as Guid?;
+        return propiedad?.GetValue(valor) as int?;
     }
 }

@@ -37,7 +37,7 @@ public class PuntosServiceTests
     [Fact]
     public async Task AplicarVencimientoAsync_WithExpiredLotes_DiscountsFifoAndLogsAudit()
     {
-        var clienteId = Guid.NewGuid();
+        var clienteId = IdsDePrueba.Nuevo();
         var lote1 = new Movimiento { ClienteId = clienteId, Fecha = Hoy.AddDays(-200), PuntosDisponibles = 80 };
         var lote2 = new Movimiento { ClienteId = clienteId, Fecha = Hoy.AddDays(-190), PuntosDisponibles = 20 };
         _movimientoRepo.Setup(r => r.GetLotesVencidosAsync(Hoy)).ReturnsAsync([lote1, lote2]);
@@ -50,7 +50,7 @@ public class PuntosServiceTests
         Assert.Equal(0, lote1.PuntosDisponibles);
         Assert.Equal(0, lote2.PuntosDisponibles);
         _movimientoRepo.Verify(r => r.CreateAsync(It.Is<Movimiento>(m => m.Tipo == TipoMovimiento.Vencimiento && m.Puntos == -100)), Times.Once);
-        _auditoria.Verify(a => a.RegistrarAsync("Proceso.VencimientoPuntos", null, "Sistema", It.IsAny<Guid?>(), It.IsAny<string>()), Times.Once);
+        _auditoria.Verify(a => a.RegistrarAsync("Proceso.VencimientoPuntos", null, "Sistema", It.IsAny<int?>(), It.IsAny<string>()), Times.Once);
         _email.Verify(e => e.EnviarAsync("c@test.com", It.IsAny<string>(), It.IsAny<string>()), Times.Once);
     }
 
@@ -70,8 +70,8 @@ public class PuntosServiceTests
     [Fact]
     public async Task AplicarVencimientoAsync_WhenRepositoryFailsForOneCliente_ContinuesWithRemainingClientes()
     {
-        var clienteQueFalla = Guid.NewGuid();
-        var clienteOk = Guid.NewGuid();
+        var clienteQueFalla = IdsDePrueba.Nuevo();
+        var clienteOk = IdsDePrueba.Nuevo();
         var loteQueFalla = new Movimiento { ClienteId = clienteQueFalla, Fecha = Hoy.AddDays(-200), PuntosDisponibles = 30 };
         var loteOk = new Movimiento { ClienteId = clienteOk, Fecha = Hoy.AddDays(-200), PuntosDisponibles = 40 };
         _movimientoRepo.Setup(r => r.GetLotesVencidosAsync(Hoy)).ReturnsAsync([loteQueFalla, loteOk]);
@@ -91,8 +91,8 @@ public class PuntosServiceTests
     [Fact]
     public async Task AplicarBonoCumpleanosAsync_WithMatchingClientes_AccruesPointsAndLogsAudit()
     {
-        var cumpleanero = new Cliente { Id = Guid.NewGuid(), Activo = true, FechaNacimiento = new DateTime(1990, 10, 28) };
-        var otro = new Cliente { Id = Guid.NewGuid(), Activo = true, FechaNacimiento = new DateTime(1990, 5, 1) };
+        var cumpleanero = new Cliente { Id = IdsDePrueba.Nuevo(), Activo = true, FechaNacimiento = new DateTime(1990, 10, 28) };
+        var otro = new Cliente { Id = IdsDePrueba.Nuevo(), Activo = true, FechaNacimiento = new DateTime(1990, 5, 1) };
         _clienteRepo.Setup(r => r.GetAllAsync()).ReturnsAsync([cumpleanero, otro]);
 
         var resultado = await _sut.AplicarBonoCumpleanosAsync(Hoy);
@@ -102,14 +102,14 @@ public class PuntosServiceTests
         _movimientoRepo.Verify(r => r.CreateAsync(It.Is<Movimiento>(m =>
             m.ClienteId == cumpleanero.Id && m.Tipo == TipoMovimiento.BonoCumpleanos
             && m.Puntos == 500 && m.FechaVencimiento == Hoy.AddDays(180))), Times.Once);
-        _auditoria.Verify(a => a.RegistrarAsync("Proceso.BonoCumpleanos", null, "Sistema", It.IsAny<Guid?>(), It.IsAny<string>()), Times.Once);
+        _auditoria.Verify(a => a.RegistrarAsync("Proceso.BonoCumpleanos", null, "Sistema", It.IsAny<int?>(), It.IsAny<string>()), Times.Once);
     }
 
     /// <summary> CU-26, flujo 2a: si ya recibió el bono este año, se omite sin error (RN-29). </summary>
     [Fact]
     public async Task AplicarBonoCumpleanosAsync_WhenAlreadyGrantedThisYear_SkipsCliente()
     {
-        var cumpleanero = new Cliente { Id = Guid.NewGuid(), Activo = true, FechaNacimiento = new DateTime(1990, 10, 28) };
+        var cumpleanero = new Cliente { Id = IdsDePrueba.Nuevo(), Activo = true, FechaNacimiento = new DateTime(1990, 10, 28) };
         _clienteRepo.Setup(r => r.GetAllAsync()).ReturnsAsync([cumpleanero]);
         _movimientoRepo.Setup(r => r.ExisteBonoEnAnioAsync(cumpleanero.Id, 2026)).ReturnsAsync(true);
 
@@ -123,8 +123,8 @@ public class PuntosServiceTests
     [Fact]
     public async Task AplicarBonoCumpleanosAsync_WhenRepositoryFailsForOneCliente_ContinuesWithNext()
     {
-        var falla = new Cliente { Id = Guid.NewGuid(), Activo = true, FechaNacimiento = new DateTime(1990, 10, 28) };
-        var ok = new Cliente { Id = Guid.NewGuid(), Activo = true, FechaNacimiento = new DateTime(1995, 10, 28) };
+        var falla = new Cliente { Id = IdsDePrueba.Nuevo(), Activo = true, FechaNacimiento = new DateTime(1990, 10, 28) };
+        var ok = new Cliente { Id = IdsDePrueba.Nuevo(), Activo = true, FechaNacimiento = new DateTime(1995, 10, 28) };
         _clienteRepo.Setup(r => r.GetAllAsync()).ReturnsAsync([falla, ok]);
         _movimientoRepo.Setup(r => r.CreateAsync(It.Is<Movimiento>(m => m.ClienteId == falla.Id)))
             .ThrowsAsync(new InvalidOperationException("Falla simulada"));
@@ -140,7 +140,7 @@ public class PuntosServiceTests
     [Fact]
     public async Task AplicarBonoCumpleanosAsync_WithLeapDayBirthday_GrantsOnFeb28InNonLeapYear()
     {
-        var bisiesto = new Cliente { Id = Guid.NewGuid(), Activo = true, FechaNacimiento = new DateTime(2000, 2, 29) };
+        var bisiesto = new Cliente { Id = IdsDePrueba.Nuevo(), Activo = true, FechaNacimiento = new DateTime(2000, 2, 29) };
         _clienteRepo.Setup(r => r.GetAllAsync()).ReturnsAsync([bisiesto]);
 
         var resultado = await _sut.AplicarBonoCumpleanosAsync(new DateTime(2027, 2, 28, 0, 0, 0, DateTimeKind.Utc));

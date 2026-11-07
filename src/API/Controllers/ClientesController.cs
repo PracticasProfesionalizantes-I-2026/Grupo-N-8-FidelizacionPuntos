@@ -42,9 +42,9 @@ public class ClientesController(IClienteService clienteService) : ControllerBase
     /// Saldo de un cliente por Id (CU-04), para el empleado o el admin. El cliente consulta el
     /// suyo con `GET api/clientes/me/saldo`, tomando el Id del token JWT.
     /// </summary>
-    [HttpGet("{id:guid}/saldo")]
+    [HttpGet("{id:int}/saldo")]
     [Authorize(Roles = $"{Roles.Empleado},{Roles.Admin}")]
-    public async Task<IActionResult> ConsultarSaldo(Guid id)
+    public async Task<IActionResult> ConsultarSaldo(int id)
     {
         try
         {
@@ -188,9 +188,9 @@ public class ClientesController(IClienteService clienteService) : ControllerBase
     }
 
     /// <summary> Canjes de un cliente identificado por su id, para el empleado (CU-13). </summary>
-    [HttpGet("{id:guid}/canjes")]
+    [HttpGet("{id:int}/canjes")]
     [Authorize(Roles = Roles.Empleado)]
-    public async Task<IActionResult> ConsultarCanjesDeCliente(Guid id)
+    public async Task<IActionResult> ConsultarCanjesDeCliente(int id)
     {
         try
         {

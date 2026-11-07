@@ -83,7 +83,7 @@ public class RecuperacionService(
     }
 
     /// <summary> Busca una cuenta activa con ese email en clientes, empleados y admins, y devuelve su rol. </summary>
-    private async Task<(string Rol, Guid Id)?> BuscarCuentaActivaAsync(string email)
+    private async Task<(string Rol, int Id)?> BuscarCuentaActivaAsync(string email)
     {
         if (await clienteRepository.GetByEmailAsync(email) is { Activo: true } cliente) return (Roles.Cliente, cliente.Id);
         if (await empleadoRepository.GetByEmailAsync(email) is { Activo: true } empleado) return (Roles.Empleado, empleado.Id);

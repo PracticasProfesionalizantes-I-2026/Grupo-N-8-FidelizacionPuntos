@@ -10,7 +10,7 @@ namespace FidelixAPI.DataAccess.Entities;
 /// </summary>
 public class Movimiento : EntidadBase
 {
-    public Guid ClienteId { get; set; }
+    public int ClienteId { get; set; }
     public Cliente Cliente { get; set; } = null!;
 
     public TipoMovimiento Tipo { get; set; }
@@ -39,7 +39,7 @@ public class Movimiento : EntidadBase
     public DateTime? FechaDisponible { get; set; }
 
     /// <summary>Beneficio canjeado (solo en movimientos de tipo `Canje`).</summary>
-    public Guid? BeneficioId { get; set; }
+    public int? BeneficioId { get; set; }
     public Beneficio? Beneficio { get; set; }
 
     public string? Detalle { get; set; }
@@ -48,5 +48,5 @@ public class Movimiento : EntidadBase
     public EstadoCanje? EstadoCanje { get; set; }
 
     /// <summary>Empleado que registró el movimiento (acumulación o canje presencial), para auditoría (RN-13, RF-28).</summary>
-    public Guid? EmpleadoId { get; set; }
+    public int? EmpleadoId { get; set; }
 }
