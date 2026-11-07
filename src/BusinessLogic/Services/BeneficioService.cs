@@ -78,6 +78,14 @@ public class BeneficioService(IBeneficioRepository beneficioRepository) : IBenef
         return MapToResponseDTO(beneficio);
     }
 
+    /// <summary>Listado del admin (CU-17): todos los beneficios, también los inactivos, ordenados por nombre; vacío no es error.</summary>
+    public async Task<ListadoResponseDTO<BeneficioResponseDTO>> ListarTodosAsync()
+    {
+        var beneficios = await beneficioRepository.GetAllAsync();
+        var items = beneficios.OrderBy(b => b.Nombre).Select(MapToResponseDTO).ToList();
+        return ListadoResponseDTO<BeneficioResponseDTO>.Crear(items, "No hay beneficios registrados");
+    }
+
     /// <summary>Catálogo del cliente: filtra los activos (RN-07) y los ordena por costo; vacío no es error (4a).</summary>
     public async Task<ListadoResponseDTO<BeneficioResponseDTO>> ListarBeneficiosAsync()
     {

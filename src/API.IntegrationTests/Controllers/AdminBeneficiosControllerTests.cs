@@ -132,6 +132,30 @@ public class AdminBeneficiosControllerTests : IClassFixture<FidelixApiFactory>, 
         Assert.False(desactivado!.Activo);
     }
 
+    /// <summary>CU-17: el admin lista todos los beneficios, incluido uno recién desactivado (con su id y estado).</summary>
+    [Fact]
+    public async Task Listar_AsAdmin_Returns200IncludingInactiveBeneficios()
+    {
+        var client = _factory.CreateClientComo(Roles.Admin);
+        var beneficio = await CrearBeneficioAsync(client);
+        await client.PatchAsync($"/api/admin/beneficios/{beneficio.Id}/desactivar", null);
+
+        var respuesta = await client.GetAsync("/api/admin/beneficios");
+        var listado = await respuesta.Content.ReadFromJsonAsync<ListadoResponseDTO<BeneficioResponseDTO>>();
+
+        Assert.Equal(HttpStatusCode.OK, respuesta.StatusCode);
+        Assert.False(Assert.Single(listado!.Items, b => b.Id == beneficio.Id).Activo);
+    }
+
+    /// <summary>RN-11: el listado del admin no está disponible para el cliente (403 Forbidden).</summary>
+    [Fact]
+    public async Task Listar_AsCliente_Returns403Forbidden()
+    {
+        var respuesta = await _factory.CreateClientComo(Roles.Cliente).GetAsync("/api/admin/beneficios");
+
+        Assert.Equal(HttpStatusCode.Forbidden, respuesta.StatusCode);
+    }
+
     /// <summary>CU-17: el admin consulta las categorías válidas (`{ id, nombre }`, desde 1).</summary>
     [Fact]
     public async Task ListarCategorias_Returns200WithCategoriesStartingAtOne()

@@ -17,6 +17,13 @@ namespace FidelixAPI.API.Controllers;
 public class AdminBeneficiosController(IBeneficioService beneficioService) : ControllerBase
 {
     /// <summary>
+    /// Lista todos los beneficios, activos e inactivos, para que el admin vea sus ids y su estado antes
+    /// de modificarlos o desactivarlos. Una lista vacía también es 200.
+    /// </summary>
+    [HttpGet]
+    public async Task<IActionResult> Listar() => Ok(await beneficioService.ListarTodosAsync());
+
+    /// <summary>
     /// Categorías de beneficio válidas (`{ id, nombre }`): el `id` es el número que se envía en
     /// `categoria` al crear o modificar un beneficio.
     /// </summary>

@@ -1,0 +1,27 @@
+meta {
+  name: Listar Beneficios
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/api/admin/beneficios
+  body: none
+  auth: inherit
+}
+
+docs {
+  Listado del admin (CU-17): todos los beneficios, activos e inactivos, ordenados por nombre.
+  Sirve para ver el `id` de cada beneficio antes de modificarlo o desactivarlo.
+  Corre después de "Desactivar Beneficio": el beneficio creado en esta carpeta aparece con `activo: false`
+  (en `GET /api/beneficios`, el catálogo del cliente, ya no aparece).
+}
+
+tests {
+  test("200 OK con activos e inactivos (CU-17)", function () {
+    expect(res.status).to.equal(200);
+    const creado = res.body.items.find(b => b.id === bru.getVar("beneficioAdminId"));
+    expect(creado).to.not.equal(undefined);
+    expect(creado.activo).to.equal(false);
+  });
+}

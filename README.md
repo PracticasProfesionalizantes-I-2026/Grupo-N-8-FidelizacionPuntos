@@ -157,6 +157,7 @@ del login del rol indicado (`Authorization: Bearer ...`).
 | POST | `/api/admin/empleados` | Admin | CU-16 | 201, 400, 409 |
 | PUT | `/api/admin/empleados/{id}` | Admin | CU-16 | 200, 400, 404, 409 |
 | DELETE | `/api/admin/empleados/{id}` | Admin | CU-16 | 204, 404 |
+| GET | `/api/admin/beneficios` | Admin | CU-17 | 200 |
 | GET | `/api/admin/beneficios/categorias` | Admin | CU-17 | 200 |
 | POST | `/api/admin/beneficios` | Admin | CU-17 | 201, 400, 409 |
 | PUT | `/api/admin/beneficios/{id}` | Admin | CU-17 | 200, 400, 404, 409 |
@@ -263,3 +264,7 @@ los campos enviados (`{ "costoPuntos": 80 }`).
 
 **Desactivar beneficio** — `PATCH /api/admin/beneficios/{id}/desactivar`:
 baja lógica, devuelve el beneficio con `"activo": false`.
+
+**Listar beneficios (admin)** — `GET /api/admin/beneficios`: todos los beneficios,
+activos e inactivos, ordenados por nombre, con su `id` (el catálogo del cliente,
+`GET /api/beneficios`, solo muestra los activos).

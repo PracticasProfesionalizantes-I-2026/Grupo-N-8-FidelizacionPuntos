@@ -15,6 +15,9 @@ public interface IBeneficioService
     /// <summary>Desactivación lógica (RN-17): el beneficio deja de estar disponible para canje.</summary>
     Task<BeneficioResponseDTO> DesactivarAsync(int id);
 
+    /// <summary>Listado del admin (CU-17): todos los beneficios, activos e inactivos, ordenados por nombre.</summary>
+    Task<ListadoResponseDTO<BeneficioResponseDTO>> ListarTodosAsync();
+
     /// <summary>Catálogo: solo los beneficios activos (CU-06, RN-07).</summary>
     Task<ListadoResponseDTO<BeneficioResponseDTO>> ListarBeneficiosAsync();
 

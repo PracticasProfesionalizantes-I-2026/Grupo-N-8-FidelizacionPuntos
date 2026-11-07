@@ -88,6 +88,11 @@ disponibles para los clientes.
 3. **Ocultar / desactivar:** `PATCH /api/admin/beneficios/{id}/desactivar` →
    `200 OK`; a partir de ese momento, por **RN-17**, el beneficio deja de
    mostrarse en el catálogo (CU-06) y no puede canjearse (CU-07, CU-11).
+4. **Listar:** `GET /api/admin/beneficios` → `200 OK` con **todos** los beneficios,
+   activos e inactivos, ordenados por nombre. Así el admin conoce el `id` y el estado
+   de cada uno antes de modificarlo o desactivarlo (el catálogo `GET /api/beneficios`
+   de CU-06 solo muestra los activos). Sin beneficios cargados, devuelve una lista
+   vacía con mensaje, también con 200.
 
 ### 6. POSTCONDICIONES
 1. El beneficio queda creado, actualizado o desactivado en la tabla `Beneficios`.
@@ -99,6 +104,7 @@ disponibles para los clientes.
 | Endpoint | Rol (token JWT) | Controller → Service |
 | --- | --- | --- |
 | `POST/PUT/PATCH /api/admin/beneficios…` | Admin | `AdminBeneficiosController → BeneficioService` |
+| `GET /api/admin/beneficios` | Admin | `AdminBeneficiosController.Listar → BeneficioService.ListarTodosAsync` |
 | `GET /api/admin/beneficios/categorias` | Admin | `AdminBeneficiosController.ListarCategorias → BeneficioService.ListarCategorias` |
 
 * Los endpoints exigen el token del login de admin (CU-14, RN-11); sin token responden 401.

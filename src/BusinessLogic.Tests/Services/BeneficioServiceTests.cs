@@ -122,6 +122,33 @@ public class BeneficioServiceTests
         _beneficioRepo.Verify(r => r.UpdateAsync(beneficio), Times.Once);
     }
 
+    /// <summary>CU-17: el listado del admin incluye los beneficios inactivos y los ordena por nombre.</summary>
+    [Fact]
+    public async Task ListarTodosAsync_ReturnsActiveAndInactiveOrderedByName()
+    {
+        _beneficioRepo.Setup(r => r.GetAllAsync()).ReturnsAsync([
+            new Beneficio { Nombre = "Zapatillas", CostoPuntos = 900, Activo = true },
+            new Beneficio { Nombre = "Café", CostoPuntos = 50, Activo = false }
+        ]);
+
+        var resultado = await _sut.ListarTodosAsync();
+
+        Assert.Equal(["Café", "Zapatillas"], resultado.Items.Select(b => b.Nombre));
+        Assert.False(resultado.Items[0].Activo);
+    }
+
+    /// <summary>CU-17: sin beneficios cargados devuelve una lista vacía con mensaje (no es un error).</summary>
+    [Fact]
+    public async Task ListarTodosAsync_WithNoBeneficios_ReturnsEmptyListWithMessage()
+    {
+        _beneficioRepo.Setup(r => r.GetAllAsync()).ReturnsAsync([]);
+
+        var resultado = await _sut.ListarTodosAsync();
+
+        Assert.Empty(resultado.Items);
+        Assert.Equal("No hay beneficios registrados", resultado.Mensaje);
+    }
+
     /// <summary>CU-17: las categorías se listan numeradas desde 1, con su nombre legible.</summary>
     [Fact]
     public void ListarCategorias_ReturnsCategoriesStartingAtOneWithReadableNames()
