@@ -4,6 +4,7 @@ using FidelixAPI.DataAccess.Repositories.Interfaces;
 using FidelixAPI.Shared.DTOs.Cliente;
 using FidelixAPI.Shared.Enums;
 using FidelixAPI.Shared.Exceptions;
+using FidelixAPI.Shared.Security;
 using Moq;
 using Xunit;
 
@@ -46,6 +47,29 @@ public class ClienteServiceTests
         var dto = new ClienteCreateDTO { Nombre = "Ana", Documento = "40555666", Email = "ana@test.com", Password = "123" };
 
         await Assert.ThrowsAsync<PasswordInvalidaException>(() => _sut.RegistrarAsync(dto));
+    }
+
+    /// <summary>CU-01, RN-02 caso borde: 7 caracteres no alcanza (el mínimo es <see cref="PoliticaPassword.LargoMinimo"/>).</summary>
+    [Fact]
+    public async Task RegistrarClienteAsync_WithSevenCharacterPassword_ThrowsPasswordInvalidaException()
+    {
+        var dto = new ClienteCreateDTO { Nombre = "Ana", Documento = "40555666", Email = "ana@test.com", Password = "1234567" };
+
+        await Assert.ThrowsAsync<PasswordInvalidaException>(() => _sut.RegistrarAsync(dto));
+        _clienteRepo.Verify(r => r.CreateAsync(It.IsAny<Cliente>()), Times.Never);
+    }
+
+    /// <summary>CU-01, RN-02 caso borde: exactamente 8 caracteres es válido y el cliente se registra.</summary>
+    [Fact]
+    public async Task RegistrarClienteAsync_WithPasswordOfMinimumLength_CreatesCliente()
+    {
+        _clienteRepo.Setup(r => r.GetByDocumentoAsync(It.IsAny<string>())).ReturnsAsync((Cliente?)null);
+        _clienteRepo.Setup(r => r.GetByEmailAsync(It.IsAny<string>())).ReturnsAsync((Cliente?)null);
+        _clienteRepo.Setup(r => r.CreateAsync(It.IsAny<Cliente>())).ReturnsAsync((Cliente c) => c);
+
+        var resultado = await _sut.RegistrarAsync(new ClienteCreateDTO { Nombre = "Ana", Documento = "40555666", Email = "ana@test.com", Password = "12345678" });
+
+        Assert.True(resultado.Activo);
     }
 
     /// <summary>CU-01, flujo 3a: documento ya registrado lanza <see cref="ClienteDuplicadoException"/> y no crea nada.</summary>

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using FidelixAPI.Shared.Security;
 
 namespace FidelixAPI.Shared.DTOs.Cliente;
 
@@ -22,7 +23,7 @@ public class ClienteCreateDTO
     public string Email { get; set; } = string.Empty;
 
     /// <summary>Obligatorio solo en el autorregistro (CU-01).</summary>
-    [MinLength(8)]
+    [MinLength(PoliticaPassword.LargoMinimo)]
     public string? Password { get; set; }
 
     public DateTime? FechaNacimiento { get; set; }

@@ -22,7 +22,8 @@ public class ClienteService(IClienteRepository clienteRepository, IMovimientoRep
     /// <summary>Autorregistro: exige contraseña propia (RN-02) y unicidad de documento/email (RN-01).</summary>
     public async Task<ClienteResponseDTO> RegistrarAsync(ClienteCreateDTO dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.Password) || dto.Password.Length < 8)
+        // RN-02: misma política que el alta por el admin, el ABM de empleados y la recuperación.
+        if (!PoliticaPassword.EsValida(dto.Password))
         {
             throw new PasswordInvalidaException("La contraseña no cumple los requisitos mínimos.");
         }
@@ -87,7 +88,7 @@ public class ClienteService(IClienteRepository clienteRepository, IMovimientoRep
             throw new DocumentoNoModificableException("El documento de identidad no puede ser modificado");
         }
 
-        if (dto.Password is not null && (string.IsNullOrWhiteSpace(dto.Password) || dto.Password.Length < 8))
+        if (dto.Password is not null && !PoliticaPassword.EsValida(dto.Password))
         {
             throw new PasswordInvalidaException("La contraseña no cumple los requisitos mínimos.");
         }

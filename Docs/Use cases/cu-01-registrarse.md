@@ -108,7 +108,8 @@ puntos inicial en cero para poder acumular y canjear beneficios.
 | 1a. JSON inválido | `400 Bad Request` | — (model binding) | `RegistrarCliente_WithInvalidJson_Returns400BadRequest` |
 | 2a. Dato obligatorio faltante | `400 Bad Request` | — (validación de esquema) | `RegistrarCliente_WithMissingRequiredField_Returns400BadRequest` |
 | 3a. Documento/email duplicado | `409 Conflict` | `RegistrarClienteAsync_WhenDocumentoOrEmailExists_ThrowsClienteDuplicadoException` | `RegistrarCliente_WhenDuplicateDocumentoOrEmail_Returns409Conflict` |
-| 3b. Contraseña inválida | `400 Bad Request` | `RegistrarClienteAsync_WithWeakPassword_ThrowsPasswordInvalidaException` | `RegistrarCliente_WithWeakPassword_Returns400BadRequest` |
+| 3b. Contraseña inválida | `400 Bad Request` | `RegistrarClienteAsync_WithWeakPassword_ThrowsPasswordInvalidaException`, `RegistrarClienteAsync_WithSevenCharacterPassword_ThrowsPasswordInvalidaException` | `RegistrarCliente_WithWeakPassword_Returns400BadRequest` |
+| 3b. Caso borde: contraseña de exactamente 8 caracteres (RN-02, `PoliticaPassword.LargoMinimo`) | `201 Created` | `RegistrarClienteAsync_WithPasswordOfMinimumLength_CreatesCliente` | — |
 
 > Regla de oro: cada flujo del caso de uso debe tener al menos un test. Los tests se
 > ejecutan con el runner de la suite del proyecto Fidelix.

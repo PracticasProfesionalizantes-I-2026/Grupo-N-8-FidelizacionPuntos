@@ -117,5 +117,7 @@ identificador inmutable, y darse de baja voluntariamente del sistema.
 | 2a. Dato inválido | `400 Bad Request` | — (validación de esquema) | `ActualizarPerfil_WithInvalidField_Returns400BadRequest` |
 | 2b. Intento de modificar documento | `400 Bad Request` | `ActualizarPerfilAsync_WhenDocumentoChanged_ThrowsValidationException` | `ActualizarPerfil_WhenDocumentoChanged_Returns400BadRequest` |
 | 3a. Email duplicado | `409 Conflict` | `ActualizarPerfilAsync_WhenEmailAlreadyExists_ThrowsEmailDuplicadoException` | `ActualizarPerfil_WhenEmailAlreadyExists_Returns409Conflict` |
+| RN-02: contraseña nueva inválida (menos de 8 caracteres o solo espacios) | `400 Bad Request` | `ActualizarPerfilAsync_WithShortPassword_ThrowsPasswordInvalidaException`, `ActualizarPerfilAsync_WithWhitespacePassword_ThrowsPasswordInvalidaException` | — |
+| RN-02: contraseña nueva válida (se guarda hasheada) | `200 OK` | `ActualizarPerfilAsync_WithValidPassword_StoresHash` | — |
 
 > Regla de oro: cada flujo del caso de uso debe tener al menos un test.

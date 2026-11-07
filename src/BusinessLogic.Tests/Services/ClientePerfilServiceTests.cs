@@ -231,4 +231,32 @@ public class ClientePerfilServiceTests
 
         await Assert.ThrowsAsync<ClienteNotFoundException>(() => _sut.BuscarPorDocumentoAsync(new ClienteBusquedaDTO { Documento = "99999999" }));
     }
+
+    /// <summary> CU-03, RN-02: una contraseña nueva de 7 caracteres se rechaza y no se guarda nada. </summary>
+    [Fact]
+    public async Task ActualizarPerfilAsync_WithShortPassword_ThrowsPasswordInvalidaException()
+    {
+        await Assert.ThrowsAsync<PasswordInvalidaException>(() =>
+            _sut.ActualizarPerfilAsync(_cliente.Id, new ClienteUpdateDTO { Password = "1234567" }));
+        _clienteRepo.Verify(r => r.UpdateAsync(It.IsAny<Cliente>()), Times.Never);
+    }
+
+    /// <summary> CU-03, RN-02: una contraseña de solo espacios (aunque tenga 8 caracteres) se rechaza. </summary>
+    [Fact]
+    public async Task ActualizarPerfilAsync_WithWhitespacePassword_ThrowsPasswordInvalidaException()
+    {
+        await Assert.ThrowsAsync<PasswordInvalidaException>(() =>
+            _sut.ActualizarPerfilAsync(_cliente.Id, new ClienteUpdateDTO { Password = "        " }));
+    }
+
+    /// <summary> CU-03, RN-02: una contraseña válida (8 caracteres) se guarda hasheada, nunca en texto plano. </summary>
+    [Fact]
+    public async Task ActualizarPerfilAsync_WithValidPassword_StoresHash()
+    {
+        await _sut.ActualizarPerfilAsync(_cliente.Id, new ClienteUpdateDTO { Password = "12345678" });
+
+        Assert.NotNull(_cliente.PasswordHash);
+        Assert.NotEqual("12345678", _cliente.PasswordHash);
+        _clienteRepo.Verify(r => r.UpdateAsync(_cliente), Times.Once);
+    }
 }
