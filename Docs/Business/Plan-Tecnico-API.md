@@ -1,8 +1,10 @@
 # Plan Técnico — API Fidelix en Arquitectura N-Tier (.NET)
 
-> Paso 1 (Planificación) del prompt de arquitectura de la cátedra. Define la
-> estructura base de la API y las **3 entidades principales** del sistema.
-> Los casos de uso restantes se implementan después sobre esta base.
+> Nació como el Paso 1 (Planificación) del prompt de arquitectura de la
+> cátedra: la estructura base de la API y las **3 entidades principales**.
+> Sobre esa base se implementaron los **26 casos de uso**; este documento
+> describe el estado actual. El catálogo completo de endpoints, con roles y
+> códigos de respuesta, está en `src/README.md`.
 
 ## 1. Alcance
 
@@ -15,25 +17,61 @@ cátedra (Socio / Libro / Préstamo):
 | Libro | **Beneficio** | Lo que se ofrece a cambio de puntos |
 | Préstamo | **Movimiento** | Entidad hija que relaciona a las otras dos |
 
-Casos de uso modelo implementados, uno de cada tipo:
+Los casos de uso modelo, uno de cada tipo, fijaron los patrones que siguen
+todos los demás:
 
 - **CU-01 Registrarse** — alta con reglas de negocio.
 - **CU-04 Consultar saldo** — consulta calculada sobre movimientos.
 - **CU-17 ABM de beneficio** — alta, modificación y baja lógica.
 
+**Estado actual:** 10 entidades (sección 2), los 26 casos de uso (CU-01 a
+CU-26), autenticación JWT con tres roles (Cliente, Empleado, Admin, RN-11),
+auditoría automática de operaciones (RN-13), procesos diarios en segundo
+plano (vencimiento de puntos CU-22 y bono de cumpleaños CU-26) y los niveles
+de complejidad N1 (Gold x1.5) y N2 (puntos pendientes 15 días).
+
 ## 2. Entidades
 
 Todas heredan de `EntidadBase` (`Id: Guid`, asignado en el repositorio).
 
-**Cliente**: `Nombre`, `Documento` (único), `Email` (único), `PasswordHash`,
-`Telefono?`, `FechaNacimiento?`, `FechaRegistro`, `Activo`, `Movimientos`.
+**Núcleo (las 3 entidades del plan inicial):**
+
+**Cliente**: `Nombre`, `Documento` (único), `Email` (único), `PasswordHash?`
+(nulo si lo dio de alta el empleado y todavía no definió contraseña, CU-12),
+`Telefono?`, `FechaNacimiento?`, `FechaRegistro`, `Activo`, `Categoria` (enum
+`CategoriaCliente`: Estandar, Gold — N1), `IntentosFallidos` y
+`BloqueadoHasta?` (bloqueo temporal, RN-03), `Movimientos`.
 
 **Beneficio**: `Nombre` (único), `Descripcion?`, `CostoPuntos`,
 `Categoria` (enum `CategoriaBeneficio`), `Activo`, `Canjes`.
 
 **Movimiento**: `ClienteId` (FK), `Tipo` (enum `TipoMovimiento`: Acumulacion,
-Canje, BonoCumpleanos, Vencimiento), `Puntos`, `PuntosDisponibles`, `Fecha`,
-`FechaVencimiento?`, `BeneficioId?` (FK, solo en canjes), `Detalle?`.
+Canje, BonoCumpleanos, Vencimiento), `Puntos`, `PuntosDisponibles` (lo que
+queda del lote para el FIFO, RN-09), `Fecha`, `FechaVencimiento?`,
+`FechaDisponible?` (fin del pendiente de 15 días, N2), `BeneficioId?` (FK,
+solo en canjes), `EstadoCanje?` (Pendiente / Entregado, RN-10), `EmpleadoId?`
+(quién registró la operación, RF-28), `Detalle?`.
+
+**Agregadas al implementar el resto de los casos de uso:**
+
+**Producto** (CU-18): `Nombre` (único), `Descripcion?`, `Precio` (RN-25),
+`Activo`. La compra (CU-10) calcula el monto con estos precios.
+
+**ReglaAcumulacion** (CU-19): `PuntosPorMonto`, `VigenciaDesde` (única),
+`DiasVigenciaPuntos`, `FechaCreacion`, `FechaModificacion?`. Se versiona:
+rige la de `VigenciaDesde` más reciente que ya empezó (RN-12).
+
+**Empleado** (CU-16): `Nombre`, `Documento` (único), `Email` (único),
+`PasswordHash`, `Activo`, `FechaAlta`.
+
+**Admin** (CU-14): `Nombre`, `Email` (único), `PasswordHash`.
+
+**Auditoria** (CU-21, RN-13/RN-20): `Fecha` (indexada), `TipoOperacion`,
+`ActorId?`, `ActorRol`, `EntidadId?`, `Detalle`. Solo se crea y se consulta,
+nunca se modifica.
+
+**CodigoRecuperacion** (CU-25, RN-27): `Email`, `Rol`, `CodigoHash`,
+`FechaExpiracion`, `Usado`.
 
 Relaciones: `Movimiento → Cliente` y `Movimiento → Beneficio`, ambas con
 `DeleteBehavior.Restrict` (las bajas son lógicas y nunca borran historial).
@@ -44,22 +82,45 @@ desincronizado con los vencimientos ni con los canjes.
 
 ## 3. Endpoints por capa
 
-| Endpoint | Controller | Service | Repositorio |
-| --- | --- | --- | --- |
-| `POST /api/clientes/registro` | `ClientesController.Registrar` | `ClienteService.RegistrarAsync` | `IClienteRepository` |
-| `GET /api/clientes/{id}/saldo` | `ClientesController.ConsultarSaldo` | `ClienteService.ConsultarSaldoAsync` | `IClienteRepository`, `IMovimientoRepository` |
-| `POST /api/admin/beneficios` | `AdminBeneficiosController.Crear` | `BeneficioService.CrearAsync` | `IBeneficioRepository` |
-| `PUT /api/admin/beneficios/{id}` | `AdminBeneficiosController.Actualizar` | `BeneficioService.ActualizarAsync` | `IBeneficioRepository` |
-| `PATCH /api/admin/beneficios/{id}/desactivar` | `AdminBeneficiosController.Desactivar` | `BeneficioService.DesactivarAsync` | `IBeneficioRepository` |
+Cada controller delega en un service y cada service accede a los datos solo
+por interfaces de repositorio. El detalle de cada endpoint (método, ruta, rol,
+CU y respuestas) está en el catálogo de `src/README.md`; esta tabla muestra
+qué capas atraviesa cada grupo.
 
-Sin autenticación en esta etapa: se incorpora con el login (CU-02/09/14).
+| Controller (rutas) | CU | Service | Repositorios |
+| --- | --- | --- | --- |
+| `AuthController` (`/api/auth/login`) | CU-02 | `AuthService` (+ `ITokenService`) | `IClienteRepository` |
+| `AuthPersonalController` (`/api/auth/empleados/login`, `/admin/login`, `/recuperar-contrasena`) | CU-09, CU-14, CU-25 | `AuthPersonalService`, `RecuperacionService` (+ `ITokenService`, `IEmailSender`) | `IEmpleadoRepository`, `IAdminRepository`, `IClienteRepository`, `ICodigoRecuperacionRepository` |
+| `ClientesController` (`/api/clientes/...`) | CU-01, CU-03, CU-04, CU-05, CU-08, CU-12, CU-13, búsqueda por DNI | `ClienteService` | `IClienteRepository`, `IMovimientoRepository` |
+| `BeneficiosController` (`/api/beneficios`) | CU-06 | `BeneficioService` | `IBeneficioRepository` |
+| `ProductosController` (`/api/productos`) | CU-10 | `ProductoService` | `IProductoRepository` |
+| `MovimientosController` (`/api/movimientos/acumulaciones/{clienteId}`) | CU-10 | `MovimientoService` | `IClienteRepository`, `IProductoRepository`, `IReglaAcumulacionRepository`, `IMovimientoRepository` |
+| `CanjesController` (`/api/canjes/...`) | CU-07, CU-11, CU-23 | `CanjeService` (+ `LotePuntosService`, FIFO) | `IClienteRepository`, `IBeneficioRepository`, `IMovimientoRepository` |
+| `AdminClientesController` (`/api/admin/clientes`) | CU-15 | `ClienteAdminService` | `IClienteRepository` |
+| `AdminEmpleadosController` (`/api/admin/empleados`) | CU-16 | `EmpleadoAdminService` | `IEmpleadoRepository` |
+| `AdminBeneficiosController` (`/api/admin/beneficios`) | CU-17 | `BeneficioService` | `IBeneficioRepository` |
+| `AdminProductosController` (`/api/admin/productos`) | CU-18 | `ProductoService` | `IProductoRepository` |
+| `AdminReglasAcumulacionController` (`/api/admin/reglas-acumulacion`) | CU-19 | `ReglaAcumulacionService` | `IReglaAcumulacionRepository` |
+| `AdminMovimientosController` (`/api/admin/movimientos`) | CU-20 | `MovimientoService` | `IMovimientoRepository` |
+| `AdminAuditoriaController` (`/api/admin/auditoria`) | CU-21 | `AuditoriaService` | `IAuditoriaRepository` |
+| `AdminProcesosController` (`/api/admin/procesos/...`) y `ProcesoDiarioJob` | CU-22, CU-26 | `PuntosService` (+ `IAuditoriaService`, `IEmailSender`) | `IClienteRepository`, `IMovimientoRepository`, `IReglaAcumulacionRepository` |
+| `AdminReportesController` (`/api/admin/reportes`) | CU-24 (y comparación de CU-20) | `ReporteService` (+ `ReporteCsvWriter` en la capa API) | `IMovimientoRepository`, `IAuditoriaRepository` |
+
+**Transversales:**
+
+* **Autenticación:** JWT con tres roles (`Cliente`, `Empleado`, `Admin`).
+  Cada controller o acción declara `[Authorize(Roles = ...)]`; sin token
+  responde 401 y con un rol sin permiso 403 (RN-11). En los endpoints `/me`
+  el id del cliente sale del token, nunca del JSON.
+* **Auditoría:** `AuditoriaFilter` registra con `AuditoriaService` cada
+  POST/PUT/PATCH/DELETE exitoso (operación, actor, rol y entidad afectada).
 
 ## 4. Reglas de negocio y excepciones tipadas
 
 | Regla | Dónde | Excepción | HTTP |
 | --- | --- | --- | --- |
 | RN-01: documento y email de cliente únicos | `ClienteService` | `ClienteDuplicadoException` | 409 |
-| RN-02: contraseña de al menos 8 caracteres | `ClienteService` | `PasswordInvalidaException` | 400 |
+| RN-02: contraseña de al menos 8 caracteres | `ClienteService` (registro y perfil), `ClienteAdminService`, `EmpleadoAdminService` y `RecuperacionService` (estos tres con `PoliticaPassword`) | `PasswordInvalidaException` | 400 |
 | Cliente inexistente (por id: saldo, compra, canje presencial, canjes de un cliente; o por DNI en la búsqueda) | `ClienteService` / `MovimientoService` / `CanjeService` | `ClienteNotFoundException` | 404 |
 | CU-04 4a: falla al leer los movimientos | `ClienteService` | `PersistenceException` | 500 |
 | RN-05: los lotes vencidos no suman al saldo | `MovimientoRepository` (filtro) | — | — |
@@ -112,3 +173,11 @@ buscarlo (`GET /api/clientes?documento=`).
 3. **Fase 3**: `API/` (controllers) + tests de integración
    (`WebApplicationFactory`) + colección Bruno.
 4. **Paso 3**: `README.md` y `AGENTS.md`.
+5. **Resto de los casos de uso** (CU-02 a CU-26): login con JWT y roles,
+   ABM de clientes, empleados y productos, reglas de acumulación, acumulación
+   y canjes (N1, N2, FIFO), auditoría, procesos diarios, reportes y
+   recuperación de contraseña, cada uno con sus tests, requests de Bruno y su
+   especificación actualizada en `Docs/Use cases/`.
+6. **Ajustes por observaciones del profesor**: el cliente se identifica por
+   id (Guid) y no por DNI, el id viaja como parámetro de ruta, y todas las
+   respuestas son DTOs (`ErrorResponseDTO`, `ListadoResponseDTO`).
