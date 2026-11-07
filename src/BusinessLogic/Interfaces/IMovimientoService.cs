@@ -7,9 +7,9 @@ namespace FidelixAPI.BusinessLogic.Interfaces;
 public interface IMovimientoService
 {
     /// <summary>
-    /// Registra una compra y acredita los puntos según la regla vigente (RN-12), con el
-    /// multiplicador Gold (N1) y como pendientes por 15 días (N2); queda auditada con el
-    /// empleado que la registró (RN-13, RF-28).
+    /// Registra una compra del cliente indicado por id (parámetro de ruta) y acredita los puntos
+    /// según la regla vigente (RN-12), con el multiplicador Gold (N1) y como pendientes por 15 días
+    /// (N2); queda auditada con el empleado que la registró (RN-13, RF-28).
     /// </summary>
     Task<AcumulacionResponseDTO> RegistrarAcumulacionAsync(Guid clienteId, AcumulacionCreateDTO dto, Guid? empleadoId = null);
 

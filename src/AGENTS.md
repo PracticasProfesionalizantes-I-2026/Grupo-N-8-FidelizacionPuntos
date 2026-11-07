@@ -65,6 +65,19 @@ cd bruno && npx --yes @usebruno/cli run -r --env Local
   del dominio son lógicas, `Activo = false`) e índices únicos para las
   reglas de unicidad.
 
+## Convenciones de la API (observaciones del profesor)
+
+- **El id (Guid) es la clave, no el DNI.** Las operaciones sobre un recurso
+  reciben su id como **parámetro de ruta** con restricción `{id:guid}`, nunca en
+  el body (ej. `PUT /api/admin/productos/{id}`,
+  `POST /api/movimientos/acumulaciones/{clienteId}`). El DNI solo se usa para
+  buscar al cliente: `GET /api/clientes?documento=`.
+- **Filtros de consulta:** llegan en un único DTO con `[FromQuery]`, no como
+  parámetros sueltos.
+- **Respuestas siempre en DTO:** errores de negocio con `ErrorResponseDTO`
+  (`{ "mensaje" }`), listados con `ListadoResponseDTO<T>` (`{ "mensaje", "items" }`).
+  Los 400 automáticos de `[ApiController]` quedan como `ProblemDetails`.
+
 ## Excepciones tipadas
 
 Una clase por archivo en `Shared/Exceptions/`, con constructor primario

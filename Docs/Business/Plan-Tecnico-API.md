@@ -60,7 +60,7 @@ Sin autenticación en esta etapa: se incorpora con el login (CU-02/09/14).
 | --- | --- | --- | --- |
 | RN-01: documento y email de cliente únicos | `ClienteService` | `ClienteDuplicadoException` | 409 |
 | RN-02: contraseña de al menos 8 caracteres | `ClienteService` | `PasswordInvalidaException` | 400 |
-| Cliente inexistente al consultar saldo | `ClienteService` | `ClienteNotFoundException` | 404 |
+| Cliente inexistente (por id: saldo, compra, canje presencial, canjes de un cliente; o por DNI en la búsqueda) | `ClienteService` / `MovimientoService` / `CanjeService` | `ClienteNotFoundException` | 404 |
 | CU-04 4a: falla al leer los movimientos | `ClienteService` | `PersistenceException` | 500 |
 | RN-05: los lotes vencidos no suman al saldo | `MovimientoRepository` (filtro) | — | — |
 | RN-16: costo en puntos mayor a cero y hasta 999.999 (6 dígitos enteros) | `BeneficioService` | `CostoInvalidoException` | 400 |
@@ -80,7 +80,7 @@ Sin autenticación en esta etapa: se incorpora con el login (CU-02/09/14).
 | RN-18: regla de acumulación inválida o superpuesta | `ReglaAcumulacionService` | `ReglaAcumulacionInvalidaException` | 400 |
 | Regla de acumulación inexistente | `ReglaAcumulacionService` | `ReglaAcumulacionNotFoundException` | 404 |
 | RN-12: sin regla vigente al acumular | `MovimientoService` | `ReglaAcumulacionNoVigenteException` | 409 |
-| CU-10 3b: documento con formato inválido | `MovimientoService` | `DocumentoInvalidoException` | 400 |
+| DNI con formato inválido en la búsqueda del punto de venta (`GET /api/clientes?documento=`; antes CU-10 3b) | `ClienteService` | `DocumentoInvalidoException` | 400 |
 | RN-26: ítem con producto inexistente o inactivo | `MovimientoService` | `ItemCompraInvalidoException` | 400 |
 | RN-17: beneficio inactivo al canjear | `CanjeService` | `BeneficioInactivoException` | 409 |
 | RN-08: saldo insuficiente | `CanjeService` | `SaldoInsuficienteException` | 409 |
@@ -90,7 +90,17 @@ Sin autenticación en esta etapa: se incorpora con el login (CU-02/09/14).
 | Sin token o token inválido / rol sin permiso (RN-11) | Middleware JWT + `[Authorize(Roles)]` | — | 401 / 403 |
 
 Errores de sintaxis del JSON o DataAnnotations: 400 automático de
-`[ApiController]`, antes de llegar al service.
+`[ApiController]`, antes de llegar al service (formato estándar `ProblemDetails`).
+
+**Formato de las respuestas:** los errores de negocio (las excepciones de esta
+tabla) responden un `ErrorResponseDTO` `{ "mensaje": "..." }`; los listados
+responden `ListadoResponseDTO` `{ "mensaje", "items" }`. Un id que no es Guid en
+una ruta con restricción `{id:guid}` no coincide con ningún endpoint: 404.
+
+**Identificación del cliente:** las operaciones sobre un cliente reciben su id
+(Guid, clave primaria y foránea) como parámetro de ruta, por ejemplo
+`POST /api/movimientos/acumulaciones/{clienteId}`. El DNI solo se usa para
+buscarlo (`GET /api/clientes?documento=`).
 
 ## 5. Fases de desarrollo
 

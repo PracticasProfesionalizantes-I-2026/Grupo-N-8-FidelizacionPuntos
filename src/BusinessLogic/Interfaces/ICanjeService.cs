@@ -12,8 +12,9 @@ public interface ICanjeService
     Task<CanjeResponseDTO> CrearCanjeAsync(Guid clienteId, CanjeCreateDTO dto);
 
     /// <summary>
-    /// Canje presencial (CU-11): mismas reglas, pero el cliente se identifica por documento, el
-    /// beneficio se entrega en el momento y queda registrado qué empleado lo hizo (RN-13).
+    /// Canje presencial (CU-11): mismas reglas, pero el empleado indica el cliente por su id (que llega
+    /// como parámetro de ruta), el beneficio se entrega en el momento y queda registrado qué empleado
+    /// lo hizo (RN-13).
     /// </summary>
     Task<CanjeResponseDTO> CrearCanjePresencialAsync(Guid clienteId, CanjePresencialCreateDTO dto, Guid? empleadoId);
 

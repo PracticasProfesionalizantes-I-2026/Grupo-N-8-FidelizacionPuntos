@@ -15,7 +15,7 @@ si `dotnet run` levanta en otro).
 | Orden | Carpeta | Casos de uso | Token que usa |
 | --- | --- | --- | --- |
 | 1 | **Auth** | CU-02, CU-09, CU-14, CU-25 | — (guarda `tokenCliente`, `tokenAdmin`, `tokenEmpleado`) |
-| 2 | **Clientes** | CU-01, CU-03, CU-04, CU-05, CU-08, CU-12, CU-13 | `tokenCliente` (y `tokenEmpleado` en los del empleado) |
+| 2 | **Clientes** | CU-01, CU-03, CU-04, CU-05, CU-08, CU-12, CU-13 y la búsqueda por DNI | `tokenCliente` (y `tokenEmpleado` en los del empleado) |
 | 3 | **Admin** | CU-15, CU-16, CU-17, CU-18, CU-19, CU-20, CU-21, CU-22, CU-24, CU-26 | `tokenAdmin` (heredado de la carpeta) |
 | 4 | **Movimientos** | CU-10 (N1 Gold x1.5, N2 pendientes) | `tokenEmpleado` |
 | 5 | **Canjes** | CU-06, CU-07 (FIFO), CU-11, RN-10 | `tokenCliente` / `tokenEmpleado` |
@@ -32,6 +32,16 @@ si `dotnet run` levanta en otro).
 | Empleado inactivo | `empleado.inactivo@fidelix.local` | `Inactivo123!` |
 
 ## Notas
+
+* **El cliente se identifica por id, no por DNI.** El DNI solo se usa en
+  "Buscar Cliente por DNI" (`GET /api/clientes?documento=`), que devuelve el id.
+  La compra, el canje presencial y los canjes de un cliente reciben ese id como
+  **parámetro de ruta** (pestaña *Params → Path*, `:clienteId`), no en el body.
+* El id del cliente Gold se genera al sembrar la base: "Buscar Cliente Gold por
+  DNI" lo guarda en `clienteGoldId`, por eso tiene que correr antes que
+  "Registrar Acumulacion - Cliente Gold" (ya está ordenado así en la carpeta).
+* Los errores de negocio responden `{ "mensaje": "..." }` y los listados
+  `{ "mensaje", "items": [...] }`. Un id que no es Guid en la ruta da 404.
 
 * La carpeta **Canjes** da verde una sola vez por base limpia: el canje
   exitoso consume 100 de los 150 puntos del cliente demo.
