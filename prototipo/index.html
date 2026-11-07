@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Fidelix Prototipo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* Concepto: app móvil centrada (390px) con tres roles; sistema visual idéntico al kit de Figma de Fidelix. */
+:root{
+  --brand:#2563EB; --brand-dark:#1D4ED8; --brand-soft:#E8F0FE;
+  --bg:#F4F7FB; --surface:#FFFFFF; --muted:#EDF1F7; --ground:#DDE5F0;
+  --ink:#0F172A; --ink2:#475569; --ink3:#8A97AB; --on-brand:#FFFFFF;
+  --line:#D9E1EC; --ok:#16A34A; --ok-soft:#DCFCE7; --bad:#DC2626; --bad-soft:#FEE2E2; --warn:#B45309; --warn-soft:#FEF3C7;
+  --overlay:rgba(15,23,42,.55);
+  --font:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --brand:#5B8DEF; --brand-dark:#7BA3F3; --brand-soft:#1B2A4A;
+  --bg:#0B1220; --surface:#131C2E; --muted:#1A2438; --ground:#070C16;
+  --ink:#E8EEF8; --ink2:#A9B6CA; --ink3:#7C8AA3; --on-brand:#0B1220;
+  --line:#26324A; --ok:#4ADE80; --ok-soft:#12351F; --bad:#F87171; --bad-soft:#3B1717; --warn:#FBBF24; --warn-soft:#3A2D0B;
+  --overlay:rgba(0,0,0,.65); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --brand:#5B8DEF; --brand-dark:#7BA3F3; --brand-soft:#1B2A4A;
+  --bg:#0B1220; --surface:#131C2E; --muted:#1A2438; --ground:#070C16;
+  --ink:#E8EEF8; --ink2:#A9B6CA; --ink3:#7C8AA3; --on-brand:#0B1220;
+  --line:#26324A; --ok:#4ADE80; --ok-soft:#12351F; --bad:#F87171; --bad-soft:#3B1717; --warn:#FBBF24; --warn-soft:#3A2D0B;
+  --overlay:rgba(0,0,0,.65); color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--ground);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.45;padding-left:max(0px,env(safe-area-inset-left,0px));padding-right:max(0px,env(safe-area-inset-right,0px))}
+button,input,select{font:inherit;color:inherit}
+.app{position:relative;max-width:430px;min-height:100%;margin:0 auto;background:var(--bg);display:flex;flex-direction:column;overflow:hidden}
+@media(min-width:520px){.app{min-height:min(880px,100%);margin-block:0;box-shadow:0 0 0 1px var(--line),0 24px 60px rgba(0,0,0,.18)}}
+.top{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--line)}
+.top .t{flex:1;min-width:0}
+.top h1{margin:0;font-size:18px;font-weight:600;line-height:24px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top small{display:block;color:var(--ink3);font-size:12px;line-height:16px}
+.ib{border:0;background:none;padding:6px;border-radius:10px;cursor:pointer;display:grid;place-items:center;color:var(--ink2)}
+.ib:hover{background:var(--muted)} .ib svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.av{width:36px;height:36px;border-radius:99px;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;font-weight:600;font-size:13px;flex:none}
+.av.lg{width:72px;height:72px;font-size:22px}
+main{flex:1;padding:16px;display:flex;flex-direction:column;gap:16px}
+main.center{justify-content:center;padding-inline:24px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.list{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);width:100%;background:none;border-inline:0;border-top:0;text-align:left;color:inherit}
+.row:last-child{border-bottom:0}
+button.row{cursor:pointer} button.row:hover{background:var(--muted)}
+.row .g{flex:1;min-width:0} .row b{display:block;font-weight:600} .row small{color:var(--ink3);font-size:12px;display:block}
+.pos{color:var(--ok);font-weight:600;white-space:nowrap}.neg{color:var(--bad);font-weight:600;white-space:nowrap}
+h2{margin:0;font-size:18px;font-weight:600;line-height:24px} h3{margin:0;font-size:15px;font-weight:600}
+p{margin:0}.sub{color:var(--ink2)}.mut{color:var(--ink3);font-size:12px}
+.btn{border:1px solid transparent;border-radius:12px;padding:12px 16px;font-weight:600;cursor:pointer;width:100%;display:inline-flex;justify-content:center;align-items:center;gap:8px;min-height:44px}
+.btn:focus-visible,.chip:focus-visible,.ib:focus-visible,input:focus-visible,select:focus-visible,.row:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.btn.p{background:var(--brand);color:var(--on-brand)} .btn.p:hover{background:var(--brand-dark)}
+.btn.s{background:var(--brand-soft);color:var(--brand)} .btn.g{background:transparent;color:var(--brand);border-color:var(--line)}
+.btn.d{background:var(--bad);color:#fff} .btn.sm{padding:6px 12px;min-height:34px;font-size:13px;width:auto;border-radius:10px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.fld{display:flex;flex-direction:column;gap:4px}
+.fld label{font-size:13px;font-weight:500;color:var(--ink2)}
+.fld input,.fld select{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 16px;width:100%;min-height:46px}
+.fld.err input{border-color:var(--bad)} .fld .e{color:var(--bad);font-size:12px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:6px 14px;font-size:13px;font-weight:500;cursor:pointer;color:var(--ink2)}
+.chip.on{background:var(--brand);border-color:var(--brand);color:var(--on-brand)}
+.badge{display:inline-block;border-radius:99px;padding:2px 10px;font-size:12px;font-weight:600;white-space:nowrap}
+.b-ok{background:var(--ok-soft);color:var(--ok)}.b-w{background:var(--warn-soft);color:var(--warn)}.b-n{background:var(--muted);color:var(--ink2)}.b-d{background:var(--bad-soft);color:var(--bad)}
+.hero{background:var(--brand);color:var(--on-brand);border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:6px}
+.hero .big{font-size:44px;line-height:52px;font-weight:700;font-variant-numeric:tabular-nums}
+.hero .top2{display:flex;justify-content:space-between;align-items:center}
+.hero .badge{background:var(--warn-soft);color:var(--warn)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.two>*{min-width:0}
+input[type=date]{min-width:0;width:100%;max-width:100%}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px}
+.stat small{color:var(--ink3);font-size:12px;display:block}.stat b{font-size:24px;line-height:30px;font-variant-numeric:tabular-nums}
+.logo{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+.logo i{width:72px;height:72px;border-radius:24px;background:var(--brand);color:var(--on-brand);display:grid;place-items:center;font:700 28px var(--font);font-style:normal}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);background:var(--muted);border-radius:12px;padding:4px;gap:4px}
+.tabs button{border:0;background:none;border-radius:9px;padding:8px;font-weight:600;font-size:13px;color:var(--ink2);cursor:pointer}
+.tabs button.on{background:var(--surface);color:var(--brand);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.ico{width:44px;height:44px;border-radius:12px;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;flex:none}
+.ico svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.code{font-size:32px;font-weight:700;color:var(--brand);letter-spacing:.04em;text-align:center}
+.okc{width:80px;height:80px;border-radius:99px;background:var(--ok-soft);color:var(--ok);display:grid;place-items:center;margin-inline:auto}
+.okc svg{width:40px;height:40px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.note{background:var(--warn-soft);color:var(--warn);border-radius:12px;padding:10px 12px;font-size:13px}
+.kv{display:flex;justify-content:space-between;gap:12px}.kv span{color:var(--ink2)}.kv b{text-align:right}
+.ov{position:absolute;inset:0;background:var(--overlay);z-index:20;display:flex;animation:f .15s}
+.drawer{width:290px;max-width:86%;background:var(--surface);height:100%;padding:24px 16px;display:flex;flex-direction:column;gap:4px;animation:s .2s}
+.drawer .nv{border:0;background:none;text-align:left;padding:12px 16px;border-radius:12px;font-weight:500;color:var(--ink2);cursor:pointer}
+.drawer .nv.on{background:var(--brand-soft);color:var(--brand);font-weight:600}
+.modal{margin:auto 24px;background:var(--surface);border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:12px;width:100%}
+.ov.m{align-items:center}
+.toast{position:absolute;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:12px 16px;border-radius:12px;z-index:30;font-size:14px;animation:f .2s}
+@keyframes f{from{opacity:0}to{opacity:1}} @keyframes s{from{transform:translateX(-30px)}to{transform:none}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+svg.ch text{fill:var(--ink3);font-size:10px;font-family:var(--font)} svg.ch .gl{stroke:var(--line)} svg.ch .b1{fill:var(--brand)} svg.ch .b2{fill:var(--ok)}
+.lg2{display:flex;gap:16px;font-size:12px;color:var(--ink2)}.lg2 i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px}
+.ft{padding:8px 16px 16px;text-align:center;color:var(--ink3);font-size:12px}
+.link{border:0;background:none;color:var(--brand);font-weight:600;cursor:pointer;padding:8px}
+</style>
+</head>
+<body>
+<div id="app" class="app"></div>
+<script>
+(function(){
+const DAY=864e5; let offset=0; const now=()=>Date.now()+offset;
+const fmtD=t=>new Date(t).toLocaleDateString('es-AR',{day:'2-digit',month:'short',year:'numeric'});
+const fmtN=n=>Number(n).toLocaleString('es-AR');
+const fmtM=n=>'$ '+Number(n).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let uid=100; const nid=()=>++uid;
+
+/* ---------- Base de datos simulada ---------- */
+const db={cats:{'Estándar':1,Gold:1.5},dias:15,reglas:[{id:1,ppm:0.01,desde:Date.now()-400*DAY,vig:365},{id:2,ppm:0.02,desde:Date.now()+30*DAY,vig:365}],
+ admin:{email:'admin@fidelix.local',pass:'Admin123!',nombre:'Administrador'},
+ empleados:[{id:1,nombre:'Empleado Demo',doc:'30111222',email:'empleado@fidelix.local',pass:'Empleado123!',activo:true},{id:2,nombre:'Empleado Inactivo',doc:'30333444',email:'empleado.inactivo@fidelix.local',pass:'Inactivo123!',activo:false}],
+ productos:[{id:1,nombre:'Remera básica',cat:'Indumentaria',precio:8500,activo:true},{id:2,nombre:'Jean clásico',cat:'Indumentaria',precio:24000,activo:true},{id:3,nombre:'Zapatillas urbanas',cat:'Calzado',precio:58000,activo:true},{id:4,nombre:'Campera liviana',cat:'Indumentaria',precio:42000,activo:true},{id:5,nombre:'Gorra',cat:'Accesorios',precio:6500,activo:true}],catProd:['Indumentaria','Calzado','Accesorios','Otros'],catBen:['Descuento','Producto gratis','Experiencia','Otro'],clientes:[],lotes:[],movs:[],canjes:[],audit:[],
+ beneficios:[
+  {id:1,nombre:'Cupón $20.000',cat:'Descuento',costo:200,stock:50,activo:true},
+  {id:2,nombre:'Café gratis',cat:'Producto gratis',costo:80,stock:200,activo:true},
+  {id:3,nombre:'15% de descuento',cat:'Descuento',costo:350,stock:80,activo:true},
+  {id:4,nombre:'Pack regalo',cat:'Producto gratis',costo:2500,stock:10,activo:true},
+  {id:5,nombre:'Entrada VIP',cat:'Experiencia',costo:4000,stock:5,activo:true}]};
+const today=new Date();
+const mkC=(id,nombre,doc,email,cat,nac,tel,pw)=>db.clientes.push({id,nombre,doc,email,cat,nac,tel:tel||'',pass:pw||'Cliente123!',activo:true,alta:now()-90*DAY});
+mkC(1,'Cliente Demo','40333444','cliente.demo@fidelix.local','Estándar','1994-06-14','+54 9 3493 555 0123');
+mkC(2,'Cliente Inactivo','54433304','cliente.inactivo@fidelix.local','Estándar','1988-02-09','','Inactivo123!');db.clientes[1].activo=false;
+mkC(3,'Cliente Gold','40111222','cliente.gold@fidelix.local','Gold',`1990-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`,'','Gold1234!');
+mkC(4,'Carlos Ruiz','30447126','carlos@email.com','Estándar','1985-11-21');
+mkC(5,'Ana Torres','38215640','ana@email.com','Estándar','1999-08-30');
+function audit(quien,accion){db.audit.unshift({id:nid(),quien,accion,fecha:now()})}
+function acumular(cid,pts,desc,at,{inmediato=false,vence,emp}={}){
+  at=at??now(); db.lotes.push({id:nid(),cid,rest:pts,disp:inmediato?at:at+db.dias*DAY,vence:vence??at+((reglaAt(at)||db.reglas[0]).vig)*DAY});
+  db.movs.push({id:nid(),cid,tipo:desc==='Bono de cumpleaños'?'Bono':'Acumulación',pts,desc,fecha:at,emp});}
+
+
+/* ---------- Reglas de negocio ---------- */
+const defCat=()=>Object.entries(db.cats).sort((a,b)=>a[1]-b[1])[0][0];
+const prod=id=>db.productos.find(p=>p.id===id);
+const cartTotal=()=>S.cart.reduce((t,i)=>{const p=prod(i.pid);return t+(p?p.precio*i.qty:0)},0);
+const cli=id=>db.clientes.find(c=>c.id===id);
+const saldo=id=>db.lotes.filter(l=>l.cid===id&&l.disp<=now()&&l.vence>now()).reduce((s,l)=>s+l.rest,0);
+const pendiente=id=>db.lotes.filter(l=>l.cid===id&&l.disp>now()&&l.vence>now()).reduce((s,l)=>s+l.rest,0);
+const porVencer=id=>db.lotes.filter(l=>l.cid===id&&l.disp<=now()&&l.vence>now()&&l.vence<=now()+30*DAY).reduce((s,l)=>s+l.rest,0);
+const reglaAt=t=>db.reglas.filter(r=>r.desde<=t).sort((a,b)=>b.desde-a.desde)[0]||null;
+const puntosPorMonto=(monto,cat)=>{const r=reglaAt(now());return r?Math.round(monto*r.ppm*db.cats[cat]):0;};
+const pesosPorPunto=()=>{const r=reglaAt(now());return r?Math.round(100/r.ppm)/100:null;};
+const isAcu=m=>m.tipo==='Acumulación'||m.tipo==='Bono';
+const iso=t=>{const d=new Date(t);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+const dStart=x=>x?new Date(x+'T00:00:00').getTime():null;
+const dEnd=x=>x?new Date(x+'T23:59:59').getTime():null;
+const inRange=(t,a,b)=>(a==null||t>=a)&&(b==null||t<=b);
+function doCanje(cid,bid,presencial,at,estado='Pendiente'){
+  const b=db.beneficios.find(x=>x.id===bid),c=cli(cid); at=at??now();
+  if(!b||!b.activo)return {error:'El beneficio no está disponible.'};
+  if(b.stock<=0)return {error:'Sin stock.'};
+  const cur=at===now()?now():at;
+  if(at>=now()-1000&&saldo(cid)<b.costo)return {error:'Saldo insuficiente.'};
+  let need=b.costo;
+  db.lotes.filter(l=>l.cid===cid&&l.disp<=cur&&l.vence>cur&&l.rest>0).sort((a,z)=>a.vence-z.vence).forEach(l=>{const t=Math.min(l.rest,need);l.rest-=t;need-=t;});
+  b.stock--;
+  const k={id:nid(),cid,bid,nombre:b.nombre,pts:b.costo,codigo:'CJ-'+Math.floor(1000+Math.random()*9000)+'-'+(10+db.canjes.length),estado,fecha:at,presencial};
+  db.canjes.push(k);db.movs.push({id:nid(),cid,tipo:'Canje',pts:-b.costo,desc:'Canje – '+b.nombre,fecha:at});
+  if(at>=now()-1000)audit(presencial?'Empleado':c.nombre,`Canje ${b.nombre} (${c.nombre})`);
+  return {canje:k};
+}
+function ejecutarVencimiento(){let n=0,pts=0;db.lotes.forEach(l=>{if(l.vence<=now()&&l.rest>0){db.movs.push({id:nid(),cid:l.cid,tipo:'Vencimiento',pts:-l.rest,desc:'Vencimiento de puntos',fecha:now()});pts+=l.rest;n++;l.rest=0;}});audit('Administrador',`Proceso vencimiento: ${n} lotes, ${pts} pts`);return {n,pts};}
+function ejecutarBono(){let n=0;const t=new Date(now());db.clientes.filter(c=>c.activo).forEach(c=>{const [,m,d]=c.nac.split('-').map(Number);const ya=db.movs.some(x=>x.cid===c.id&&x.desc==='Bono de cumpleaños'&&new Date(x.fecha).getFullYear()===t.getFullYear());if(m===t.getMonth()+1&&d===t.getDate()&&!ya){acumular(c.id,100,'Bono de cumpleaños',now(),{inmediato:true});n++;}});audit('Administrador',`Proceso bono cumpleaños: ${n} clientes`);return {n};}
+
+(function seed(){
+  let r=7; const rnd=()=>(r=(r*9301+49297)%233280)/233280;
+  db.clientes.forEach(c=>{const n=c.id===1?9:6;for(let i=0;i<n;i++){const ago=Math.floor(rnd()*140)+(c.id===1&&i===0?3:20);const pts=Math.round((20+rnd()*90)*db.cats[c.cat]);acumular(c.id,pts,'Compra – Tienda',now()-ago*DAY);}});
+  acumular(1,65,'Compra – Tienda',now()-3*DAY);
+  acumular(1,85,'Compra – Tienda',now()-300*DAY,{vence:now()+20*DAY});
+  db.movs.sort((a,b)=>a.fecha-b.fecha);
+  doCanje(1,1,false,now()-30*DAY,'Entregado');doCanje(2,2,false,now()-12*DAY,'Entregado');doCanje(1,2,false,now()-6*DAY,'Pendiente');doCanje(3,3,true,now()-2*DAY,'Pendiente');
+  db.audit=[];audit('Sistema','Base de demostración cargada');
+})();
+/* ---------- Estado de la UI ---------- */
+const S={role:null,uid:null,view:'login',stack:[],p:{},drawer:false,modal:null,toast:null,loginRole:'Cliente',err:{},f:{},q:'',chip:'Todos',flt:{},rec:null,pos:{c:null},sim:{c:null},period:30,cart:[],pq:''};
+const NAV={Cliente:[['home','Mis puntos'],['beneficios','Beneficios'],['historial','Historial'],['canjes','Mis canjes'],['perfil','Mi perfil']],
+ Empleado:[['pos','Punto de venta'],['canjePres','Canje presencial'],['canjesHist','Historial de canjes'],['clientesEmp','Clientes'],['crearCliente','Nuevo cliente']],
+ Admin:[['dash','Dashboard'],['clientes','Clientes'],['empleados','Empleados'],['benAdm','Beneficios'],['productos','Productos'],['categorias','Categorías'],['movs','Movimientos'],['reportes','Reportes'],['reglas','Reglas de acumulación'],['procesos','Procesos programados'],['auditoria','Auditoría']]};
+const TITLES={movs:'Movimientos',reportes:'Reportes',reglas:'Reglas de acumulación',reglaNew:'Nueva regla',reglaEdit:'Editar regla',auditDet:'Detalle de auditoría',cobertura:'Cobertura de requerimientos',home:'Tienda',beneficios:'Beneficios',historial:'Historial',canjes:'Mis canjes',perfil:'Mi perfil',pos:'Punto de venta',canjePres:'Canje presencial',canjesHist:'Historial de canjes',crearCliente:'Nuevo cliente',dash:'Dashboard',clientes:'Clientes',empleados:'Empleados',benAdm:'Beneficios',procesos:'Procesos y reglas',auditoria:'Auditoría',registro:'Crear cuenta',rec1:'Recuperar contraseña',rec2:'Verificar código',rec3:'Nueva contraseña',prodEdit:'Editar producto',benEdit:'Editar beneficio',empEdit:'Editar empleado',cliEdit:'Editar cliente',clientesEmp:'Clientes',categorias:'Categorías',catNew:'Nueva categoría',catEdit:'Editar categoría',cambioPass:'Cambiar contraseña',canjeOk:'Canje',clienteDet:'Cliente',empNew:'Crear empleado',productos:'Productos',prodNew:'Crear producto',cliNew:'Crear cliente',benNew:'Crear beneficio'};
+const ROOTS=new Set(Object.values(NAV).flat().map(x=>x[0]));
+const user=()=>S.role==='Cliente'?cli(S.uid):S.role==='Empleado'?db.empleados.find(e=>e.id===S.uid):db.admin;
+const initials=n=>n.split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase();
+function go(view,p={}){S.f={};S.flt={};if(!ROOTS.has(S.view)||!ROOTS.has(view)){}S.stack.push({view:S.view,p:S.p,chip:S.chip});S.view=view;S.p=p;S.drawer=false;S.err={};S.chip='Todos';S.q='';S.sim={c:null};S.cart=[];S.pq='';if(ROOTS.has(view)){S.stack=[];}render();window.scrollTo(0,0);}
+function back(){const b=S.stack.pop();if(b){S.f={};S.flt={};S.view=b.view;S.p=b.p;S.chip=b.chip||'Todos';S.err={};S.q='';render();}}
+function toast(t){S.toast=t;render();clearTimeout(toast.t);toast.t=setTimeout(()=>{S.toast=null;const e=document.querySelector('.toast');if(e)e.remove();},2600);}
+function logout(){Object.assign(S,{role:null,uid:null,view:'login',stack:[],p:{},drawer:false,modal:null,err:{},q:'',chip:'Todos',flt:{},pos:{c:null},cart:[],pq:''});render();}
+
+/* ---------- Piezas ---------- */
+const I={menu:'<path d="M4 6h16M4 12h16M4 18h16"/>',bell:'<path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/>',back:'<path d="M15 18l-6-6 6-6"/>',chev:'<path d="M9 18l6-6-6-6"/>',gift:'<path d="M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 1 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 1 0 0-5C13 2 12 7 12 7z"/>',plus:'<path d="M12 5v14M5 12h14"/>',minus:'<path d="M5 12h14"/>',check:'<path d="M20 6L9 17l-5-5"/>',x:'<path d="M18 6L6 18M6 6l12 12"/>',search:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>'};
+const svg=n=>`<svg viewBox="0 0 24 24">${I[n]}</svg>`;
+const header=()=>{const root=ROOTS.has(S.view);const u=user();return `<header class="top">${root?`<button class="ib" data-a="drawer" aria-label="Abrir menú">${svg('menu')}</button>`:`<button class="ib" data-a="back" aria-label="Volver">${svg('back')}</button>`}<div class="t"><h1>${esc(TITLES[S.view]==='Tienda'?'Tienda':S.view==='clienteDet'&&S.p.id?cli(S.p.id).nombre:TITLES[S.view])}</h1><small>${S.role==='Cliente'?'Impulsado por FIDELIX':S.role==='Empleado'?'Panel de empleado':'Panel de administración'}</small></div><span class="av" title="${esc(u.nombre)}">${esc(initials(u.nombre))}</span></header>`;};
+const fld=(id,label,{type='text',ph='',val=''}={})=>`<div class="fld ${S.err[id]?'err':''}"><label for="f-${id}">${label}</label><input id="f-${id}" type="${type==='number'?'text':type}"${type==='number'?' inputmode="decimal"':''} placeholder="${esc(ph)}" value="${esc(S.f[id]??val)}" autocomplete="off">${S.err[id]?`<span class="e">${esc(S.err[id])}</span>`:(type==='password'&&id.startsWith('pass')?'<span class="mut">8+ caracteres con mayúscula, minúscula, número y símbolo.</span>':'')}</div>`;
+const sel=(id,label,opts,val)=>`<div class="fld"><label for="f-${id}">${label}</label><select id="f-${id}">${opts.map(o=>`<option ${o===(S.f[id]??val)?'selected':''}>${esc(o)}</option>`).join('')}</select></div>`;
+const btn=(a,label,k='p',d='',x='')=>`<button class="btn ${k}" data-a="${a}" ${d} ${x}>${label}</button>`;
+const chips=(arr)=>`<div class="chips">${arr.map(c=>`<button class="chip ${S.chip===c?'on':''}" data-a="chip" data-v="${esc(c)}">${esc(c)}</button>`).join('')}</div>`;
+const searchBox=ph=>`<div class="fld"><input id="q" type="search" placeholder="${esc(ph)}" value="${esc(S.q)}" aria-label="${esc(ph)}"></div>`;
+const bdg=(t,k)=>`<span class="badge b-${k}">${esc(t)}</span>`;
+const catB=c=>bdg(c,c==='Gold'?'w':c==='Estándar'?'n':'n');
+const movRow=m=>`<div class="row"><div class="g"><b>${esc(m.desc)}</b><small>${fmtD(m.fecha)}</small></div><span class="${m.pts>=0?'pos':'neg'}">${m.pts>=0?'+':'−'}${fmtN(Math.abs(m.pts))} pts</span></div>`;
+const clientBlock=c=>`<div class="card"><div class="row" style="padding:0;border:0"><span class="av">${initials(c.nombre)}</span><div class="g"><b>${esc(c.nombre)}</b><small>DNI ${esc(c.doc)} · ID ${c.id}</small></div><div style="text-align:right">${catB(c.cat)}<div class="pos" style="color:var(--brand)">${fmtN(saldo(c.id))} pts</div></div></div></div>`;
+const benCard=(b,sd,act,label)=>`<div class="card" style="flex-direction:row;align-items:center;padding:12px"><span class="ico">${svg('gift')}</span><div class="g" style="flex:1;min-width:0"><b>${esc(b.nombre)}</b><div class="mut">${esc(b.cat)} · ${b.stock} disp.</div><div style="color:var(--brand);font-weight:600;font-size:13px">${fmtN(b.costo)} puntos</div></div>${sd>=b.costo&&b.stock>0?`<button class="btn p sm" data-a="${act}" data-id="${b.id}">${label}</button>`:bdg(b.stock<=0?'Sin stock':'Saldo insuficiente','n')}</div>`;
+const empty=t=>`<div class="card sub" style="text-align:center">${t}</div>`;
+
+/* ---------- Vistas ---------- */
+const V={};
+V.login=()=>{const demo={Cliente:['cliente.demo@fidelix.local','Cliente123!'],Empleado:['empleado@fidelix.local','Empleado123!'],Admin:['admin@fidelix.local','Admin123!']}[S.loginRole];
+ return `<main class="center"><div class="logo"><i>F</i><h2 style="font-size:24px">FIDELIX</h2><p class="sub">Sistema de fidelización de puntos</p></div>
+ <div class="tabs" role="tablist">${['Cliente','Empleado','Admin'].map(r=>`<button class="${S.loginRole===r?'on':''}" data-a="loginRole" data-v="${r}">${r}</button>`).join('')}</div>
+ <form data-submit="login" class="card" style="gap:16px" novalidate>${fld('user',S.loginRole==='Cliente'?'Documento o email':'Email',{ph:demo[0]})}${fld('pass','Contraseña',{type:'password',ph:'••••••••'})}
+ ${lockedNow()?`<div class="note" role="alert" style="background:var(--bad-soft);color:var(--bad)">Cuenta bloqueada temporalmente por demasiados intentos fallidos. Reintentá en <b id="lockcd">${fmtLock(lockLeft(S.lock))}</b>.</div>`:''}
+ ${S.err.login&&!lockedNow()?`<div class="note" style="background:var(--bad-soft);color:var(--bad)">${esc(S.err.login)}</div>`:''}
+ <button class="btn p" type="submit" ${lockedNow()?'disabled style="opacity:.5;cursor:not-allowed"':''}>Ingresar</button><button type="button" class="btn s sm" style="align-self:center" data-a="fillDemo">Completar con datos de demo</button></form>
+ <div style="display:flex;flex-direction:column;gap:4px"><button class="link" data-a="recGo">¿Olvidaste tu contraseña?</button>${S.loginRole==='Cliente'?btn('go','Crear cuenta nueva','g','','data-v="registro"'):''}<button class="link" data-a="go" data-v="cobertura">Ver cobertura de requerimientos</button></div></main><div class="ft">Prototipo funcional · datos simulados</div>`;};
+V.registro=()=>`<main><p class="sub">Registrate para empezar a sumar puntos.</p><form data-submit="registro" class="card" style="gap:16px" novalidate>${fld('nombre','Nombre y apellido',{ph:'María Faure'})}${fld('doc','Documento',{ph:'32481902'})}${fld('email','Email',{ph:'tu@email.com'})}${fld('nac','Fecha de nacimiento',{type:'date'})}${fld('pass','Contraseña',{type:'password',ph:'Ej: Clave2026.'})}<button class="btn p" type="submit">Registrarme</button></form></main>`;
+V.rec1=()=>`<main><p class="sub">Recuperación de acceso como <b>${S.recRole||'Cliente'}</b>. Ingresá tu ${(S.recRole||'Cliente')==='Cliente'?'email o documento':'email'} y te enviaremos un código temporal.</p><form data-submit="rec1" class="card" style="gap:16px" novalidate>${fld('email','Email',{ph:'tu@email.com'})}<button class="btn p" type="submit">Enviar código</button></form></main>`;
+V.rec2=()=>`<main><p class="sub">Si el dato ingresado corresponde a una cuenta, se envió un código de 6 dígitos ${S.rec?(S.rec.role==='Empleado'?'a los administradores. Pedile el código a un administrador.':'a <b>'+esc(S.rec.email)+'</b>.'):''} Es de un solo uso y vence a los 15 minutos.</p>${S.rec?(S.rec.real?`<div class="note">Simulación: no se envía un email real. El código de este prototipo es <b>${S.rec.code}</b>.</div>`:`<div class="note">Simulación: la cuenta no existe o está inactiva, así que no se envía ningún código. Por seguridad la pantalla no lo informa.</div>`):''}<form data-submit="rec2" class="card" style="gap:16px" novalidate>${fld('code','Código de verificación',{ph:'6 dígitos'})}<button class="btn p" type="submit">Verificar código</button></form><button class="link" data-a="resend">Reenviar código</button></main>`;
+V.rec3=()=>`<main><div class="note" style="background:var(--ok-soft);color:var(--ok)">Código verificado. Ya podés elegir una nueva contraseña.</div><form data-submit="rec3" class="card" style="gap:16px" novalidate>${fld('pass','Nueva contraseña',{type:'password',ph:'Ej: Clave2026.'})}${fld('pass2','Repetir contraseña',{type:'password',ph:'Repetila'})}<button class="btn p" type="submit">Restablecer contraseña</button></form></main>`;
+V.home=()=>{const c=user();const ms=db.movs.filter(m=>m.cid===c.id).sort((a,b)=>b.fecha-a.fecha).slice(0,4);
+ return `<main><section class="hero"><div class="top2"><span>Tus puntos disponibles</span>${catB(c.cat)}</div><div class="big">${fmtN(saldo(c.id))}</div><small>Equivalen a ${fmtM(saldo(c.id)*(pesosPorPunto()||0)/10)} en beneficios · Categoría ${c.cat} (x${db.cats[c.cat]})</small></section>
+ <div class="two"><div class="stat"><small>Pendientes (${db.dias} días)</small><b>${fmtN(pendiente(c.id))}</b></div><div class="stat"><small>Vencen en 30 días</small><b>${fmtN(porVencer(c.id))}</b></div></div>
+ <div style="display:flex;justify-content:space-between;align-items:center"><h2>Últimos movimientos</h2><button class="btn g sm" data-a="go" data-v="historial">Ver todo</button></div>
+ <div class="list">${ms.length?ms.map(movRow).join(''):'<div class="row sub">Todavía no hay movimientos.</div>'}</div>${btn('go','Ver beneficios','p','','data-v="beneficios"')}</main>`;};
+V.beneficios=()=>{const c=user(),sd=saldo(c.id);const cats=['Todos',...db.catBen];
+ const l=db.beneficios.filter(b=>b.activo&&(S.chip==='Todos'||b.cat===S.chip)&&b.nombre.toLowerCase().includes(S.q.toLowerCase()));
+ return `<main><div class="stat"><small>Tu saldo</small><b>${fmtN(sd)} pts</b></div>${searchBox('Buscar beneficio…')}${chips(cats)}<div id="res" style="display:flex;flex-direction:column;gap:12px">${l.length?l.map(b=>benCard(b,sd,'askCanje','Canjear')).join(''):empty('No hay beneficios que coincidan.')}</div></main>`;};
+V.canjeOk=()=>{const k=db.canjes.find(x=>x.id===S.p.id);return `<main class="center"><div class="okc">${svg('check')}</div><h2 style="text-align:center;font-size:24px">¡Canje realizado!</h2><p class="sub" style="text-align:center">Presentá este código en el comercio para retirar tu beneficio.</p><div class="card" style="align-items:center"><b>${esc(k.nombre)}</b><div class="code">${esc(k.codigo)}</div><span class="mut">−${fmtN(k.pts)} puntos · Saldo: ${fmtN(saldo(k.cid))}</span></div><div style="text-align:center">${bdg(k.estado==='Pendiente'?'Pendiente de entrega':'Entregado',k.estado==='Pendiente'?'w':'ok')}</div>${btn('home','Volver al inicio')}</main>`;};
+V.canjes=()=>{const c=user();const l=db.canjes.filter(k=>k.cid===c.id).sort((a,b)=>b.fecha-a.fecha);return `<main>${l.length?l.map(k=>`<div class="card" style="gap:6px"><div class="kv"><b>${esc(k.nombre)}</b>${bdg(k.estado,k.estado==='Pendiente'?'w':'ok')}</div><span class="mut">${fmtD(k.fecha)} · −${fmtN(k.pts)} pts</span><b style="color:var(--brand)">${esc(k.codigo)}</b></div>`).join(''):empty('Todavía no canjeaste beneficios.')}</main>`;};
+V.perfil=()=>{const c=user();return `<main><div style="display:flex;flex-direction:column;align-items:center;gap:8px"><span class="av lg">${initials(c.nombre)}</span><h2>${esc(c.nombre)}</h2>${catB(c.cat)}</div><form data-submit="perfil" class="card" style="gap:16px" novalidate>${fld('nombre','Nombre',{val:c.nombre})}${fld('email','Email',{val:c.email})}${fld('tel','Teléfono',{val:c.tel})}<button class="btn p" type="submit">Guardar cambios</button></form>${btn('go','Cambiar contraseña','s','','data-v="cambioPass"')}${btn('askDelMe','Eliminar mi cuenta','d')}</main>`;};
+V.cambioPass=()=>`<main><form data-submit="cambioPass" class="card" style="gap:16px" novalidate>${fld('actual','Contraseña actual',{type:'password'})}${fld('pass','Nueva contraseña',{type:'password',ph:'Ej: Clave2026.'})}${fld('pass2','Repetir nueva contraseña',{type:'password'})}<button class="btn p" type="submit">Actualizar contraseña</button></form>${btn('back','Cancelar','g')}</main>`;
+const findBox=()=>`<form data-submit="buscarCliente" style="display:flex;gap:8px;align-items:flex-start"><div class="fld" style="flex:1"><input id="q" type="search" inputmode="numeric" placeholder="Documento del cliente" value="${esc(S.q)}" aria-label="Documento del cliente"></div>${'<button class="btn s sm" type="submit" style="min-height:46px">Buscar</button>'}</form>${S.err.q?`<span class="e" style="color:var(--bad);font-size:12px">${esc(S.err.q)}</span>`:''}`;
+V.pos=()=>{const c=S.sim.c?cli(S.sim.c):null;const tot=cartTotal();const q=S.pq.toLowerCase().trim();
+ const act=db.productos.filter(p=>p.activo);const all=act.filter(p=>!q||(p.nombre+' '+p.cat).toLowerCase().includes(q));const shown=all.slice(0,6);
+ const body=c?clientBlock(c)+`<div class="card"><h3>Productos de la compra</h3>${act.length?`<div class="fld"><input id="qp" type="search" placeholder="Buscar producto por nombre o categoría" value="${esc(S.pq)}" aria-label="Buscar producto"></div>${shown.length?`<div class="list">${shown.map(p=>`<div class="row"><div class="g"><b>${esc(p.nombre)}</b><small>${esc(p.cat)} · ${fmtM(p.precio)}</small></div><button class="btn p sm" data-a="addItem" data-id="${p.id}">Agregar</button></div>`).join('')}</div>${all.length>shown.length?`<p class="mut">Mostrando ${shown.length} de ${all.length}. Escribí para afinar la búsqueda.</p>`:''}`:'<p class="mut">Ningún producto coincide con la búsqueda.</p>'}`:'<div class="note">No hay productos cargados. Pedile al administrador que los cree.</div>'}${S.err.cart?`<span class="e" style="color:var(--bad);font-size:12px">${esc(S.err.cart)}</span>`:''}
+ <h3>Detalle de la compra</h3>${S.cart.length?`<div class="list">${S.cart.map((i,ix)=>{const p=prod(i.pid);return `<div class="row"><div class="g"><b>${esc(p?p.nombre:'Producto inexistente')}</b><small>${fmtM(p?p.precio:0)} c/u · ${fmtM(p?p.precio*i.qty:0)}</small></div><button class="ib" data-a="decItem" data-id="${ix}" aria-label="Quitar uno">${svg('minus')}</button><b>${i.qty}</b><button class="ib" data-a="incItem" data-id="${ix}" aria-label="Sumar uno">${svg('plus')}</button></div>`}).join('')}</div>`:'<p class="mut">Todavía no agregaste productos.</p>'}
+ <div class="kv"><span>Total</span><b>${fmtM(tot)}</b></div><div class="kv"><div><b>Puntos a acumular</b><div class="mut">Categoría ${c.cat} · x${db.cats[c.cat]} · $${pesosPorPunto()||'—'} = 1 pt</div></div><b class="pos" style="font-size:24px">+${fmtN(puntosPorMonto(tot,c.cat))} pts</b></div>${btn('venta','Registrar compra','p',S.cart.length?'':'disabled')}</div>`:empty('Buscá un cliente por documento para registrar una compra. Probá con 40333444.');
+ return `<main>${findBox()}${body}</main>`;};
+V.canjePres=()=>{const c=S.sim.c?cli(S.sim.c):null;const sd=c?saldo(c.id):0;return `<main>${findBox()}${c?clientBlock(c)+`<h2>Elegí el beneficio a canjear</h2>`+db.beneficios.filter(b=>b.activo).map(b=>benCard(b,sd,'askCanje','Canjear')).join(''):empty('Buscá un cliente por documento para canjear presencialmente.')}</main>`;};
+V.cliNew=()=>V.crearCliente();
+V.crearCliente=()=>`<main><p class="sub">Alta rápida de un cliente desde el punto de venta.</p><form data-submit="crearCliente" class="card" style="gap:16px" novalidate>${fld('nombre','Nombre y apellido',{ph:'María Faure'})}${fld('doc','Documento',{ph:'32481902'})}${fld('email','Email',{ph:'cliente@email.com'})}${fld('nac','Fecha de nacimiento',{type:'date'})}${fld('tel','Teléfono',{ph:'+54 9 3493 555 0123'})}<button class="btn p" type="submit">Crear cliente</button></form></main>`;
+
+function stats(days){const from=now()-days*DAY;return {cli:db.clientes.filter(c=>c.activo).length,acu:db.movs.filter(m=>isAcu(m)&&m.fecha>=from).reduce((s,m)=>s+m.pts,0),can:db.canjes.filter(k=>k.fecha>=from).length,ven:Math.abs(db.movs.filter(m=>m.tipo==='Vencimiento'&&m.fecha>=from).reduce((s,m)=>s+m.pts,0))};}
+function chart(){const M=[];for(let i=4;i>=0;i--){const d=new Date(now());d.setDate(1);d.setMonth(d.getMonth()-i);M.push({y:d.getFullYear(),m:d.getMonth(),a:0,c:0});}
+ db.movs.forEach(x=>{const d=new Date(x.fecha);const k=M.find(m=>m.y===d.getFullYear()&&m.m===d.getMonth());if(!k)return;if(isAcu(x))k.a+=x.pts;if(x.tipo==='Canje')k.c+=-x.pts;});
+ const max=Math.max(100,...M.map(m=>Math.max(m.a,m.c)));const top=Math.ceil(max/100)*100,W=300,H=130,x0=34;const sc=v=>H-(v/top)*H+10;
+ const nm=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+ return `<svg class="ch" viewBox="0 0 320 170" role="img" aria-label="Puntos acumulados y canjeados por mes">${[0,.5,1].map(f=>{const v=Math.round(top*f);return `<line class="gl" x1="${x0}" x2="${x0+W-14}" y1="${sc(v)}" y2="${sc(v)}"/><text x="${x0-6}" y="${sc(v)+3}" text-anchor="end">${fmtN(v)}</text>`}).join('')}
+ ${M.map((m,i)=>{const bx=x0+10+i*54;return `<rect class="b1" x="${bx}" y="${sc(m.a)}" width="18" height="${H+10-sc(m.a)}" rx="3"/><rect class="b2" x="${bx+21}" y="${sc(m.c)}" width="18" height="${H+10-sc(m.c)}" rx="3"/><text x="${bx+20}" y="${H+28}" text-anchor="middle">${nm[m.m]}</text>`}).join('')}</svg>`;}
+V.dash=()=>{const st=stats(S.period);const top={};db.canjes.forEach(k=>top[k.nombre]=(top[k.nombre]||0)+1);const tl=Object.entries(top).sort((a,b)=>b[1]-a[1]).slice(0,4);
+ return `<main><div class="chips">${[[7,'7 días'],[30,'30 días'],[365,'Año']].map(([d,l])=>`<button class="chip ${S.period===d?'on':''}" data-a="period" data-v="${d}">${l}</button>`).join('')}</div>
+ <div class="two"><div class="stat"><small>Clientes activos</small><b>${fmtN(st.cli)}</b></div><div class="stat"><small>Puntos acumulados</small><b>${fmtN(st.acu)}</b></div><div class="stat"><small>Canjes</small><b>${fmtN(st.can)}</b></div><div class="stat"><small>Puntos vencidos</small><b>${fmtN(st.ven)}</b></div></div>
+ <div class="card"><h3>Puntos acumulados vs canjeados</h3>${chart()}<div class="lg2"><span><i style="background:var(--brand)"></i>Acumulados</span><span><i style="background:var(--ok)"></i>Canjeados</span></div></div>
+ <h2>Beneficios más canjeados</h2><div class="list">${tl.map(([n,c])=>`<div class="row"><div class="g"><b>${esc(n)}</b></div><b>${c}</b></div>`).join('')||'<div class="row sub">Sin canjes todavía.</div>'}</div></main>`;};
+V.clientes=()=>{const l=db.clientes.filter(c=>c.activo&&(c.nombre+c.doc).toLowerCase().includes(S.q.toLowerCase()));return `<main>${btn('go','+ Crear cliente','p','','data-v="cliNew"')}${searchBox('Buscar por nombre o documento')}<div class="list" id="res">${l.map(c=>`<button class="row" data-a="go" data-v="clienteDet" data-id="${c.id}"><div class="g"><b>${esc(c.nombre)}</b><small>DNI ${esc(c.doc)} · ${c.cat}</small></div><b>${fmtN(saldo(c.id))} pts</b></button>`).join('')||'<div class="row sub">Sin resultados.</div>'}</div></main>`;};
+V.clienteDet=()=>{const c=cli(S.p.id);const ms=db.movs.filter(m=>m.cid===c.id).sort((a,b)=>b.fecha-a.fecha).slice(0,5);return `<main>${clientBlock(c)}<div class="card" style="gap:8px"><div class="kv"><span>Email</span><b>${esc(c.email)}</b></div><div class="kv"><span>Nacimiento</span><b>${esc(c.nac)}</b></div><div class="kv"><span>Pendientes</span><b>${fmtN(pendiente(c.id))} pts</b></div><div class="kv"><span>Canjes</span><b>${db.canjes.filter(k=>k.cid===c.id).length}</b></div></div>
+ <div class="card">${sel('cat','Categoría',Object.keys(db.cats),c.cat)}<button class="btn s" data-a="setCat" data-id="${c.id}">Actualizar categoría</button></div><h2>Últimos movimientos</h2><div class="list">${ms.map(movRow).join('')||'<div class="row sub">Sin movimientos.</div>'}</div>${btn('go','Editar datos','s','',`data-v="cliEdit" data-id="${c.id}"`)}${btn('askDelCli','Eliminar cliente','d','',`data-id="${c.id}"`)}</main>`;};
+V.empleados=()=>`<main>${btn('go','+ Crear empleado','p','','data-v="empNew"')}<div class="list">${db.empleados.map(e=>`<div class="row"><div class="g"><b>${esc(e.nombre)}</b><small>${esc(e.email)}</small></div>${bdg(e.activo?'Activo':'Inactivo',e.activo?'ok':'n')}<button class="btn g sm" data-a="go" data-v="empEdit" data-id="${e.id}">Editar</button></div>`).join('')}</div></main>`;
+V.empNew=()=>`<main><form data-submit="empNew" class="card" style="gap:16px" novalidate>${fld('nombre','Nombre y apellido',{ph:'Sofía Benítez'})}${fld('doc','Documento',{ph:'33120458'})}${fld('email','Email',{ph:'empleado@tienda.com'})}${fld('pass','Contraseña inicial',{type:'password',ph:'Ej: Clave2026.'})}<button class="btn p" type="submit">Crear empleado</button></form>${btn('back','Cancelar','g')}</main>`;
+V.productos=()=>`<main>${btn('go','+ Crear producto','p','','data-v="prodNew"')}<div class="list">${db.productos.map(p=>`<div class="row"><div class="g"><b>${esc(p.nombre)}</b><small>${esc(p.cat)} · ${fmtM(p.precio)}</small></div>${bdg(p.activo?'Activo':'Inactivo',p.activo?'ok':'n')}<button class="btn g sm" data-a="go" data-v="prodEdit" data-id="${p.id}">Editar</button></div>`).join('')}</div></main>`;
+V.prodNew=()=>`<main><form data-submit="prodNew" class="card" style="gap:16px" novalidate>${fld('nombre','Nombre del producto',{ph:'Remera básica'})}${sel('cat','Categoría',db.catProd,db.catProd[0])}${fld('precio','Precio ($)',{type:'number',ph:'8500'})}<button class="btn p" type="submit">Guardar producto</button></form>${btn('back','Cancelar','g')}</main>`;
+V.benAdm=()=>`<main>${btn('go','+ Crear beneficio','p','','data-v="benNew"')}<div class="list">${db.beneficios.map(b=>`<div class="row"><div class="g"><b>${esc(b.nombre)}</b><small>${b.cat} · stock ${b.stock} · ${fmtN(b.costo)} pts</small></div>${bdg(b.activo?'Activo':'Inactivo',b.activo?'ok':'n')}<button class="btn g sm" data-a="go" data-v="benEdit" data-id="${b.id}">Editar</button></div>`).join('')}</div></main>`;
+V.benNew=()=>`<main><form data-submit="benNew" class="card" style="gap:16px" novalidate>${fld('nombre','Nombre',{ph:'Cupón $20.000'})}${sel('cat','Categoría',db.catBen,db.catBen[0])}${fld('costo','Costo en puntos',{type:'number',ph:'200'})}${fld('stock','Stock',{type:'number',ph:'100'})}<button class="btn p" type="submit">Guardar beneficio</button></form>${btn('back','Cancelar','g')}</main>`;
+V.procesos=()=>`<main><div class="card"><h3>Fecha del sistema</h3><div class="kv"><span>Hoy (simulado)</span><b>${fmtD(now())}</b></div><p class="mut">Para la demo podés avanzar el reloj y ver cómo pasan los puntos de pendientes a disponibles y cómo vencen.</p><div class="two"><button class="btn g sm" style="width:100%" data-a="advance" data-v="15">+15 días</button><button class="btn g sm" style="width:100%" data-a="advance" data-v="30">+30 días</button></div></div>
+ <div class="card"><h3>Vencimiento de puntos</h3><p class="mut">Da de baja los lotes cuya fecha de vencimiento ya pasó.</p>${btn('runVenc','Ejecutar vencimiento','s')}</div>
+ <div class="card"><h3>Bono de cumpleaños</h3><p class="mut">Acredita 100 puntos a los clientes que cumplen años hoy.</p>${btn('runBono','Ejecutar bono','s')}</div>
+ <div class="card"><h3>Regla de acumulación</h3><p class="mut">${(()=>{const r=reglaAt(now());return r?`Vigente: ${fmtPPM(r)} · los puntos vencen a los ${r.vig} días.`:'No hay una regla vigente.';})()}</p>${btn('go','Gestionar reglas','s','','data-v="reglas"')}</div></main>`;
+V.clientesEmp=()=>{const l=db.clientes.filter(c=>c.activo&&(c.nombre+c.doc).toLowerCase().includes(S.q.toLowerCase()));return `<main>${btn('go','+ Crear cliente','p','','data-v="crearCliente"')}${searchBox('Buscar por nombre o documento')}<div class="list" id="res">${l.map(c=>`<button class="row" data-a="go" data-v="cliEdit" data-id="${c.id}"><div class="g"><b>${esc(c.nombre)}</b><small>DNI ${esc(c.doc)} · ${esc(c.email)}</small></div><span class="mut">Editar</span></button>`).join('')||'<div class="row sub">Sin resultados.</div>'}</div></main>`;};
+V.cliEdit=()=>{const c=cli(S.p.id);return `<main><form data-submit="cliEdit" class="card" style="gap:16px" novalidate>${fld('nombre','Nombre y apellido',{val:c.nombre})}${fld('doc','Documento',{val:c.doc})}${fld('email','Email',{val:c.email})}${fld('nac','Fecha de nacimiento',{type:'date',val:c.nac})}${fld('tel','Teléfono',{val:c.tel})}${S.role==='Admin'?sel('cat','Categoría',Object.keys(db.cats),c.cat):''}<button class="btn p" type="submit">Guardar cambios</button></form>${btn('back','Cancelar','g')}</main>`;};
+V.empEdit=()=>{const e=db.empleados.find(x=>x.id===S.p.id);return `<main><form data-submit="empEdit" class="card" style="gap:16px" novalidate>${fld('nombre','Nombre y apellido',{val:e.nombre})}${fld('doc','Documento',{val:e.doc})}${fld('email','Email',{val:e.email})}${fld('pass','Nueva contraseña (opcional)',{type:'password',ph:'Dejá vacío para no cambiarla'})}<button class="btn p" type="submit">Guardar cambios</button></form>${btn('toggleEmp',e.activo?'Desactivar empleado':'Activar empleado','g','',`data-id="${e.id}" data-back="1"`)}${btn('back','Cancelar','g')}</main>`;};
+V.prodEdit=()=>{const p=prod(S.p.id);return `<main><form data-submit="prodEdit" class="card" style="gap:16px" novalidate>${fld('nombre','Nombre del producto',{val:p.nombre})}${sel('cat','Categoría',db.catProd,p.cat)}${fld('precio','Precio ($)',{type:'number',val:p.precio})}<button class="btn p" type="submit">Guardar cambios</button></form>${btn('toggleProd',p.activo?'Desactivar producto':'Activar producto','g','',`data-id="${p.id}" data-back="1"`)}${btn('back','Cancelar','g')}</main>`;};
+V.benEdit=()=>{const b=db.beneficios.find(x=>x.id===S.p.id);return `<main><form data-submit="benEdit" class="card" style="gap:16px" novalidate>${fld('nombre','Nombre',{val:b.nombre})}${sel('cat','Categoría',db.catBen,b.cat)}${fld('costo','Costo en puntos',{type:'number',val:b.costo})}${fld('stock','Stock',{type:'number',val:b.stock})}<button class="btn p" type="submit">Guardar cambios</button></form>${btn('toggleBen',b.activo?'Desactivar beneficio':'Activar beneficio','g','',`data-id="${b.id}" data-back="1"`)}${btn('back','Cancelar','g')}</main>`;};
+const CT={cli:['Categorías de clientes',()=>Object.keys(db.cats),n=>`x${db.cats[n]} · ${db.clientes.filter(c=>c.cat===n&&c.activo).length} clientes`],prod:['Categorías de productos',()=>db.catProd,n=>`${db.productos.filter(p=>p.cat===n).length} productos`],ben:['Categorías de beneficios',()=>db.catBen,n=>`${db.beneficios.filter(b=>b.cat===n).length} beneficios`]};
+V.categorias=()=>`<main>${Object.entries(CT).map(([t,[tit,list,meta]])=>`<section style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;justify-content:space-between;align-items:center"><h2>${tit}</h2>${t==='prod'?`<button class="btn p sm" data-a="go" data-v="catNew" data-t="${t}">+ Nueva</button>`:''}</div>${t!=='prod'?'<p class="mut">Categorías fijas del sistema (solo lectura).</p>':''}<div class="list">${list().map(n=>`<div class="row"><div class="g"><b>${esc(n)}</b><small>${esc(meta(n))}</small></div>${t==='prod'?`<button class="btn g sm" data-a="go" data-v="catEdit" data-t="${t}" data-n="${esc(n)}">Editar</button>`:''}</div>`).join('')}</div></section>`).join('')}</main>`;
+const catForm=()=>{const t=S.p.t,n=S.p.n;return `<main><p class="sub">${CT[t][0]}</p><form data-submit="catForm" class="card" style="gap:16px" novalidate>${fld('nombre','Nombre',{val:n||'',ph:t==='cli'?'Platino':'Nueva categoría'})}${t==='cli'?fld('mult','Multiplicador de puntos',{type:'number',val:n?db.cats[n]:'',ph:'1.5'}):''}<button class="btn p" type="submit">${n?'Guardar cambios':'Crear categoría'}</button></form>${btn('back','Cancelar','g')}</main>`;};
+V.catNew=catForm;V.catEdit=catForm;
+
+
+/* ===== Ampliación: cobertura completa de CU / RF / RN ===== */
+const tipoOp=a=>/sesión/i.test(a)?'Sesión':/^Canje/.test(a)?'Canje':/^Compra/.test(a)?'Compra':/Proceso/.test(a)?'Proceso':/ontraseña/.test(a)?'Seguridad':/Regla|Categoría/.test(a)?'Configuración':'Gestión';
+const dateIn=(id,label)=>fld(id,label,{type:'date',val:S.flt[id]||''});
+const NACMSG='La fecha de nacimiento no es válida: el cliente debe tener entre 18 y 120 años.';
+const nacOk=b=>{const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(b);if(!m)return false;const t=new Date(now()),y=+m[1],mo=+m[2],d=+m[3];if(new Date(y,mo-1,d)>t)return false;let a=t.getFullYear()-y;if(t.getMonth()+1<mo||(t.getMonth()+1===mo&&t.getDate()<d))a--;return a>=18&&a<=120;};
+const rangeOk=()=>{const a=val('d0'),b=val('d1');S.err={};if(a&&b&&a>b){S.err.d1='El rango de fechas es inválido.';S.f={d0:a,d1:b};return false;}S.flt.d0=a;S.flt.d1=b;S.f={};return true;};
+const fmtPPM=r=>`${r.ppm} pts por $1 · 1 punto cada $${Math.round(100/r.ppm)/100}`;
+const vigTag=r=>{const t=now(),act=db.reglas.filter(x=>x.desde<=t).sort((a,b)=>b.desde-a.desde)[0];return r.desde>t?bdg('Programada','w'):act&&act.id===r.id?bdg('Vigente','ok'):bdg('Histórica','n');};
+
+/* CU-19 · reglas versionadas (RN-18, RF-20, RF-22) */
+V.reglas=()=>{const asc=db.reglas.slice().sort((a,b)=>a.desde-b.desde);return `<main>${btn('go','+ Nueva regla','p','','data-v="reglaNew"')}<p class="sub">Cada regla rige desde su fecha de vigencia. Una versión nueva no pisa a la anterior (RN-18).</p><div class="list">${asc.slice().reverse().map(r=>`<div class="row"><div class="g"><b>Versión ${asc.indexOf(r)+1} · desde ${fmtD(r.desde)}</b><small>${r.ppm} pts por $1 · vencen a los ${r.vig} días</small></div>${vigTag(r)}<button class="btn g sm" data-a="go" data-v="reglaEdit" data-id="${r.id}">Editar</button></div>`).join('')}</div></main>`;};
+const reglaForm=r=>`<main><form data-submit="${r?'reglaEdit':'reglaNew'}" class="card" style="gap:16px" novalidate>${fld('ppm','Puntos por cada $1',{type:'number',val:r?r.ppm:'',ph:'0.01 (1 punto cada $100)'})}${fld('desde','Vigencia desde',{type:'date',val:r?iso(r.desde):''})}${fld('vig','Días de vigencia de los puntos',{type:'number',val:r?r.vig:'',ph:'365'})}<button class="btn p" type="submit">${r?'Guardar cambios':'Crear regla'}</button></form>${btn('back','Cancelar','g')}</main>`;
+V.reglaNew=()=>reglaForm();V.reglaEdit=()=>reglaForm(db.reglas.find(x=>x.id===S.p.id));
+const reglaChk=excl=>{const o={},p=Number(val('ppm')),v=Number(val('vig')),d=dStart(val('desde'));S.err={};S.f={ppm:val('ppm'),desde:val('desde'),vig:val('vig')};
+ chkNum(o,'ppm',val('ppm'),{maxInt:2,maxDec:2});if(!S.err.ppm&&(p<0.01||p>99.99))need(o,'ppm','Tiene que estar entre 0,01 y 99,99.');
+ if(!val('desde'))need(o,'desde','Ingresá la fecha de vigencia.');else if(db.reglas.some(x=>x.id!==excl&&iso(x.desde)===val('desde')))need(o,'desde','Ya existe una regla que entra en vigencia en esa fecha.');
+ chkNum(o,'vig',val('vig'),{maxInt:3,maxDec:0});if(!S.err.vig&&(v<30||v>730))need(o,'vig','Tiene que estar entre 30 y 730 días.');if(val('desde')&&!S.err.desde&&d<dStart(iso(now())))need(o,'desde','La fecha de vigencia no puede ser anterior a hoy.');return {o,p,v,d};};
+
+/* CU-05 · historial del cliente con filtros (RN-06) */
+V.historial=()=>{const c=user();const a=dStart(S.flt.d0),b=dEnd(S.flt.d1);const l=db.movs.filter(m=>m.cid===c.id&&(S.chip==='Todos'||m.tipo===S.chip)&&inRange(m.fecha,a,b)).sort((x,y)=>y.fecha-x.fecha);
+ return `<main>${chips(['Todos','Acumulación','Canje','Bono','Vencimiento'])}<div class="card" style="gap:12px"><div class="two">${dateIn('d0','Desde')}${dateIn('d1','Hasta')}</div>${btn('fltHist','Filtrar','s')}</div><div class="list">${l.length?l.map(movRow).join(''):'<div class="row sub">No hay movimientos para mostrar.</div>'}</div></main>`;};
+
+/* CU-13 · el empleado consulta los canjes de un cliente por DNI (RN-10) */
+V.canjesHist=()=>{const dni=S.flt.dni;const cl=dni?db.clientes.find(c=>c.doc===dni):null;
+ const l=db.canjes.filter(k=>(S.chip==='Todos'||(S.chip==='Pendientes'?k.estado==='Pendiente':k.estado==='Entregado'))&&(!cl||k.cid===cl.id)).sort((a,b)=>b.fecha-a.fecha);
+ return `<main><div class="card" style="gap:12px">${fld('dni','Buscar por DNI del cliente',{val:dni||'',ph:'32481902'})}<div class="two">${btn('canjesDni','Buscar','s')}${btn('canjesDniClear','Ver todos','g')}</div></div>${cl?clientBlock(cl):''}${chips(['Todos','Pendientes','Entregados'])}${l.map(k=>`<div class="card" style="gap:6px"><div class="kv"><b>${esc(k.nombre)}</b>${bdg(k.estado,k.estado==='Pendiente'?'w':'ok')}</div><span class="mut">${esc(cli(k.cid).nombre)} · ${fmtD(k.fecha)} · ${esc(k.codigo)}</span>${k.estado==='Pendiente'?`<button class="btn p sm" style="width:100%" data-a="entregar" data-id="${k.id}">Marcar como entregado</button>`:''}</div>`).join('')||empty(cl?'El cliente aún no registra beneficios canjeados.':'No hay canjes para este filtro.')}</main>`;};
+
+/* CU-20 · movimientos del sistema + comparación de períodos (RF-16, RN-06) */
+const IND=['Todos','Ventas','Canjes','Puntos otorgados'];
+const rangoDias=(a,b)=>{const r=[];for(let t=dStart(a);t<=dStart(b);t+=DAY)r.push(t);return r;};
+const medir=(ind,a,b)=>rangoDias(a,b).map(t=>{const m=db.movs.filter(x=>inRange(x.fecha,t,t+DAY-1));
+ return ind==='Ventas'?m.filter(x=>isAcu(x)&&x.desc.startsWith('Compra')).length:ind==='Canjes'?m.filter(x=>x.tipo==='Canje').length:m.filter(isAcu).reduce((s,x)=>s+x.pts,0);});
+const barras=v=>{const mx=Math.max(1,...v);return `<div style="display:flex;align-items:flex-end;gap:1px;height:64px" role="img" aria-label="Valor por día">${v.map(n=>`<i style="flex:1;min-width:1px;height:${Math.max(2,Math.round(n/mx*100))}%;background:var(--ink);opacity:.55"></i>`).join('')}</div>`;};
+const cmpCard=()=>{const f=S.flt;let out='';if(f.cmp){
+  const ser=[];const add=(n,a,b)=>{const v=medir(n,a,b);ser.push({t:(n==='Puntos otorgados'?'Puntos otorgados':n)+' · '+a+' a '+b,v});};
+  if(f.ind==='Todos'){['Ventas','Canjes','Puntos otorgados'].forEach(n=>add(n,f.a0,f.a1));}
+  else{add(f.ind,f.a0,f.a1);if(f.b0&&f.b1)add(f.ind,f.b0,f.b1);}
+  out=ser.map(x=>`<div class="card" style="gap:8px"><div class="kv"><b>${esc(x.t)}</b><span>Total ${fmtN(x.v.reduce((a,b)=>a+b,0))}</span></div><small class="mut">${x.v.length} día(s) · valor por día</small>${barras(x.v)}</div>`).join('');}
+ return `<div class="card" style="gap:12px">${sel('ind','Indicador',IND,f.ind||'Todos')}<div class="two">${fld('a0','Período 1 desde',{type:'date',val:f.a0||''})}${fld('a1','Período 1 hasta',{type:'date',val:f.a1||''})}</div><div class="two">${fld('b0','Período 2 desde (opcional)',{type:'date',val:f.b0||''})}${fld('b1','Período 2 hasta (opcional)',{type:'date',val:f.b1||''})}</div><small class="mut">Ventas = cantidad de compras. El segundo período solo se puede usar cuando se elige un solo indicador.</small>${btn('cmpRun','Comparar','s')}</div>${out}`;};
+V.movs=()=>{const f=S.flt,a=dStart(f.d0),b=dEnd(f.d1);const names=['Todos los clientes',...db.clientes.map(c=>c.nombre+' · '+c.doc)];
+ const cid=f.cli&&f.cli!==names[0]?db.clientes.find(c=>c.nombre+' · '+c.doc===f.cli):null;
+ const l=db.movs.filter(m=>(!cid||m.cid===cid.id)&&(!f.tipo||f.tipo==='Todos'||m.tipo===f.tipo)&&inRange(m.fecha,a,b)).sort((x,y)=>y.fecha-x.fecha);
+ return `<main><div class="card" style="gap:12px">${sel('cli','Cliente',names,f.cli||names[0])}${sel('tipo','Tipo de movimiento',['Todos','Acumulación','Canje','Bono','Vencimiento'],f.tipo||'Todos')}<div class="two">${dateIn('d0','Desde')}${dateIn('d1','Hasta')}</div>${btn('fltMovs','Filtrar','s')}</div>
+ <div class="list">${l.length?l.slice(0,40).map(m=>`<div class="row"><div class="g"><b>${esc(m.desc)}</b><small>${esc(cli(m.cid).nombre)} · ${fmtD(m.fecha)}${m.emp?' · '+esc(m.emp):''}</small></div><span class="${m.pts>=0?'pos':'neg'}">${m.pts>=0?'+':'−'}${fmtN(Math.abs(m.pts))} pts</span></div>`).join(''):'<div class="row sub">No existen resultados para los filtros seleccionados.</div>'}</div>${l.length>40?`<p class="mut">Mostrando 40 de ${l.length}. Acotá los filtros para ver el resto.</p>`:''}
+ <h2>Comparar períodos</h2>${cmpCard()}</main>`;};
+
+/* CU-24 · reportes (RF-23, RN-19) */
+const REP=['Resumen','Beneficios más canjeados'];
+function genRep(tipo,a,b){const m=db.movs.filter(x=>inRange(x.fecha,a,b));let cols,rows;
+ if(tipo===REP[0]){cols=['Indicador','Puntos'];const sm=f=>m.filter(f).reduce((t,x)=>t+x.pts,0);
+  rows=m.length?[['Puntos acumulados',sm(x=>x.tipo==='Acumulación')],['Bonos de cumpleaños',sm(x=>x.tipo==='Bono')],['Puntos canjeados',-sm(x=>x.tipo==='Canje')],['Puntos vencidos',-sm(x=>x.tipo==='Vencimiento')]]:[];}
+ else{cols=['Beneficio','Canjes','Puntos'];const t={};db.canjes.filter(k=>inRange(k.fecha,a,b)).forEach(k=>{const z=t[k.nombre]=t[k.nombre]||[0,0];z[0]++;z[1]+=k.pts;});rows=Object.entries(t).map(([n,z])=>[n,z[0],z[1]]).sort((x,y)=>y[1]-x[1]);}
+ return {cols,rows,au:db.audit.filter(x=>inRange(x.fecha,a,b)).length};}
+V.reportes=()=>{const r=S.flt.rep;let out='';if(r){const g=genRep(r.tipo,dStart(r.a),dEnd(r.b));
+  out=g.rows.length?`<div class="card" style="gap:8px"><h3>${esc(r.tipo)}</h3><small class="mut">${esc(g.cols.join(' · '))}</small><div class="list">${g.rows.slice(0,40).map(x=>`<div class="row"><div class="g"><b>${esc(x[0])}</b><small>${x.slice(1).map(esc).join(' · ')}</small></div></div>`).join('')}</div><small class="mut">${g.rows.length} fila(s) · ${g.au} registro(s) de auditoría en el período (dato informativo, RN-19).</small>${btn('csv',S.flt.csvOn?'Ocultar CSV':'Exportar CSV (formato=Csv)','s')}${S.flt.csvOn?`<textarea readonly rows="8" aria-label="Reporte en formato CSV" style="width:100%;font:12px ui-monospace,monospace;border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--surface);color:var(--ink)">${esc([g.cols,...g.rows].map(x=>x.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n'))}</textarea><small class="mut">Seleccioná y copiá el contenido para pegarlo en una planilla.</small>`:''}</div>`:empty('No hay datos disponibles para el período seleccionado.');}
+ return `<main><div class="card" style="gap:12px">${sel('rtipo','Tipo de reporte',REP,S.f.rtipo||(r?r.tipo:REP[0]))}<div class="two">${dateIn('d0','Período desde')}${dateIn('d1','Período hasta')}</div>${btn('genRep','Generar reporte','p')}</div>${out}</main>`;};
+
+/* CU-21 · auditoría con criterios y detalle (RN-13, RN-20) */
+V.auditoria=()=>{const f=S.flt,a=dStart(f.d0),b=dEnd(f.d1);const tipos=['Todos','Sesión','Compra','Canje','Proceso','Seguridad','Configuración','Gestión'];const actores=['Todos',...new Set(db.audit.map(x=>x.quien))];
+ const hasF=!!(f.d0||f.d1||(f.tipo&&f.tipo!=='Todos')||(f.actor&&f.actor!=='Todos'));
+ const l=hasF?db.audit.filter(x=>inRange(x.fecha,a,b)&&(!f.tipo||f.tipo==='Todos'||tipoOp(x.accion)===f.tipo)&&(!f.actor||f.actor==='Todos'||x.quien===f.actor)):[];
+ return `<main><div class="card" style="gap:12px">${sel('tipo','Tipo de operación',tipos,f.tipo||'Todos')}${sel('actor','Actor',actores,f.actor||'Todos')}<div class="two">${dateIn('d0','Desde')}${dateIn('d1','Hasta')}</div>${btn('fltAud','Buscar','s')}</div>
+ <div class="list">${!hasF?'<div class="row sub">Definí al menos un criterio de búsqueda (fecha, tipo o actor) para consultar la auditoría.</div>':l.length?l.slice(0,50).map(x=>`<button class="row" data-a="go" data-v="auditDet" data-id="${x.id}"><div class="g"><b>${esc(x.accion)}</b><small>${esc(x.quien)} · ${fmtD(x.fecha)} · ${tipoOp(x.accion)}</small></div><span class="mut">Ver</span></button>`).join(''):'<div class="row sub">No existen resultados para los filtros seleccionados.</div>'}</div></main>`;};
+V.auditDet=()=>{const x=db.audit.find(y=>y.id===S.p.id);return x?`<main><div class="card" style="gap:8px"><div class="kv"><span>Registro</span><b>#${x.id}</b></div><div class="kv"><span>Fecha</span><b>${fmtD(x.fecha)}</b></div><div class="kv"><span>Actor</span><b>${esc(x.quien)}</b></div><div class="kv"><span>Tipo</span><b>${tipoOp(x.accion)}</b></div><div class="kv"><span>Operación</span><b>${esc(x.accion)}</b></div></div><div class="note">Los registros de auditoría son de solo lectura (RN-20).</div></main>`:`<main>${empty('El registro de auditoría no existe.')}</main>`;};
+
+/* Mapa de cobertura */
+const COV_CU=[['01','Registrarse','Login → Crear cuenta nueva'],['02','Iniciar sesión (cliente)','Login · Cliente, con bloqueo temporal'],['03','Gestionar perfil','Mi perfil · Cambiar contraseña · Eliminar cuenta'],['04','Consultar saldo de puntos','Mis puntos (disponibles, pendientes, por vencer)'],['05','Consultar historial de puntos','Historial, con filtro por tipo y fechas'],['06','Consultar beneficios','Beneficios (solo activos)'],['07','Canjear beneficio','Beneficios → Canjear · Mis canjes'],['08','Consultar beneficios canjeados','Mis canjes'],['09','Iniciar sesión (empleado)','Login · Empleado'],['10','Gestionar acumulación de puntos','Punto de venta (carrito editable)'],['11','Gestionar canje de beneficios','Canje presencial · Historial de canjes → entregar'],['12','Crear cliente','Empleado → Nuevo cliente'],['13','Consultar canjes de un cliente','Historial de canjes → buscar por DNI'],['14','Iniciar sesión (admin)','Login · Admin'],['15','ABM de cliente','Admin → Clientes'],['16','ABM de empleado','Admin → Empleados'],['17','ABM de beneficio','Admin → Beneficios'],['18','ABM de producto','Admin → Productos'],['19','Configurar reglas de acumulación','Admin → Reglas de acumulación (versiones)'],['20','Consultar movimientos','Admin → Movimientos, con comparación de períodos'],['21','Auditar operaciones','Admin → Auditoría (criterios + detalle)'],['22','Aplicar vencimiento de puntos','Procesos programados → Ejecutar vencimiento'],['23','Aplicar método FIFO en canjes','Cada canje consume el lote que vence primero'],['24','Generar reportes','Admin → Reportes (en pantalla y CSV)'],['25','Recuperar contraseña','Login → ¿Olvidaste tu contraseña? (3 roles)'],['26','Aplicar bono de cumpleaños','Procesos programados → Ejecutar bono']];
+const COV_RF=[['01','ABM de cliente','CU-01, 15'],['02','Login de cliente con bloqueo temporal','CU-02'],['03','Gestionar perfil','CU-03'],['04','Baja voluntaria del cliente','CU-03'],['05','Dashboard del cliente','CU-04, 05, 08'],['06','Consultar beneficios','CU-06'],['07','Registrar compras manualmente','CU-10'],['08','Acreditar puntos automáticamente','CU-10'],['09','Historial y disponibilidad de puntos','CU-04, 05, 22'],['10','Bono de cumpleaños (batch)','CU-26'],['11','Validar reglas del canje','CU-07'],['12','Canjear puntos por beneficios','CU-07'],['13','Validaciones y registros del canje','CU-07'],['14','FIFO en los canjes','CU-07, 23'],['15','Login de admin','CU-14'],['16','Historial de ventas y comparación de períodos','CU-20, 24'],['17','Crear y eliminar empleado','CU-16'],['18','Crear y eliminar cliente','CU-15'],['19','Gestionar productos y beneficios','CU-17, 18'],['20','Reglas de acumulación','CU-19'],['21','Auditoría de operaciones','CU-21'],['22','Lapso de vencimiento de puntos','CU-19'],['23','Reportes básicos','CU-24'],['24','Login de empleado','CU-09'],['25','Ver canjes de clientes','CU-08, 11, 13'],['26','Corregir errores en la compra','CU-10'],['27','Empleado crea cuenta de cliente','CU-12'],['28','Registrar empleado responsable','CU-10, 21'],['29','Recuperar acceso con código temporal','CU-25']];
+const COV_RNF=[['01','Seguridad: hash PBKDF2-SHA256 con salt','Backend. El prototipo guarda datos simulados en memoria.',0],['02','Rendimiento: menos de 2 segundos','Prototipo: respuesta inmediata (datos en memoria). La medición real corresponde a la API.',1],['03','Usabilidad: interfaz simple para empleados','Prototipo: punto de venta con búsqueda, carrito y confirmaciones.',1],['04','Arquitectura en 3 capas','Backend: API, BusinessLogic y DataAccess.',0],['05','API documentada con OpenAPI','Backend: Swagger/OpenAPI y Scalar.',0]];
+const COV_RN=[['01','Documento y email únicos (cliente y empleado)'],['02','Contraseña de 8+ con mayúscula, minúscula, número y símbolo'],['03','Bloqueo temporal por intentos fallidos'],['04','El documento no se modifica desde el perfil'],['05','El saldo suma solo puntos disponibles y no vencidos'],['06','Historial completo y cronológico'],['07','Solo los beneficios activos son visibles'],['08','Saldo suficiente para canjear'],['09','Canje FIFO por antigüedad del lote'],['10','Estado del canje: Pendiente → Entregado'],['11','Acceso limitado a las funciones del rol'],['12','Se necesita una regla de acumulación vigente'],['13','Auditoría: quién hizo qué y cuándo'],['14','Cliente dado de baja no acumula ni canjea'],['15','Empleado dado de baja pierde el acceso'],['16','Costo del beneficio mayor a 0'],['17','Beneficio inactivo no se canjea (baja lógica)'],['18','Reglas versionadas sin superposición de fechas'],['19','Reportes coherentes con los registros'],['20','Auditoría de solo lectura'],['21','Vencimiento de lotes de puntos'],['23','Nombre de beneficio único'],['24','Nombre de producto único'],['25','Precio del producto mayor a 0'],['26','Producto inactivo no se puede comprar'],['27','Código de recuperación: 6 dígitos, 15 min, un solo uso'],['28','Código de un empleado va a los administradores'],['29','Bono de cumpleaños una vez por año']];
+V.cobertura=()=>{const sec=(t,n,rows)=>`<details class="card" style="gap:8px"><summary style="font-weight:700;cursor:pointer">${t} (${n})</summary><div class="list" style="margin-top:8px">${rows}</div></details>`;
+ const row=(a,b,c,ok=true)=>`<div class="row"><div class="g"><b>${esc(a)}</b><small>${esc(b)}</small></div>${bdg(c||'✓',ok?'ok':'n')}</div>`;
+ return `<main><p class="sub">Mapa de la documentación del proyecto contra este prototipo: dónde se ve cada caso de uso, requerimiento y regla de negocio.</p>
+ <div class="two"><div class="stat"><small>Casos de uso</small><b>${COV_CU.length}</b></div><div class="stat"><small>Requerimientos funcionales</small><b>${COV_RF.length}</b></div><div class="stat"><small>Reglas de negocio</small><b>${COV_RN.length}</b></div><div class="stat"><small>No funcionales</small><b>${COV_RNF.length}</b></div></div>
+ ${sec('Casos de uso',COV_CU.length,COV_CU.map(x=>row('CU-'+x[0]+' · '+x[1],x[2])).join(''))}
+ ${sec('Requerimientos funcionales',COV_RF.length,COV_RF.map(x=>row('RF-'+x[0]+' · '+x[1],x[2])).join(''))}
+ ${sec('Requerimientos no funcionales',COV_RNF.length,COV_RNF.map(x=>row('RNF-'+x[0]+' · '+x[1],x[2],x[3]?'✓':'Backend',!!x[3])).join(''))}
+ ${sec('Reglas de negocio',COV_RN.length,COV_RN.map(x=>row('RN-'+x[0],x[1])).join(''))}
+ <p class="mut">La documentación no define la RN-22.</p></main>`;};
+
+/* ---------- Render ---------- */
+function drawer(){const u=user();return `<div class="ov" data-a="closeDrawer"><nav class="drawer" aria-label="Menú"><div class="row" style="padding:0 0 16px;border:0"><span class="av">${esc(initials(u.nombre))}</span><div class="g"><b>${esc(u.nombre)}</b><small>${S.role==='Cliente'?'Cliente '+u.cat:S.role}</small></div></div>${NAV[S.role].map(([v,l])=>`<button class="nv ${S.view===v?'on':''}" data-a="go" data-v="${v}">${l}</button>`).join('')}<div style="flex:1"></div><button class="btn g" data-a="logout">Cerrar sesión</button></nav></div>`;}
+function modal(){const m=S.modal;return `<div class="ov m" data-a="closeModal"><div class="modal" role="dialog" aria-modal="true"><h2>${esc(m.title)}</h2><p class="sub">${esc(m.text)}</p>${btn('confirm',esc(m.ok),m.danger?'d':'p')}${btn('closeModal','Cancelar','s')}</div></div>`;}
+function render(){if(S.view==='rec3'&&!(S.rec&&S.rec.ok)){S.view='rec1';}
+ const ae=document.activeElement;const keep=ae&&(ae.id==='q'||ae.id==='qp')?{s:ae.selectionStart,id:ae.id}:null;
+ const root=document.getElementById('app');const auth=['login','registro','rec1','rec2','rec3','cobertura'].includes(S.view);
+ root.innerHTML=(auth?(S.view==='login'?'':`<header class="top"><button class="ib" data-a="back" aria-label="Volver">${svg('back')}</button><div class="t"><h1>${TITLES[S.view]}</h1><small>FIDELIX</small></div></header>`):header())+V[S.view]()+(S.drawer?drawer():'')+(S.modal?modal():'')+(S.toast?`<div class="toast" role="status">${esc(S.toast)}</div>`:'');
+ if(keep){const q=document.getElementById(keep.id);if(q){q.focus();try{q.setSelectionRange(keep.s,keep.s)}catch(e){}}}
+ if(S.view==='pos')updPrev();}
+function updPrev(){const m=document.getElementById('f-monto'),p=document.getElementById('prev');if(!m||!p||!S.sim.c)return;p.textContent='+'+fmtN(puntosPorMonto(Number(m.value)||0,cli(S.sim.c).cat))+' pts';}
+const val=id=>{const e=document.getElementById('f-'+id);return e?e.value.trim():'';};
+const pwOk=p=>p.length>=8&&/[a-z]/.test(p)&&/[A-Z]/.test(p)&&/\d/.test(p)&&/[^A-Za-z0-9]/.test(p);
+const PWMSG='Mínimo 8 caracteres con mayúscula, minúscula, número y un símbolo (. , ! etc.).';
+const validEmail=e=>/^\S+@\S+\.\S+$/.test(e);
+
+/* ---------- Acciones ---------- */
+const A={
+ go:d=>{const p={};if(d.id)p.id=+d.id;if(d.t)p.t=d.t;if(d.n)p.n=d.n;go(d.v,p);}, back:()=>back(), home:()=>go('home'),
+ drawer:()=>{S.drawer=true;render();}, closeDrawer:()=>{S.drawer=false;render();}, logout:()=>logout(),
+ loginRole:d=>{S.loginRole=d.v;S.err={};S.f={};render();},
+ fillDemo:()=>{const m={Cliente:['cliente.demo@fidelix.local','Cliente123!'],Empleado:['empleado@fidelix.local','Empleado123!'],Admin:['admin@fidelix.local','Admin123!']}[S.loginRole];S.f={user:m[0],pass:m[1]};render();S.f={};},
+ chip:d=>{S.chip=d.v;render();}, period:d=>{S.period=+d.v;render();},
+ askCanje:d=>{const b=db.beneficios.find(x=>x.id===+d.id);const c=S.role==='Cliente'?user():S.sim.c?cli(S.sim.c):null;if(!c)return;S.modal={title:'¿Confirmar canje?',text:`${b.nombre} por ${fmtN(b.costo)} puntos. Saldo luego del canje: ${fmtN(saldo(c.id)-b.costo)}.`,ok:'Canjear',act:'doCanje',id:b.id,cid:c.id};render();},
+ closeModal:()=>{S.modal=null;render();},
+ confirm:()=>{const m=S.modal;S.modal=null;
+  if(m.act==='doCanje'){const r=doCanje(m.cid,m.id,S.role==='Empleado');if(r.error){toast(r.error);return;}if(S.role==='Cliente'){go('canjeOk',{id:r.canje.id});}else{toast(`Canje registrado: ${r.canje.codigo}`);render();}}
+  else if(m.act==='delMe'){const c=user();c.activo=false;audit(c.nombre,'Cuenta eliminada por el cliente');logout();toast('Tu cuenta fue eliminada.');}
+  else if(m.act==='delCli'){const c=cli(m.id);c.activo=false;audit('Administrador','Cliente eliminado: '+c.nombre);S.stack=[];S.view='clientes';S.p={};render();toast('Cliente eliminado.');}},
+ resend:()=>{if(!S.rec)return;S.rec.code=String(Math.floor(100000+Math.random()*900000));S.rec.tries=0;S.rec.exp=now()+15*60000;S.f={};render();toast('Te enviamos un código nuevo.');},
+ askDelMe:()=>{S.modal={title:'¿Eliminar tu cuenta?',text:'Esta acción desactiva tu cuenta y no podrás ingresar con ella. Tus puntos dejarán de estar disponibles.',ok:'Sí, eliminar cuenta',danger:true,act:'delMe'};render();},
+ askDelCli:d=>{S.modal={title:'¿Eliminar cliente?',text:'El cliente quedará desactivado y no podrá ingresar.',ok:'Sí, eliminar',danger:true,act:'delCli',id:+d.id};render();},
+ addItem:d=>{const pid=+d.id;S.err={};const p=prod(pid);if(!p||!p.activo){S.err.cart='Ese producto no existe o no está disponible.';return render();}const ex=S.cart.find(i=>i.pid===pid);if(ex)ex.qty++;else S.cart.push({pid,qty:1});render();},
+ incItem:d=>{S.cart[+d.id].qty++;render();},
+ decItem:d=>{const i=S.cart[+d.id];i.qty--;if(i.qty<=0)S.cart.splice(+d.id,1);render();},
+ delItem:d=>{S.cart.splice(+d.id,1);render();},
+ venta:()=>{const c=cli(S.sim.c);S.err={};if(!c)return render();if(!reglaAt(now())){S.err.cart='No hay una regla de acumulación vigente (RN-12). Pedile al administrador que configure una.';return render();}if(!S.cart.length){S.err.cart='Agregá al menos un producto.';return render();}const bad=S.cart.find(i=>{const p=prod(i.pid);return !p||!p.activo;});if(bad){S.err.cart='La compra tiene un producto que no existe o fue desactivado. Quitalo para continuar.';return render();}const tot=cartTotal(),p=puntosPorMonto(tot,c.cat);if(p<=0){S.err.cart=`El total no alcanza para sumar puntos ($${pesosPorPunto()} = 1 punto).`;return render();}const nombres=S.cart.map(i=>prod(i.pid).nombre+(i.qty>1?' ×'+i.qty:''));const desc='Compra – '+nombres[0]+(nombres.length>1?` y ${nombres.length-1} más`:'');acumular(c.id,p,desc,undefined,{emp:user().nombre});audit(user().nombre,`Compra ${fmtM(tot)} de ${c.nombre}: +${p} pts`);S.cart=[];S.pq='';S.sim.c=null;S.q='';render();toast(`+${p} pts para ${c.nombre}. Disponibles en ${db.dias} días.`);},
+ entregar:d=>{const k=db.canjes.find(x=>x.id===+d.id);k.estado='Entregado';audit(user().nombre,'Canje entregado: '+k.codigo);toast('Canje marcado como entregado.');},
+ setCat:d=>{const c=cli(+d.id);c.cat=val('cat');audit('Administrador',`Categoría de ${c.nombre}: ${c.cat}`);toast('Categoría actualizada.');},
+ toggleEmp:d=>{const e=db.empleados.find(x=>x.id===+d.id);e.activo=!e.activo;audit('Administrador',`Empleado ${e.nombre}: ${e.activo?'activado':'desactivado'}`);if(d.back)back();else render();toast(`Empleado ${e.activo?'activado':'desactivado'}.`);},
+ toggleProd:d=>{const p=prod(+d.id);p.activo=!p.activo;audit('Administrador',`Producto ${p.nombre}: ${p.activo?'activado':'desactivado'}`);if(d.back)back();else render();toast(`Producto ${p.activo?'activado':'desactivado'}.`);},
+ toggleBen:d=>{const b=db.beneficios.find(x=>x.id===+d.id);b.activo=!b.activo;audit('Administrador',`Beneficio ${b.nombre}: ${b.activo?'activado':'desactivado'}`);if(d.back)back();else render();toast(`Beneficio ${b.activo?'activado':'desactivado'}.`);},
+ advance:d=>{offset+=+d.v*DAY;toast(`Reloj del sistema: ${fmtD(now())}`);},
+ runVenc:()=>{const r=ejecutarVencimiento();toast(`${r.n} lotes vencidos (${fmtN(r.pts)} pts).`);},
+ runBono:()=>{const r=ejecutarBono();toast(r.n?`Bono acreditado a ${r.n} cliente(s).`:'Hoy no cumple años ningún cliente.');},
+ recGo:()=>{S.recRole=S.loginRole;go('rec1');},
+ fltHist:()=>{rangeOk();render();},
+ fltMovs:()=>{S.flt.cli=val('cli');S.flt.tipo=val('tipo');rangeOk();render();},
+ fltAud:()=>{S.flt.tipo=val('tipo');S.flt.actor=val('actor');rangeOk();render();},
+ cmpRun:()=>{const v=k=>val(k);const ind=v('ind'),a0=v('a0'),a1=v('a1'),b0=v('b0'),b1=v('b1');S.err={};S.f={ind,a0,a1,b0,b1};
+  const largo=(x,y)=>rangoDias(x,y).length>366;
+  if(!a0||!a1)S.err.a1='Completá ambas fechas del período 1.';else if(a0>a1)S.err.a1='El rango de fechas es inválido.';else if(largo(a0,a1))S.err.a1='El período no puede superar 366 días.';
+  if(b0||b1){if(ind==='Todos')S.err.b1='El segundo período solo se puede usar cuando se elige un solo indicador.';else if(!b0||!b1)S.err.b1='Completá ambas fechas del período 2.';else if(b0>b1)S.err.b1='El rango de fechas es inválido.';else if(largo(b0,b1))S.err.b1='El período no puede superar 366 días.';}
+  if(Object.keys(S.err).length)return render();Object.assign(S.flt,{ind,a0,a1,b0,b1,cmp:1});S.f={};render();},
+ genRep:()=>{S.err={};const t=val('rtipo'),a=val('d0'),b=val('d1');S.f={d0:a,d1:b,rtipo:t};if(!REP.includes(t)){S.err.rtipo='El tipo de reporte no existe.';return render();}if(!a)S.err.d0='periodoDesde es obligatorio.';if(!b)S.err.d1='periodoHasta es obligatorio.';if(a&&b&&a>b)S.err.d1='periodoDesde no puede ser posterior a periodoHasta.';if(Object.keys(S.err).length)return render();S.flt.rep={tipo:t,a,b};S.f={d0:a,d1:b,rtipo:t};render();},
+ canjesDni:()=>{const d=val('dni');S.err={};S.f={dni:d};if(!d){S.flt.dni='';S.f={};return render();}if(!/^\d{7,9}$/.test(d)||!db.clientes.some(c=>c.doc===d)){S.err.dni='El DNI ingresado es inválido.';S.flt.dni='';return render();}S.flt.dni=d;S.f={};render();},
+ canjesDniClear:()=>{S.flt.dni='';S.f={};S.err={};render();},
+ csv:()=>{S.flt.csvOn=!S.flt.csvOn;render();}
+};
+const E={}; // errores por formulario
+// Bloqueo temporal de login (RN-03): 3 fallos -> espera 30s, 60s, 120s... máx 15 min (tiempo real)
+const LOCK={};
+const lockKey=(role,u)=>role+'|'+u.toLowerCase();
+const lockLeft=k=>Math.max(0,Math.ceil((((LOCK[k]||{}).until||0)-Date.now())/1000));
+const lockedNow=()=>!!S.lock&&S.lock.startsWith(S.loginRole+'|')&&lockLeft(S.lock)>0;
+const fmtLock=s=>s>=60?`${Math.floor(s/60)} min ${s%60} s`:`${s} s`;
+setInterval(()=>{if(S.view!=='login'||!S.lock)return;const l=lockLeft(S.lock);if(l<=0){S.lock=null;render();return;}const e=document.getElementById('lockcd');if(e)e.textContent=fmtLock(l);},500);
+const need=(o,id,msg)=>{S.err[id]=msg;o.bad=true;};
+function chkNum(o,id,raw,{maxInt=10,maxDec=2,pos=true,msg}={}){
+  const m0=msg||'Debe ser mayor a 0.';
+  if(raw==='')return need(o,id,'Ingresá un valor.');
+  if(/,/.test(raw))return need(o,id,'Usá punto (.) como separador decimal, no coma.');
+  if(!/^-?\d+(\.\d+)?$/.test(raw))return need(o,id,'Ingresá solo números (ej. 1500 o 0.25).');
+  if(raw[0]==='-')return need(o,id,'No puede ser negativo.');
+  const [ent,dec='']=raw.split('.');const ei=ent.replace(/^0+(?=\d)/,'');
+  if(ei.length>maxInt)return need(o,id,'Máximo '+maxInt+' dígitos enteros.');
+  if(dec.length>maxDec)return need(o,id,maxDec===0?'Debe ser un número entero.':'Máximo '+maxDec+' decimales (no se redondea).');
+  if(pos&&!(Number(raw)>0))return need(o,id,m0);
+}
+
+const SUB={
+ login:()=>{const u=val('user'),p=val('pass');S.f={user:u,pass:p};let r;
+  const lk=lockKey(S.loginRole,u);if(u&&lockLeft(lk)>0){S.lock=lk;S.err={};return render();}
+  if(S.loginRole==='Cliente'){const c=db.clientes.find(c=>(c.email===u.toLowerCase()||c.doc===u)&&c.pass===p);if(c&&!c.activo){S.err={login:'Esta cuenta fue desactivada.'};return render();}r=c&&{role:'Cliente',id:c.id,v:'home'};}
+  else if(S.loginRole==='Empleado'){const e=db.empleados.find(e=>e.email===u.toLowerCase()&&e.pass===p);if(e&&!e.activo){S.err={login:'Este empleado está inactivo.'};return render();}r=e&&{role:'Empleado',id:e.id,v:'pos'};}
+  else r=u.toLowerCase()===db.admin.email&&p===db.admin.pass&&{role:'Admin',id:0,v:'dash'};
+  if(!r){const L=LOCK[lk]=LOCK[lk]||{n:0,until:0};L.n++;
+   if(L.n>=3){L.until=Date.now()+Math.min(900,30*2**(L.n-3))*1000;S.lock=lk;S.err={};}
+   else S.err={login:`Credenciales incorrectas. Te quedan ${3-L.n} intento(s) antes del bloqueo temporal.`};
+   return render();}
+  delete LOCK[lk];S.lock=null;S.f={};S.err={};S.role=r.role;S.uid=r.id;S.stack=[];S.view=r.v;S.p={};audit(user().nombre,'Inicio de sesión');render();},
+ registro:()=>{const o={},n=val('nombre'),d=val('doc'),e=val('email').toLowerCase(),b=val('nac'),p=val('pass');S.err={};S.f={nombre:n,doc:d,email:e,nac:b};
+  if(!n)need(o,'nombre','Ingresá tu nombre.');if(!/^\d{7,9}$/.test(d))need(o,'doc','Documento de 7 a 9 dígitos.');else if(db.clientes.some(c=>c.doc===d))need(o,'doc','Ya existe un cliente con ese documento.');
+  if(!validEmail(e))need(o,'email','Email inválido.');else if(db.clientes.some(c=>c.email===e))need(o,'email','Ese email ya está registrado.');
+  if(!b)need(o,'nac','Ingresá tu fecha de nacimiento.');else if(!nacOk(b))need(o,'nac',NACMSG);if(!pwOk(p))need(o,'pass',PWMSG);
+  if(o.bad)return render();const c={id:nid(),nombre:n,doc:d,email:e,nac:b,tel:'',pass:p,cat:defCat(),activo:true,alta:now()};db.clientes.push(c);audit(n,'Registro de cliente');S.f={};S.role='Cliente';S.uid=c.id;S.stack=[];S.view='home';S.p={};render();toast('¡Cuenta creada! Bienvenido/a a Fidelix.');},
+ rec1:()=>{const o={},e=val('email').toLowerCase();S.f={email:e};S.err={};const c=db.clientes.find(c=>c.email===e&&c.activo);if(!e)need(o,'email','Ingresá tu email.');else if(!validEmail(e)&&!/^\d{7,9}$/.test(e))need(o,'email','Email inválido.');if(o.bad)return render();const role=S.recRole||'Cliente',acc=findAcc(role,e);S.rec={role,email:acc?acc.email:e,real:!!acc,code:String(Math.floor(100000+Math.random()*900000)),tries:0,ok:false,exp:now()+15*60000};S.f={};S.stack.push({view:'login',p:{}});S.view='rec2';S.err={};render();},
+ rec2:()=>{const o={};S.err={};S.f={code:val('code')};if(!S.rec){return go('rec1');}if(!S.rec.real||now()>S.rec.exp||val('code')!==S.rec.code){S.rec.tries++;if(S.rec.tries>=3){S.rec=null;S.err={};S.stack=[{view:'login',p:{}}];S.view='rec1';S.p={};S.f={};render();return toast('Superaste los 3 intentos. Pedí un código nuevo.');}need(o,'code',`El código ingresado es inválido o expiró. Te quedan ${3-S.rec.tries} intento(s).`);return render();}S.rec.ok=true;S.f={};S.view='rec3';S.err={};render();},
+ rec3:()=>{const o={};S.err={};if(!S.rec||!S.rec.ok){return go('rec1');}if(!pwOk(val('pass')))need(o,'pass',PWMSG);if(val('pass')!==val('pass2'))need(o,'pass2','Las contraseñas no coinciden.');if(o.bad)return render();const ac=findAcc(S.rec.role,S.rec.email);ac.pass=val('pass');audit(ac.nombre,'Contraseña restablecida con código');S.rec=null;S.f={};logout();toast('Contraseña restablecida. Ya podés ingresar.');},
+ perfil:()=>{const o={},n=val('nombre'),e=val('email').toLowerCase();S.err={};S.f={nombre:n,email:e,tel:val('tel')};if(!n)need(o,'nombre','Ingresá tu nombre.');if(!validEmail(e))need(o,'email','Email inválido.');else if(db.clientes.some(c=>c.email===e&&c.id!==S.uid))need(o,'email','Ese email ya está en uso.');if(o.bad)return render();const c=user();Object.assign(c,{nombre:n,email:e,tel:val('tel')});S.f={};audit(n,'Perfil actualizado');render();toast('Perfil actualizado.');},
+ cambioPass:()=>{const o={};S.err={};const c=user();if(val('actual')!==c.pass)need(o,'actual','La contraseña actual no coincide.');if(!pwOk(val('pass')))need(o,'pass',PWMSG);if(val('pass')!==val('pass2'))need(o,'pass2','Las contraseñas no coinciden.');if(o.bad)return render();c.pass=val('pass');audit(c.nombre,'Contraseña actualizada');S.f={};back();toast('Contraseña actualizada.');},
+ buscarCliente:()=>{const d=(document.getElementById('q').value||'').trim();S.q=d;const c=db.clientes.find(c=>c.doc===d&&c.activo);S.err={};if(!c){S.err.q='No hay un cliente con ese documento.';S.sim.c=null;}else{S.sim.c=c.id;}render();},
+ crearCliente:()=>{const o={},n=val('nombre'),d=val('doc'),e=val('email').toLowerCase(),b=val('nac');S.err={};S.f={nombre:n,doc:d,email:e,nac:b,tel:val('tel')};if(!n)need(o,'nombre','Ingresá el nombre.');if(!/^\d{7,9}$/.test(d))need(o,'doc','Documento de 7 a 9 dígitos.');else if(db.clientes.some(c=>c.doc===d))need(o,'doc','Ya existe un cliente con ese documento.');if(!validEmail(e))need(o,'email','Email inválido.');else if(db.clientes.some(c=>c.email===e))need(o,'email','Ese email ya está registrado.');if(!b)need(o,'nac','Ingresá la fecha de nacimiento.');else if(!nacOk(b))need(o,'nac',NACMSG);if(o.bad)return render();db.clientes.push({id:nid(),nombre:n,doc:d,email:e,nac:b,tel:val('tel'),pass:'Cliente123.',cat:defCat(),activo:true,alta:now()});audit(S.role==='Admin'?'Administrador':user().nombre,'Cliente creado: '+n);S.f={};if(S.role==='Admin')back();else render();toast('Cliente creado. Contraseña inicial: Cliente123.');},
+ empNew:()=>{const o={},n=val('nombre'),d=val('doc'),e=val('email').toLowerCase();S.err={};S.f={nombre:n,doc:d,email:e};if(!n)need(o,'nombre','Ingresá el nombre.');if(!/^\d{7,9}$/.test(d))need(o,'doc','Documento de 7 a 9 dígitos.');else if(db.empleados.some(z=>z.doc===d))need(o,'doc','Ya existe un empleado con ese documento.');if(!validEmail(e))need(o,'email','Email inválido.');else if(db.empleados.some(x=>x.email===e))need(o,'email','Ese email ya está registrado.');if(!pwOk(val('pass')))need(o,'pass',PWMSG);if(o.bad)return render();db.empleados.push({id:nid(),nombre:n,doc:d,email:e,pass:val('pass'),activo:true});audit('Administrador','Empleado creado: '+n);S.f={};back();toast('Empleado creado.');},
+ prodNew:()=>{const o={},n=val('nombre'),pr=Number(val('precio'));S.err={};S.f={nombre:n,precio:val('precio'),cat:val('cat')};if(!n)need(o,'nombre','Ingresá el nombre.');else if(db.productos.some(p=>p.nombre.toLowerCase()===n.toLowerCase()))need(o,'nombre','Ya existe un producto con ese nombre.');chkNum(o,'precio',val('precio'),{maxInt:6,maxDec:2,msg:'El precio debe ser mayor a 0.'});if(o.bad)return render();db.productos.push({id:nid(),nombre:n,cat:val('cat'),precio:pr,activo:true});audit('Administrador','Producto creado: '+n);S.f={};back();toast('Producto creado.');},
+ benNew:()=>{const o={},n=val('nombre'),c=Number(val('costo')),s=Number(val('stock'));S.err={};S.f={nombre:n,costo:val('costo'),stock:val('stock'),cat:val('cat')};if(!n)need(o,'nombre','Ingresá el nombre.');else if(db.beneficios.some(z=>z.nombre.toLowerCase()===n.toLowerCase()))need(o,'nombre','Ya existe un beneficio con ese nombre.');chkNum(o,'costo',val('costo'),{maxInt:7,maxDec:0,msg:'El costo debe ser mayor a 0.'});chkNum(o,'stock',val('stock'),{maxInt:7,maxDec:0,pos:false});if(o.bad)return render();db.beneficios.push({id:nid(),nombre:n,cat:val('cat'),costo:c,stock:s,activo:true});audit('Administrador','Beneficio creado: '+n);S.f={};back();toast('Beneficio creado.');},
+ cliEdit:()=>{const o={},c=cli(S.p.id),n=val('nombre'),d=val('doc'),e=val('email').toLowerCase(),b=val('nac');S.err={};S.f={nombre:n,doc:d,email:e,nac:b,tel:val('tel')};if(S.role==='Admin')S.f.cat=val('cat');if(!n)need(o,'nombre','Ingresá el nombre.');if(!/^\d{7,9}$/.test(d))need(o,'doc','Documento de 7 a 9 dígitos.');else if(db.clientes.some(x=>x.doc===d&&x.id!==c.id))need(o,'doc','Ya existe un cliente con ese documento.');if(!validEmail(e))need(o,'email','Email inválido.');else if(db.clientes.some(x=>x.email===e&&x.id!==c.id))need(o,'email','Ese email ya está registrado.');if(!b)need(o,'nac','Ingresá la fecha de nacimiento.');else if(!nacOk(b))need(o,'nac',NACMSG);if(o.bad)return render();Object.assign(c,{nombre:n,doc:d,email:e,nac:b,tel:val('tel')});if(S.role==='Admin')c.cat=val('cat');audit(S.role==='Admin'?'Administrador':user().nombre,'Cliente editado: '+n);S.f={};back();toast('Cliente actualizado.');},
+ empEdit:()=>{const o={},x=db.empleados.find(y=>y.id===S.p.id),n=val('nombre'),d=val('doc'),e=val('email').toLowerCase(),p=val('pass');S.err={};S.f={nombre:n,doc:d,email:e};if(!n)need(o,'nombre','Ingresá el nombre.');if(!/^\d{7,9}$/.test(d))need(o,'doc','Documento de 7 a 9 dígitos.');else if(db.empleados.some(z=>z.doc===d&&z.id!==x.id))need(o,'doc','Ya existe un empleado con ese documento.');if(!validEmail(e))need(o,'email','Email inválido.');else if(db.empleados.some(y=>y.email===e&&y.id!==x.id))need(o,'email','Ese email ya está registrado.');if(p&&!pwOk(p))need(o,'pass',PWMSG);if(o.bad)return render();Object.assign(x,{nombre:n,doc:d,email:e});if(p)x.pass=p;audit('Administrador','Empleado editado: '+n);S.f={};back();toast('Empleado actualizado.');},
+ prodEdit:()=>{const o={},x=prod(S.p.id),n=val('nombre'),pr=Number(val('precio'));S.err={};S.f={nombre:n,precio:val('precio'),cat:val('cat')};if(!n)need(o,'nombre','Ingresá el nombre.');else if(db.productos.some(p=>p.id!==x.id&&p.nombre.toLowerCase()===n.toLowerCase()))need(o,'nombre','Ya existe un producto con ese nombre.');chkNum(o,'precio',val('precio'),{maxInt:6,maxDec:2,msg:'El precio debe ser mayor a 0.'});if(o.bad)return render();Object.assign(x,{nombre:n,cat:val('cat'),precio:pr});audit('Administrador','Producto editado: '+n);S.f={};back();toast('Producto actualizado.');},
+ benEdit:()=>{const o={},x=db.beneficios.find(y=>y.id===S.p.id),n=val('nombre'),c=Number(val('costo')),st=Number(val('stock'));S.err={};S.f={nombre:n,costo:val('costo'),stock:val('stock'),cat:val('cat')};if(!n)need(o,'nombre','Ingresá el nombre.');else if(db.beneficios.some(z=>z.id!==x.id&&z.nombre.toLowerCase()===n.toLowerCase()))need(o,'nombre','Ya existe un beneficio con ese nombre.');chkNum(o,'costo',val('costo'),{maxInt:7,maxDec:0,msg:'El costo debe ser mayor a 0.'});chkNum(o,'stock',val('stock'),{maxInt:7,maxDec:0,pos:false});if(o.bad)return render();Object.assign(x,{nombre:n,cat:val('cat'),costo:c,stock:st});audit('Administrador','Beneficio editado: '+n);S.f={};back();toast('Beneficio actualizado.');},
+ catForm:()=>{const o={},t=S.p.t,orig=S.p.n,n=val('nombre'),m=Number(val('mult'));S.err={};S.f={nombre:n,mult:val('mult')};const cur=CT[t][1]();if(!n)need(o,'nombre','Ingresá el nombre.');else if(cur.some(x=>x.toLowerCase()===n.toLowerCase()&&x!==orig))need(o,'nombre','Ya existe una categoría con ese nombre.');if(t==='cli')chkNum(o,'mult',val('mult'),{maxInt:2,maxDec:2,msg:'El multiplicador debe ser mayor a 0.'});if(o.bad)return render();
+  if(t==='cli'){const ent=Object.entries(db.cats);if(orig){db.cats=Object.fromEntries(ent.map(([k,v])=>k===orig?[n,m]:[k,v]));db.clientes.forEach(c=>{if(c.cat===orig)c.cat=n;});}else db.cats[n]=m;}
+  else{const arr=t==='prod'?db.catProd:db.catBen;if(orig){arr[arr.indexOf(orig)]=n;(t==='prod'?db.productos:db.beneficios).forEach(x=>{if(x.cat===orig)x.cat=n;});}else arr.push(n);}
+  audit('Administrador',`Categoría ${orig?'editada':'creada'}: ${n}`);S.f={};back();toast(orig?'Categoría actualizada.':'Categoría creada.');},
+ reglaNew:()=>{const {o,p,v,d}=reglaChk(0);if(o.bad)return render();db.reglas.push({id:nid(),ppm:p,desde:d,vig:v});audit('Administrador','Regla de acumulación creada (desde '+val('desde')+')');S.f={};back();toast('Regla creada.');},
+ reglaEdit:()=>{const x=db.reglas.find(r=>r.id===S.p.id);if(x.desde<=now()){S.err={};return toast('La regla ya está vigente y no se puede modificar: creá una versión nueva con fecha de inicio futura.');}const {o,p,v,d}=reglaChk(x.id);if(o.bad)return render();Object.assign(x,{ppm:p,desde:d,vig:v});audit('Administrador','Regla de acumulación modificada (desde '+val('desde')+')');S.f={};back();toast('Regla actualizada.');}
+};
+const cli0=e=>db.clientes.find(c=>c.email===e);
+const findAcc=(role,e)=>role==='Cliente'?db.clientes.find(c=>(c.email===e||c.doc===e)&&c.activo):role==='Empleado'?db.empleados.find(x=>x.email===e&&x.activo):(db.admin.email===e?db.admin:null);
+document.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t||!document.getElementById('app').contains(t))return;if(t.classList.contains('ov')&&e.target!==t)return;const f=A[t.dataset.a];if(f)f(t.dataset,e);});
+document.addEventListener('submit',e=>{const f=e.target.closest('[data-submit]');if(!f)return;e.preventDefault();SUB[f.dataset.submit]();});
+document.addEventListener('input',e=>{const t=e.target;if(t.id==='qp'){S.pq=t.value;render();}else if(t.id==='q'&&(S.view==='beneficios'||S.view==='clientes'||S.view==='clientesEmp')){S.q=t.value;render();}else if(t.id==='f-monto')updPrev();});
+render();
+})();
+</script>
+
+</body>
+</html>
