@@ -38,7 +38,6 @@ El repo incluye además un **prototipo navegable** de la interfaz (carpeta
 Docs/
 ├── Business/               Documento de negocio y plan técnico
 ├── Use cases/              Especificación de los 26 casos de uso
-├── Mockups/                Capturas de los mockups iniciales
 ├── Prototipo/              Prototipo navegable: index.html único, datos simulados (publicado con GitHub Pages)
 └── Example/                Guía y ejemplo de especificación de la cátedra
 src/
