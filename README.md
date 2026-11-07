@@ -21,9 +21,8 @@ marcaron los patrones que siguen todos los demás.
 
 | Recurso | Dónde |
 | --- | --- |
-| Documentación del proyecto | [Carpeta de Google Drive](https://drive.google.com/drive/folders/19frMZ3v1fWZIN4PwMrFuKYLyXvRnu_zu?usp=sharing) |
+| Documentación del proyecto y Lista y especificación de casos de uso | [Carpeta de Google Drive](https://drive.google.com/drive/folders/1xrh83MMljIAtshCEMXHefF7_iGJS0XPV?usp=sharing) |
 | Mockups del prototipo | [Excalidraw](https://excalidraw.com/#json=k5sguR8Ws19egQjdaGBxU,6IKMDhQLMnmGIIyi8ZfhNg) (capturas en `Docs/Mockups/`) |
-| Lista y especificación de casos de uso | [Google Docs](https://docs.google.com/document/d/1yMllidd53aaEgX1dna28C8M-IwmkUl37_WypSFRc4ao/edit?usp=sharing) |
 | Especificación de cada caso de uso (en el repo) | `Docs/Use cases/` (CU-01 a CU-26, con su matriz de trazabilidad a tests) |
 | Reglas de negocio, requerimientos y niveles de complejidad | `Docs/Business/Documentacion-Fidelix.md` |
 | Plan técnico: entidades y capas | `Docs/Business/Plan-Tecnico-API.md` |
