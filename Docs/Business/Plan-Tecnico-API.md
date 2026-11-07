@@ -4,7 +4,7 @@
 > cátedra: la estructura base de la API y las **3 entidades principales**.
 > Sobre esa base se implementaron los **26 casos de uso**; este documento
 > describe el estado actual. El catálogo completo de endpoints, con roles y
-> códigos de respuesta, está en `src/README.md`.
+> códigos de respuesta, está en el `README.md` de la raíz del repositorio.
 
 ## 1. Alcance
 
@@ -84,7 +84,7 @@ desincronizado con los vencimientos ni con los canjes.
 
 Cada controller delega en un service y cada service accede a los datos solo
 por interfaces de repositorio. El detalle de cada endpoint (método, ruta, rol,
-CU y respuestas) está en el catálogo de `src/README.md`; esta tabla muestra
+CU y respuestas) está en el catálogo del `README.md` de la raíz; esta tabla muestra
 qué capas atraviesa cada grupo.
 
 | Controller (rutas) | CU | Service | Repositorios |

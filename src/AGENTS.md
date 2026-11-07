@@ -25,7 +25,7 @@ API RESTful en .NET 10 / ASP.NET Core, arquitectura N-Tier, para el sistema
 de fidelización de puntos Fidelix. Cubre 10 entidades y los 26 casos de uso
 (CU-01 a CU-26), con autenticación JWT por roles (Cliente, Empleado, Admin),
 auditoría automática (`AuditoriaFilter`) y procesos diarios en segundo plano
-(`ProcesoDiarioJob`: CU-22 y CU-26). Ver `README.md` para el catálogo de
+(`ProcesoDiarioJob`: CU-22 y CU-26). Ver `../README.md` (raíz del repo) para el catálogo de
 endpoints y `../Docs/Business/Plan-Tecnico-API.md` para entidades y capas.
 
 ## Comandos
