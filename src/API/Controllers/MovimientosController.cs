@@ -18,13 +18,16 @@ namespace FidelixAPI.API.Controllers;
 [Authorize(Roles = Roles.Empleado)]
 public class MovimientosController(IMovimientoService movimientoService) : ControllerBase
 {
-    /// <summary> Registra una compra y acredita los puntos (RN-12, N1, N2, RN-13). </summary>
-    [HttpPost("acumulaciones")]
-    public async Task<IActionResult> RegistrarAcumulacion(AcumulacionCreateDTO dto)
+    /// <summary>
+    /// Registra una compra del cliente indicado por id en la ruta y acredita los puntos (RN-12, N1, N2, RN-13).
+    /// Un id que no es Guid no coincide con la ruta (404); un cliente inexistente también da 404 (3a).
+    /// </summary>
+    [HttpPost("acumulaciones/{clienteId:guid}")]
+    public async Task<IActionResult> RegistrarAcumulacion(Guid clienteId, AcumulacionCreateDTO dto)
     {
         try
         {
-            var acumulacion = await movimientoService.RegistrarAcumulacionAsync(dto, User.ObtenerId());
+            var acumulacion = await movimientoService.RegistrarAcumulacionAsync(clienteId, dto, User.ObtenerId());
             return StatusCode(StatusCodes.Status201Created, acumulacion);
         }
         catch (ItemCompraInvalidoException ex)

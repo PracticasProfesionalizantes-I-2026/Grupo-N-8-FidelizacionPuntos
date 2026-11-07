@@ -15,7 +15,7 @@ public interface ICanjeService
     /// Canje presencial (CU-11): mismas reglas, pero el cliente se identifica por documento, el
     /// beneficio se entrega en el momento y queda registrado qué empleado lo hizo (RN-13).
     /// </summary>
-    Task<CanjeResponseDTO> CrearCanjePresencialAsync(CanjePresencialCreateDTO dto, Guid? empleadoId);
+    Task<CanjeResponseDTO> CrearCanjePresencialAsync(Guid clienteId, CanjePresencialCreateDTO dto, Guid? empleadoId);
 
     /// <summary>
     /// El empleado entrega en el local un canje que el cliente hizo desde la app: pasa de "Pendiente"

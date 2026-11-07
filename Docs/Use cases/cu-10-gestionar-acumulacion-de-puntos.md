@@ -35,9 +35,9 @@ acumulación configuradas (CU-19).
    documento y lo busca (`GET /api/clientes?documento={dni}`), que devuelve el
    **id** del cliente con su nombre y categoría para confirmar que es la persona
    correcta. Luego carga los productos de la venta y, al finalizarla, el Actor
-   envía una petición al endpoint `POST /api/movimientos/acumulaciones` con un
-   JSON que contiene el id del cliente y el detalle de la compra
-   (`clienteId`, `items: [{productoId, cantidad}]`). El monto **no** lo
+   envía una petición al endpoint `POST /api/movimientos/acumulaciones/{clienteId}`,
+   con el id del cliente como **parámetro de ruta** y un JSON con el detalle de la
+   compra (`items: [{productoId, cantidad}]`). El monto **no** lo
    envía el empleado: el sistema lo calcula con el precio de cada producto (CU-18),
    para que no se puedan acreditar puntos de más.
 2. La **Capa de Presentación** (`MovimientosController.RegistrarAcumulacion`)
@@ -93,8 +93,9 @@ acumulación configuradas (CU-19).
      no se encuentra registrado.". Fin del caso de uso.
 
 > El antiguo flujo 3b (documento mal ingresado en la compra) pasó a ser el 1b: la
-> compra ya no recibe el DNI, sino el id que devuelve la búsqueda. Un `clienteId`
-> faltante o que no es un Guid lo rechaza la Capa de Presentación (flujo 2a, 400).
+> compra ya no recibe el DNI, sino el id que devuelve la búsqueda, como parámetro de
+> ruta. Un `clienteId` que no es un Guid (o la ruta sin id) no coincide con la ruta
+> `{clienteId:guid}` y responde 404.
 
 * **3d. Cliente inactivo o sin regla vigente (HTTP 409 Conflict):**
   1. El sistema detecta que en el Paso 3 el cliente está dado de baja (RN-14) o que
@@ -138,7 +139,8 @@ venta operado por el empleado)._
 
 | Regla / Validación | Dónde se aplica | Respuesta |
 | --- | --- | --- |
-| Campos obligatorios (`clienteId`, ítems), cantidad 1..1000 | DTO (`AcumulacionCreateDTO`, `ItemCompraDTO`) | 400 |
+| `clienteId` con formato Guid | Ruta (`acumulaciones/{clienteId:guid}`) | 404 si no coincide |
+| Ítems obligatorios, cantidad 1..1000 | DTO (`AcumulacionCreateDTO`, `ItemCompraDTO`) | 400 |
 | Formato del DNI en la búsqueda (7 a 10 dígitos) | `ClienteService.BuscarPorDocumentoAsync` (antes de consultar la base) | 400 |
 | Cliente existente (por id) / activo | `MovimientoService` | 404 / 409 |
 | Producto existente y activo (RN-26) | `MovimientoService.CalcularMontoAsync` | 400 |
@@ -154,7 +156,8 @@ venta operado por el empleado)._
   (`GET /api/clientes?documento={dni}`, roles Empleado y Admin). La búsqueda recibe un
   `ClienteBusquedaDTO` por `[FromQuery]` y responde un `ClienteBusquedaResponseDTO`
   reducido (`id`, `nombre`, `documento`, `categoria`), sin email ni teléfono. La compra
-  se registra con ese `clienteId` (Guid), que es además la clave foránea del movimiento.
+  se registra con ese `clienteId` (Guid) **como parámetro de ruta**, no en el body (el
+  body lleva solo los ítems); es además la clave foránea del movimiento.
 * **Datos de prueba:** el seed incluye un cliente Gold (`40111222`,
   `cliente.gold@fidelix.local` / `Gold1234!`). Su id se genera al sembrar, por eso en
   Bruno primero se busca por DNI ("Buscar Cliente Gold por DNI") y el id queda en la
@@ -174,8 +177,8 @@ venta operado por el empleado)._
 | --- | --- | --- |
 | `201` | Created | Confirmación de persistencia exitosa del movimiento de acumulación. |
 | `200` | OK | Búsqueda por DNI exitosa (paso previo). |
-| `400` | Bad Request | Ítem de venta inválido, `clienteId` faltante o inválido, o DNI mal ingresado en la búsqueda. |
-| `404` | Not Found | DNI no registrado (búsqueda) o `clienteId` que no corresponde a ningún cliente. |
+| `400` | Bad Request | Ítem de venta inválido o DNI mal ingresado en la búsqueda. |
+| `404` | Not Found | DNI no registrado (búsqueda), `clienteId` que no corresponde a ningún cliente, o `clienteId` que no es un Guid (la ruta no coincide). |
 | `409` | Conflict | Cliente inactivo o sin regla de acumulación vigente. |
 | `500` | Internal Server Error | Error técnico no controlado durante la persistencia. |
 
@@ -190,7 +193,7 @@ venta operado por el empleado)._
 | 1. Búsqueda por DNI | `200 OK` | `BuscarPorDocumentoAsync_WithExistingDocumento_ReturnsReducedCliente` | `BuscarPorDocumento_WithExistingDocumento_Returns200WithReducedData`, `BuscarPorDocumento_AsAdmin_Returns200OK` |
 | 1a. DNI no registrado | `404 Not Found` | `BuscarPorDocumentoAsync_WithUnknownDocumento_ThrowsClienteNotFoundException` | `BuscarPorDocumento_WithUnknownDocumento_Returns404NotFound` |
 | 1b. DNI mal ingresado | `400 Bad Request` | `BuscarPorDocumentoAsync_WithMalformedDocumento_ThrowsDocumentoInvalidoException` | `BuscarPorDocumento_WithMalformedDocumento_Returns400BadRequest`, `BuscarPorDocumento_WithoutDocumento_Returns400BadRequest` |
-| 2a. `clienteId` faltante | `400 Bad Request` | — (validación de esquema) | `RegistrarAcumulacion_WithoutClienteId_Returns400BadRequest` |
+| `clienteId` mal formado o ausente en la ruta | `404 Not Found` | — (restricción de ruta) | `RegistrarAcumulacion_WithMalformedOrMissingClienteIdInRoute_Returns404NotFound` |
 | 3a. Cliente no registrado (id) | `404 Not Found` | `RegistrarAcumulacionAsync_WithUnknownClienteId_ThrowsClienteNotFoundException` | `RegistrarAcumulacion_WithUnknownClienteId_Returns404NotFound` |
 | RN-11: solo personal busca clientes | `403 Forbidden` | — | `BuscarPorDocumento_AsCliente_Returns403Forbidden` |
 | 3d. Sin regla vigente | `409 Conflict` | `RegistrarAcumulacionAsync_WithoutVigenteRule_ThrowsReglaAcumulacionNoVigenteException` | — (cubierto por el unitario) |

@@ -158,8 +158,8 @@ public class ClientesCuentaControllerTests : IClassFixture<FidelixApiFactory>, I
         await _factory.AcreditarPuntosAsync(id, 1000);
         var beneficios = await client.GetFromJsonAsync<ListadoResponseDTO<FidelixAPI.Shared.DTOs.Beneficio.BeneficioResponseDTO>>("/api/beneficios");
         var masBarato = beneficios!.Items.OrderBy(b => b.CostoPuntos).First();
-        await _factory.CreateClientComo(Roles.Empleado).PostAsJsonAsync("/api/canjes/presencial",
-            new CanjePresencialCreateDTO { ClienteId = id, BeneficioId = masBarato.Id });
+        await _factory.CreateClientComo(Roles.Empleado).PostAsJsonAsync($"/api/canjes/presencial/{id}",
+            new CanjePresencialCreateDTO { BeneficioId = masBarato.Id });
 
         var canjes = await client.GetFromJsonAsync<ListadoResponseDTO<CanjeItemDTO>>("/api/clientes/me/canjes");
 

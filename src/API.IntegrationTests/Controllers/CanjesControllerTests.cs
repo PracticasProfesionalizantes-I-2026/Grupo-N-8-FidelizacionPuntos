@@ -167,9 +167,8 @@ public class CanjesControllerTests : IClassFixture<FidelixApiFactory>, IAsyncLif
             Nombre = $"Producto {Guid.NewGuid():N}",
             Precio = 10000
         })).Content.ReadFromJsonAsync<ProductoResponseDTO>();
-        await _factory.CreateClientComo(Roles.Empleado).PostAsJsonAsync("/api/movimientos/acumulaciones", new AcumulacionCreateDTO
+        await _factory.CreateClientComo(Roles.Empleado).PostAsJsonAsync($"/api/movimientos/acumulaciones/{clienteId}", new AcumulacionCreateDTO
         {
-            ClienteId = clienteId,
             Items = [new ItemCompraDTO { ProductoId = producto!.Id, Cantidad = 1 }]
         });
 

@@ -5,14 +5,17 @@ meta {
 }
 
 post {
-  url: {{baseUrl}}/api/movimientos/acumulaciones
+  url: {{baseUrl}}/api/movimientos/acumulaciones/:clienteId
   body: json
   auth: inherit
 }
 
+params:path {
+  clienteId: abc123
+}
+
 body:json {
   {
-    "clienteId": "abc123",
     "items": [
       { "productoId": "{{productoCompraId}}", "cantidad": 2 }
     ]
@@ -20,7 +23,7 @@ body:json {
 }
 
 tests {
-  test("400 Bad Request: clienteId no es un Guid (CU-10, 2a)", function () {
-    expect(res.status).to.equal(400);
+  test("404 Not Found: clienteId no es un Guid, la ruta {clienteId:guid} no coincide (CU-10)", function () {
+    expect(res.status).to.equal(404);
   });
 }

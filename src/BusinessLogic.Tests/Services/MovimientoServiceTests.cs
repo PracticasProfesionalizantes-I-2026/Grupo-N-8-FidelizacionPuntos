@@ -39,10 +39,9 @@ public class MovimientoServiceTests
             .ReturnsAsync([new Movimiento { PuntosDisponibles = 150 }]);
     }
 
-    /// <summary> Compra de 2 unidades del producto de prueba ($1000 c/u = $2000) para el cliente indicado (por defecto, el de prueba). </summary>
-    private AcumulacionCreateDTO Compra(Guid? clienteId = null) => new()
+    /// <summary> Compra de 2 unidades del producto de prueba ($1000 c/u = $2000); el cliente va aparte (ruta). </summary>
+    private AcumulacionCreateDTO Compra() => new()
     {
-        ClienteId = clienteId ?? _cliente.Id,
         Items = [new ItemCompraDTO { ProductoId = _producto.Id, Cantidad = 2 }]
     };
 
@@ -50,7 +49,7 @@ public class MovimientoServiceTests
     [Fact]
     public async Task RegistrarAcumulacionAsync_WithValidPurchase_AccruesPointsPerRulesAndLogsAudit()
     {
-        var resultado = await _sut.RegistrarAcumulacionAsync(Compra());
+        var resultado = await _sut.RegistrarAcumulacionAsync(_cliente.Id, Compra());
 
         Assert.Equal(2000, resultado.MontoTotal);
         Assert.Equal(200, resultado.PuntosAcreditados);
@@ -67,7 +66,7 @@ public class MovimientoServiceTests
     {
         _cliente.Categoria = CategoriaCliente.Gold;
 
-        var resultado = await _sut.RegistrarAcumulacionAsync(Compra());
+        var resultado = await _sut.RegistrarAcumulacionAsync(_cliente.Id, Compra());
 
         Assert.Equal(1.5m, resultado.Multiplicador);
         Assert.Equal(300, resultado.PuntosAcreditados);
@@ -80,7 +79,7 @@ public class MovimientoServiceTests
         var idInexistente = Guid.NewGuid();
         _clienteRepo.Setup(r => r.GetByIdAsync(idInexistente)).ReturnsAsync((Cliente?)null);
 
-        await Assert.ThrowsAsync<ClienteNotFoundException>(() => _sut.RegistrarAcumulacionAsync(Compra(idInexistente)));
+        await Assert.ThrowsAsync<ClienteNotFoundException>(() => _sut.RegistrarAcumulacionAsync(idInexistente, Compra()));
         _movimientoRepo.Verify(r => r.CreateAsync(It.IsAny<Movimiento>()), Times.Never);
     }
 
@@ -90,7 +89,7 @@ public class MovimientoServiceTests
     {
         _producto.Activo = false;
 
-        await Assert.ThrowsAsync<ItemCompraInvalidoException>(() => _sut.RegistrarAcumulacionAsync(Compra()));
+        await Assert.ThrowsAsync<ItemCompraInvalidoException>(() => _sut.RegistrarAcumulacionAsync(_cliente.Id, Compra()));
         _movimientoRepo.Verify(r => r.CreateAsync(It.IsAny<Movimiento>()), Times.Never);
     }
 
@@ -100,7 +99,7 @@ public class MovimientoServiceTests
     {
         _reglaRepo.Setup(r => r.GetVigenteAsync(It.IsAny<DateTime>())).ReturnsAsync((ReglaAcumulacion?)null);
 
-        await Assert.ThrowsAsync<ReglaAcumulacionNoVigenteException>(() => _sut.RegistrarAcumulacionAsync(Compra()));
+        await Assert.ThrowsAsync<ReglaAcumulacionNoVigenteException>(() => _sut.RegistrarAcumulacionAsync(_cliente.Id, Compra()));
         _movimientoRepo.Verify(r => r.CreateAsync(It.IsAny<Movimiento>()), Times.Never);
     }
 
@@ -111,7 +110,7 @@ public class MovimientoServiceTests
         _movimientoRepo.Setup(r => r.CreateAsync(It.IsAny<Movimiento>()))
             .ThrowsAsync(new InvalidOperationException("Falla de conexión simulada"));
 
-        await Assert.ThrowsAsync<PersistenceException>(() => _sut.RegistrarAcumulacionAsync(Compra()));
+        await Assert.ThrowsAsync<PersistenceException>(() => _sut.RegistrarAcumulacionAsync(_cliente.Id, Compra()));
     }
 
     /// <summary>
@@ -171,7 +170,7 @@ public class MovimientoServiceTests
     {
         var empleadoId = Guid.NewGuid();
 
-        await _sut.RegistrarAcumulacionAsync(Compra(), empleadoId);
+        await _sut.RegistrarAcumulacionAsync(_cliente.Id, Compra(), empleadoId);
 
         _movimientoRepo.Verify(r => r.CreateAsync(It.Is<Movimiento>(m => m.EmpleadoId == empleadoId)), Times.Once);
     }

@@ -5,14 +5,17 @@ meta {
 }
 
 post {
-  url: {{baseUrl}}/api/movimientos/acumulaciones
+  url: {{baseUrl}}/api/movimientos/acumulaciones/:clienteId
   body: json
   auth: inherit
 }
 
+params:path {
+  clienteId: {{clienteGoldId}}
+}
+
 body:json {
   {
-    "clienteId": "{{clienteGoldId}}",
     "items": [
       { "productoId": "{{productoCompraId}}", "cantidad": 2 }
     ]

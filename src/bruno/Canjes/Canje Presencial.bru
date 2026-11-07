@@ -5,9 +5,13 @@ meta {
 }
 
 post {
-  url: {{baseUrl}}/api/canjes/presencial
+  url: {{baseUrl}}/api/canjes/presencial/:clienteId
   body: json
   auth: bearer
+}
+
+params:path {
+  clienteId: {{clienteDemoId}}
 }
 
 auth:bearer {
@@ -16,7 +20,6 @@ auth:bearer {
 
 body:json {
   {
-    "clienteId": "{{clienteDemoId}}",
     "beneficioId": "{{beneficioBaratoId}}"
   }
 }

@@ -3,14 +3,12 @@ using System.ComponentModel.DataAnnotations;
 namespace FidelixAPI.Shared.DTOs.Canje;
 
 /// <summary>
-/// El empleado registra un canje en el local (CU-11). El cliente se identifica por su id, que el
-/// empleado obtiene buscándolo por DNI (`GET /api/clientes?documento=`).
+/// Cuerpo del canje que registra el empleado en el local (CU-11): solo el beneficio. El cliente NO viaja
+/// en el body: su id va como parámetro de ruta (`POST /api/canjes/presencial/{clienteId}`) y el empleado
+/// lo obtiene antes buscándolo por DNI (`GET /api/clientes?documento=`).
 /// </summary>
 public class CanjePresencialCreateDTO
 {
-    [Required(ErrorMessage = "El cliente es obligatorio.")]
-    public Guid? ClienteId { get; set; }
-
     [Required(ErrorMessage = "El beneficio a canjear es obligatorio.")]
     public Guid? BeneficioId { get; set; }
 }

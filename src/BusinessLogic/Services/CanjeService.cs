@@ -23,10 +23,10 @@ public class CanjeService(
         return await EjecutarCanjeAsync(cliente, dto.BeneficioId!.Value, EstadoCanje.Pendiente, empleadoId: null);
     }
 
-    /// <summary> CU-11: el cliente se identifica por su id (1a); el beneficio se entrega en el momento. </summary>
-    public async Task<CanjeResponseDTO> CrearCanjePresencialAsync(CanjePresencialCreateDTO dto, Guid? empleadoId)
+    /// <summary> CU-11: el cliente llega por id en la ruta (1a: 404 si no existe); el beneficio se entrega en el momento. </summary>
+    public async Task<CanjeResponseDTO> CrearCanjePresencialAsync(Guid clienteId, CanjePresencialCreateDTO dto, Guid? empleadoId)
     {
-        var cliente = await clienteRepository.GetByIdAsync(dto.ClienteId!.Value)
+        var cliente = await clienteRepository.GetByIdAsync(clienteId)
             ?? throw new ClienteNotFoundException("El cliente no se encuentra registrado.");
 
         return await EjecutarCanjeAsync(cliente, dto.BeneficioId!.Value, EstadoCanje.Entregado, empleadoId);

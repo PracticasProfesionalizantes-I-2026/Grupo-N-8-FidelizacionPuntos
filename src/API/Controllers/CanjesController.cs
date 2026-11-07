@@ -32,11 +32,11 @@ public class CanjesController(ICanjeService canjeService) : ControllerBase
         return await EjecutarAsync(() => canjeService.CrearCanjeAsync(clienteId, dto));
     }
 
-    /// <summary> CU-11: el empleado canjea por un cliente identificado por documento; queda "Entregado". </summary>
-    [HttpPost("presencial")]
+    /// <summary> CU-11: el empleado canjea por el cliente indicado por id en la ruta; queda "Entregado". </summary>
+    [HttpPost("presencial/{clienteId:guid}")]
     [Authorize(Roles = Roles.Empleado)]
-    public async Task<IActionResult> CrearCanjePresencial(CanjePresencialCreateDTO dto) =>
-        await EjecutarAsync(() => canjeService.CrearCanjePresencialAsync(dto, User.ObtenerId()));
+    public async Task<IActionResult> CrearCanjePresencial(Guid clienteId, CanjePresencialCreateDTO dto) =>
+        await EjecutarAsync(() => canjeService.CrearCanjePresencialAsync(clienteId, dto, User.ObtenerId()));
 
     /// <summary> RN-10: el empleado entrega en el local un canje "Pendiente" hecho desde la app (CU-11). </summary>
     [HttpPatch("{id:guid}/entregar")]
