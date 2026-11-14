@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using FidelixAPI.BusinessLogic.Helpers;
 using FidelixAPI.BusinessLogic.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -16,8 +17,8 @@ public class JwtTokenService(IConfiguration configuration) : ITokenService
     /// </summary>
     public string GenerarToken(int id, string rol)
     {
-        var claveSecreta = configuration["Jwt:Key"]
-            ?? throw new InvalidOperationException("Falta la clave del token en la configuracion.");
+        // CRIT-05: la clave sale de User Secrets / variable de entorno, nunca del repositorio.
+        var claveSecreta = ClaveJwt.Obtener(configuration);
 
         var expiracionMinutos = int.Parse(configuration["Jwt:ExpiracionMinutos"]
             ?? throw new InvalidOperationException("Falta Jwt: Expiracion en la configuracion."));

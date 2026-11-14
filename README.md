@@ -115,6 +115,20 @@ Cómo funciona:
 
 ## Cómo ejecutar
 
+**Antes de la primera ejecución: configurar la clave JWT.** La clave que firma los tokens
+no está versionada en el repositorio (si lo estuviera, cualquiera con acceso al código podría
+fabricar un token de Admin). En desarrollo se guarda con **User Secrets**, que la almacena
+en el perfil del usuario, fuera del proyecto. Una sola vez, desde `src/`:
+
+```bash
+dotnet user-secrets set "Jwt:Key" "$(openssl rand -base64 48)" --project API
+```
+
+(Cualquier texto de 32 caracteres o más sirve; `openssl` solo genera uno al azar.) En producción
+se usa la variable de entorno `Jwt__Key`. Si la clave falta o es más corta, la API no arranca y
+el error indica este mismo comando. Los tests de integración usan una clave propia, así que
+`dotnet test` no necesita este paso.
+
 ```bash
 cd src
 dotnet run --project API/FidelixAPI.API.csproj

@@ -1,6 +1,7 @@
 using System.Text;
 using FidelixAPI.API.Filters;
 using FidelixAPI.API.Jobs;
+using FidelixAPI.BusinessLogic.Helpers;
 using FidelixAPI.BusinessLogic.Interfaces;
 using FidelixAPI.BusinessLogic.Services;
 using FidelixAPI.DataAccess.Context;
@@ -59,6 +60,10 @@ builder.Services.AddSingleton<IEmailSender, LoggingEmailSender>();
 builder.Services.AddHostedService<PointsExpirationJob>();
 builder.Services.AddHostedService<BonoCumpleanosJob>();
 
+// CRIT-05: la clave de firma se lee (y valida) al arrancar. Si falta o es débil, la API no levanta
+// y el error indica cómo configurarla (User Secrets en desarrollo, variable Jwt__Key en producción).
+var claveJwt = ClaveJwt.Obtener(builder.Configuration);
+
 // Autenticación JWT (CU-02 emite el token; CU-07 lo exige). Valida firma, emisor,
 // audiencia y vencimiento con los mismos valores de `Jwt` que usa JwtTokenService.
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -71,9 +76,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidAudience = builder.Configuration["Jwt:Audience"],
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]
-                    ?? throw new InvalidOperationException("Falta la clave del token en la configuracion."))),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(claveJwt)),
             ValidateLifetime = true
         };
     });
