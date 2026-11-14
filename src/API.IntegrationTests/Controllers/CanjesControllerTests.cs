@@ -2,7 +2,11 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using FidelixAPI.API.IntegrationTests.Fakes;
+using FidelixAPI.BusinessLogic.Interfaces;
+using FidelixAPI.DataAccess.Context;
+using FidelixAPI.DataAccess.Repositories;
 using FidelixAPI.DataAccess.Repositories.Interfaces;
+using FidelixAPI.Shared.DTOs.Comun;
 using FidelixAPI.Shared.DTOs.Auth;
 using FidelixAPI.Shared.DTOs.Beneficio;
 using FidelixAPI.Shared.DTOs.Canje;
@@ -175,6 +179,43 @@ public class CanjesControllerTests : IClassFixture<FidelixApiFactory>, IAsyncLif
         var respuesta = await client.PostAsJsonAsync(Url, new CanjeCreateDTO { BeneficioId = beneficioId });
 
         Assert.Equal(HttpStatusCode.Conflict, respuesta.StatusCode);
+    }
+
+    /// <summary>
+    /// CRIT-01 (doble gasto): dos canjes simultáneos leen el mismo saldo (100 pts) para un beneficio de
+    /// 80. El primero que guarda gana; el segundo detecta que los lotes cambiaron (token de concurrencia),
+    /// no descuenta nada y responde 409. Al final hay un solo canje y le quedan 20 puntos, no -60.
+    /// </summary>
+    [Fact]
+    public async Task CrearCanje_WhenConcurrentCanjeConsumesSamePoints_Returns409AndDiscountsOnlyOnce()
+    {
+        var beneficioId = await CrearBeneficioAsync(costo: 80);
+        var registro = _factory.CreateClient();
+        var (clienteId, _, _) = await TestHelpers.RegistrarYAutenticarClienteAsync(registro);
+        await _factory.AcreditarPuntosAsync(clienteId, 100);
+
+        // El canje "concurrente" corre en su propio scope (otro DbContext), como otra petición HTTP.
+        async Task CanjeConcurrenteAsync()
+        {
+            using var scope = _factory.Services.CreateScope();
+            await scope.ServiceProvider.GetRequiredService<ICanjeService>()
+                .CrearCanjeAsync(clienteId, new CanjeCreateDTO { BeneficioId = beneficioId });
+        }
+
+        var client = _factory.WithWebHostBuilder(builder =>
+            builder.ConfigureTestServices(services =>
+                services.AddScoped<IMovimientoRepository>(sp => new MovimientoRepositoryConCanjeConcurrente(
+                    new MovimientoRepository(sp.GetRequiredService<FidelixDbContext>()), CanjeConcurrenteAsync))))
+            .CreateClient();
+        client.DefaultRequestHeaders.Authorization = registro.DefaultRequestHeaders.Authorization; // Mismo cliente.
+
+        var respuesta = await client.PostAsJsonAsync(Url, new CanjeCreateDTO { BeneficioId = beneficioId });
+        var saldo = await registro.GetFromJsonAsync<SaldoResponseDTO>("/api/clientes/me/saldo");
+        var canjes = await registro.GetFromJsonAsync<ListadoResponseDTO<MovimientoResponseDTO>>("/api/clientes/me/movimientos?tipoMovimiento=Canje");
+
+        Assert.Equal(HttpStatusCode.Conflict, respuesta.StatusCode);
+        Assert.Equal(20, saldo!.PuntosDisponibles);
+        Assert.Single(canjes!.Items);
     }
 
     /// <summary>CU-07, flujo 5a: si falla la persistencia de movimientos, la API responde 500.</summary>

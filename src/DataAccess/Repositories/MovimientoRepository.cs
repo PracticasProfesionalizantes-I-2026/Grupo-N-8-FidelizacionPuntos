@@ -2,6 +2,7 @@ using FidelixAPI.DataAccess.Context;
 using FidelixAPI.DataAccess.Entities;
 using FidelixAPI.DataAccess.Repositories.Interfaces;
 using FidelixAPI.Shared.Enums;
+using FidelixAPI.Shared.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace FidelixAPI.DataAccess.Repositories;
@@ -80,10 +81,28 @@ public class MovimientoRepository(FidelixDbContext context) : IMovimientoReposit
     public async Task<Movimiento> CreateAsync(Movimiento entity)
     {
         context.Movimientos.Add(entity);
-        await context.SaveChangesAsync();
+        await GuardarAsync();
         return entity;
     }
 
     /// <summary>Persiste los cambios sobre un movimiento ya trackeado.</summary>
-    public Task UpdateAsync(Movimiento entity) => context.SaveChangesAsync();
+    public Task UpdateAsync(Movimiento entity) => GuardarAsync();
+
+    /// <summary>
+    /// Guarda los cambios pendientes. Si otro proceso modificó los mismos lotes desde que se leyeron
+    /// (token de concurrencia sobre `PuntosDisponibles`, CRIT-01), traduce la excepción de EF Core a
+    /// <see cref="ConflictoConcurrenciaException"/>, para que BusinessLogic no dependa de EF.
+    /// </summary>
+    private async Task GuardarAsync()
+    {
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            throw new ConflictoConcurrenciaException(
+                "El saldo de puntos cambió mientras se procesaba la operación. Intente nuevamente.", ex);
+        }
+    }
 }

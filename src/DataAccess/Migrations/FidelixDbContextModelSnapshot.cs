@@ -264,6 +264,7 @@ namespace FidelixAPI.DataAccess.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("PuntosDisponibles")
+                        .IsConcurrencyToken()
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Tipo")

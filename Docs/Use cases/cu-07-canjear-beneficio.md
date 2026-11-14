@@ -89,6 +89,15 @@ catálogo, descontando los puntos correspondientes mediante el método FIFO.
   3. El Sistema devuelve un código **500 Internal Server Error**. Fin del caso de
      uso.
 
+* **5b. Canje simultáneo sobre los mismos puntos (HTTP 409 Conflict):**
+  1. El sistema detecta en el Paso 5 que, entre la lectura del saldo y el guardado, otra
+     operación (otro canje del mismo cliente o el vencimiento) ya modificó los mismos lotes.
+  2. El Sistema revierte la transacción completa: no se descuenta ningún punto ni se
+     registra el canje (control de concurrencia optimista, evita el doble gasto).
+  3. El Sistema devuelve un código **409 Conflict** con el mensaje: "El saldo de puntos
+     cambió mientras se procesaba la operación. Intente nuevamente." Al reintentar, el saldo
+     se valida otra vez con los datos reales. Fin del caso de uso.
+
 ### 5. SUB-VARIACIONES (opcional)
 _No aplica: el canje se realiza por un único canal (API del cliente); el canje
 presencial en punto de venta lo gestiona el empleado (ver CU-11)._
@@ -111,6 +120,14 @@ presencial en punto de venta lo gestiona el empleado (ver CU-11)._
 * **Transacción única:** los lotes se leen con tracking; `AplicarFifo` les descuenta
   puntos en memoria y el `SaveChanges` que guarda el canje persiste también esos
   cambios. Si algo falla, no se guarda nada.
+* **Concurrencia (CRIT-01):** `Movimiento.PuntosDisponibles` es token de concurrencia
+  optimista (`IsConcurrencyToken` en `FidelixDbContext`). El `UPDATE` de cada lote lleva
+  `WHERE PuntosDisponibles = <valor leído>`: si dos canjes leyeron el mismo saldo, el
+  segundo en guardar no actualiza ninguna fila, EF lanza `DbUpdateConcurrencyException`,
+  `MovimientoRepository` la traduce a `ConflictoConcurrenciaException` y el controller
+  responde 409 (flujo 5b). Se eligió optimista porque SQLite no tiene bloqueo por fila y
+  el conflicto real es poco frecuente (doble clic, dos terminales). También protege el
+  cruce entre un canje y el vencimiento (CU-22).
 * **Colección Bruno:** `bruno/Canjes/` (login, beneficio de prueba, canje, saldo
   insuficiente, sin token, inexistente, datos faltantes). Correrla con la base limpia:
   el canje exitoso consume 100 de los 150 puntos del cliente demo.
@@ -127,7 +144,7 @@ presencial en punto de venta lo gestiona el empleado (ver CU-11)._
 | `400` | Bad Request | Fallo en la validación de esquema o sintaxis del JSON recibido. |
 | `401` | Unauthorized | Petición sin token JWT válido. |
 | `404` | Not Found | Inexistencia del beneficio referenciado en la Capa de Persistencia. |
-| `409` | Conflict | Violación de RN-17 (beneficio inactivo) o RN-08 (saldo insuficiente). |
+| `409` | Conflict | Violación de RN-17 (beneficio inactivo), RN-08 (saldo insuficiente) o canje simultáneo sobre los mismos puntos (5b). |
 | `500` | Internal Server Error | Error técnico no controlado durante la persistencia. |
 
 ### Nota: Validación vs. Verificación aplicada
@@ -151,6 +168,7 @@ presencial en punto de venta lo gestiona el empleado (ver CU-11)._
 | 3c. Solo puntos pendientes (N2) | `409 Conflict` | — (filtro del repositorio) | `CrearCanje_WithOnlyPendingPoints_Returns409Conflict` |
 | Paso 4. FIFO (RN-09) | — | `AplicarFifo_DiscountsOldestLotFirst` (y 2 más en `LotePuntosServiceTests`) | — |
 | 5a. Error interno de persistencia | `500 Internal Server Error` | `CrearCanjeAsync_WhenRepositoryFails_ThrowsPersistenceException` | `CrearCanje_WhenPersistenceFails_Returns500InternalServerError` |
+| 5b. Canje simultáneo (doble gasto) | `409 Conflict` | `CrearCanjeAsync_WhenConcurrentCanjeWins_PropagatesConflictoConcurrenciaException` | `CrearCanje_WhenConcurrentCanjeConsumesSamePoints_Returns409AndDiscountsOnlyOnce` |
 
 > Regla de oro: cada flujo del caso de uso debe tener al menos un test. El cálculo
 > FIFO se cubre en detalle en la matriz de CU-23.

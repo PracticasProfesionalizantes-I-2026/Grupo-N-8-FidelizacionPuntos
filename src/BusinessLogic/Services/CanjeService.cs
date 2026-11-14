@@ -56,6 +56,7 @@ public class CanjeService(
     /// Núcleo común de los dos canjes: cliente activo (RN-14), beneficio existente (3a) y activo
     /// (3b, RN-17), saldo suficiente (3c, RN-08) y descuento FIFO (RN-09). El descuento de los
     /// lotes y el movimiento de canje se guardan en un único `SaveChanges`, o sea, en una sola transacción.
+    /// Si otra operación tocó los mismos lotes en el medio, falla con <see cref="ConflictoConcurrenciaException"/> (CRIT-01).
     /// </summary>
     private async Task<CanjeResponseDTO> EjecutarCanjeAsync(Cliente cliente, int beneficioId, EstadoCanje estado, int? empleadoId)
     {
@@ -110,6 +111,12 @@ public class CanjeService(
         {
             // El SaveChanges de CreateAsync guarda el canje y también los lotes trackeados: todo o nada.
             canje = await movimientoRepository.CreateAsync(canje);
+        }
+        catch (ConflictoConcurrenciaException)
+        {
+            // CRIT-01: otro canje (o el vencimiento) consumió estos lotes entre la lectura y el guardado.
+            // No se guardó nada; se propaga para responder 409 y que el cliente reintente con el saldo real.
+            throw;
         }
         catch (Exception ex)
         {
