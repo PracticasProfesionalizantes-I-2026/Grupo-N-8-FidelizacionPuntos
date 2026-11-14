@@ -7,35 +7,41 @@ Este documento contiene el listado priorizado de hallazgos detectados durante la
 ### 🔴 RIESGO ALTO (Crítico para la ejecución y completitud core)
 *Incluye bugs bloqueantes, vulnerabilidades de seguridad graves y requerimientos principales o casos de uso core no implementados.*
 
-- [ ] **[BUG-CRIT-01] [Concurrencia] Prevenir Doble Gasto (Double Spending) en Canjes de Puntos Concurrentes**
+- [x] **[BUG-CRIT-01] [Concurrencia] Prevenir Doble Gasto (Double Spending) en Canjes de Puntos Concurrentes**
   - **Módulo / Archivo:** `src/BusinessLogic/Services/CanjeService.cs` (Líneas 76–114) y `src/DataAccess/Entities/Movimiento.cs`
   - **Descripción:** La lectura de saldo disponible y el descuento FIFO de lotes se calculan en memoria antes de persistir (`CreateAsync`). Si ingresan dos solicitudes de canje simultáneas para el mismo cliente (ej. doble clic o terminales concurrentes), ambas validan saldo positivo y descuentan puntos sobre las mismas instancias sin control de concurrencia optimista ni bloqueo transaccional.
   - **Acción Correctiva:** Agregar un token de concurrencia optimista en la entidad `Movimiento` (ej. `[ConcurrencyCheck] public int PuntosDisponibles { get; set; }` o una columna `RowVersion`/`xmin` en base de datos) para que EF Core lance `DbUpdateConcurrencyException` ante escrituras simultáneas, o implementar un bloqueo de fila/pesimista explícito en la base de datos durante la transacción de canje.
+  - **✅ Resuelto en:** commit `7c6554a` — `Movimiento.PuntosDisponibles` es token de concurrencia optimista; el segundo canje simultáneo se revierte entero y responde 409 (CU-07, flujo 5b).
 
-- [ ] **[BUG-CRIT-02] [Integridad / Batch] Evitar Corrupción del ChangeTracker de EF Core ante Excepciones en `AplicarVencimientoAsync`**
+- [x] **[BUG-CRIT-02] [Integridad / Batch] Evitar Corrupción del ChangeTracker de EF Core ante Excepciones en `AplicarVencimientoAsync`**
   - **Módulo / Archivo:** `src/BusinessLogic/Services/PuntosService.cs` (Líneas 50–86) y `src/DataAccess/Repositories/MovimientoRepository.cs`
   - **Descripción:** Cuando se procesan lotes vencidos agrupados por cliente en el bucle diario, si la llamada a `movimientoRepository.CreateAsync` arroja una excepción, el bloque `catch` restaura los valores en memoria pero la entidad `Movimiento` ya quedó agregada (`EntityState.Added`) al `ChangeTracker` del `DbContext`. En la siguiente iteración exitosa, `SaveChangesAsync()` intentará guardar tanto el nuevo movimiento como el que falló del cliente anterior, causando inconsistencias o fallas en cadena.
   - **Acción Correctiva:** En el bloque `catch`, desasociar explícitamente la entidad fallida del contexto (`context.Entry(entity).State = EntityState.Detached`) o, preferentemente, crear un `IServiceScope` independiente por cada cliente procesado en la tarea en segundo plano.
+  - **✅ Resuelto en:** commit `a8ec1f7` — `IUnidadDeTrabajo.DescartarCambios()` desacopla lo `Added` y devuelve lo `Modified` a sus valores originales ante un error; se aplica en vencimiento y bono de cumpleaños.
 
-- [ ] **[BUG-CRIT-03] [Escalabilidad / OOM] Eliminar Carga Masiva de Toda la Tabla de Clientes en Memoria en Bono de Cumpleaños**
+- [x] **[BUG-CRIT-03] [Escalabilidad / OOM] Eliminar Carga Masiva de Toda la Tabla de Clientes en Memoria en Bono de Cumpleaños**
   - **Módulo / Archivo:** `src/BusinessLogic/Services/PuntosService.cs` (Líneas 99–101)
   - **Descripción:** El método `AplicarBonoCumpleanosAsync` ejecuta `await clienteRepository.GetAllAsync()`, trayendo a memoria RAM todos los registros de clientes de la base de datos para evaluarlos con LINQ to Objects (`CumpleAnios(...)`). En un entorno productivo con miles o millones de clientes, esto provocará saturación de GC, picos de memoria y eventuales caídas por `OutOfMemoryException`.
   - **Acción Correctiva:** Crear un método especializado en `IClienteRepository` (ej. `GetCumpleanerosDelDiaAsync(int mes, int dia)`) que realice el filtrado por fecha directamente en el motor de base de datos SQL o mediante paginación por lotes (*batch chunking*).
+  - **✅ Resuelto en:** commit `f791078` — `IClienteRepository.GetActivosNacidosElAsync(mes, dia)` filtra en SQL; la regla del 29/2 queda en el service.
 
-- [ ] **[BUG-CRIT-04] [Seguridad] Implementar Rate Limiting y Bloqueo por Intentos en Validación de Código de Recuperación**
+- [x] **[BUG-CRIT-04] [Seguridad] Implementar Rate Limiting y Bloqueo por Intentos en Validación de Código de Recuperación**
   - **Módulo / Archivo:** `src/BusinessLogic/Services/RecuperacionService.cs` (Líneas 64–67) y `src/API/Controllers/AuthPersonalController.cs` (Líneas 55–70)
   - **Descripción:** El código de recuperación es un PIN numérico de 6 dígitos (1.000.000 combinaciones) válido por 15 minutos. El endpoint de confirmación (`POST /api/auth/recuperar-contrasena/confirmar`) no posee límite de intentos fallidos, demora progresiva ni rate limiting. Un atacante puede ejecutar ataques automatizados de fuerza bruta para adivinar el código y secuestrar cualquier cuenta (incluyendo administradores).
   - **Acción Correctiva:** Agregar un contador `IntentosFallidos` en la entidad `CodigoRecuperacion`, invalidar el código (`Usado = true`) al alcanzar 3 intentos fallidos y configurar middleware de rate limiting (`Microsoft.AspNetCore.RateLimiting`) sobre el endpoint público.
+  - **✅ Resuelto en:** commit `7f5fd8e` — `CodigoRecuperacion.IntentosFallidos` (máx. 3, luego se invalida) + rate limiting por IP con respuesta 429.
 
-- [ ] **[BUG-CRIT-05] [Seguridad / DevSecOps] Externalizar Clave Secreta JWT de los Archivos de Configuración**
+- [x] **[BUG-CRIT-05] [Seguridad / DevSecOps] Externalizar Clave Secreta JWT de los Archivos de Configuración**
   - **Módulo / Archivo:** `src/API/appsettings.json` (Línea 13) y `src/API/Program.cs`
   - **Descripción:** La clave criptográfica para la firma de tokens JWT (`"EstaEsLaClaveSecretaParaElJwt..."`) se encuentra escrita en texto plano y versionada en el repositorio. Cualquier usuario con acceso de lectura puede falsificar tokens con rol `Admin` y vulnerar completamente el sistema.
   - **Acción Correctiva:** Remover la clave secreta de `appsettings.json`. Configurar la obtención de la clave a través de variables de entorno del sistema (`JWT__KEY`) o herramientas seguras de gestión de secretos (User Secrets en desarrollo local, Azure Key Vault o AWS Secrets Manager en producción), validando que la aplicación no inicie si la clave no cumple con entropía y longitud mínima.
+  - **✅ Resuelto en:** commit `a462b02` — La clave se carga con User Secrets / variable `Jwt__Key`; la API no arranca si falta o tiene menos de 32 bytes.
 
-- [ ] **[BUG-CRIT-06] [Seguridad / Identidad] Resolver Conflicto de Recuperación ante Emails Compartidos entre Roles**
+- [x] **[BUG-CRIT-06] [Seguridad / Identidad] Resolver Conflicto de Recuperación ante Emails Compartidos entre Roles**
   - **Módulo / Archivo:** `src/BusinessLogic/Services/RecuperacionService.cs` (Líneas 86–92)
   - **Descripción:** Las tablas `Clientes`, `Empleados` y `Admins` validan unicidad de email de manera aislada. En `BuscarCuentaActivaAsync`, si un usuario utiliza el mismo email para su cuenta personal de `Cliente` y su cuenta laboral de `Empleado`, la evaluación secuencial siempre devuelve `Roles.Cliente`. La cuenta de `Empleado` queda imposibilitada de restablecer su clave.
   - **Acción Correctiva:** Requerir el `Rol` como campo en el payload de `RecuperacionSolicitudDTO` para resolver la cuenta exacta, o validar la unicidad global de direcciones de correo electrónico entre todos los roles del sistema en el momento de creación/edición.
+  - **✅ Resuelto en:** commit `abac58f` — La solicitud de recuperación pide el `Rol` (un empleado puede ser cliente con el mismo email).
 
 ---
 
@@ -67,10 +73,11 @@ Este documento contiene el listado priorizado de hallazgos detectados durante la
   - **Descripción:** En `AplicarBonoCumpleanosAsync`, por cada cliente que cumple años se realizan tres viajes de red secuenciales a la base de datos (`ExisteBonoEnAnioAsync`, `CreateAsync` de movimiento y persistencia de auditoría). Si hay 200 cumpleañeros, se emiten 600 queries individuales.
   - **Acción Correctiva:** Reemplazar el bucle individual por consultas en lote: verificar qué clientes ya tienen bono en una sola consulta (`WHERE ClienteId IN (...)`) e insertar los nuevos movimientos en bloque mediante `AddRangeAsync`.
 
-- [ ] **[CODE-SMELL-02] [Arquitectura / Repositorio] Subsanar Efecto Colateral Engañoso en `UpdateAsync` de Códigos de Recuperación**
+- [x] **[CODE-SMELL-02] [Arquitectura / Repositorio] Subsanar Efecto Colateral Engañoso en `UpdateAsync` de Códigos de Recuperación**
   - **Módulo / Archivo:** `src/BusinessLogic/Services/RecuperacionService.cs` (Líneas 74–81) y `src/DataAccess/Repositories/CodigoRecuperacionRepository.cs`
   - **Descripción:** El método de servicio modifica en memoria una colección completa de códigos previos (`foreach (var c in vigentes) c.Usado = true;`), pero luego invoca `await codigoRepository.UpdateAsync(codigo)` pasando una sola entidad. EF Core persiste todo por el `ChangeTracker`, pero la firma del repositorio oculta la mutación masiva.
   - **Acción Correctiva:** Exponer un método formal `UpdateRangoAsync(IEnumerable<CodigoRecuperacion> codigos)` en la interfaz del repositorio para mantener la transparencia en la manipulación de datos.
+  - **✅ Resuelto en:** commit `7f5fd8e` — Resuelto junto con BUG-CRIT-04: `ICodigoRecuperacionRepository.UpdateRangoAsync`.
 
 - [ ] **[ROBUST-01] [Resiliencia HTTP] Estandarizar Try/Catch en Endpoints de Lectura de Controladores**
   - **Módulo / Archivo:** `src/API/Controllers/ClientesController.cs` (Líneas 143–158), `AdminMovimientosController.cs` (Líneas 16–18) y `AdminAuditoriaController.cs` (Líneas 19–20)
