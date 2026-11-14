@@ -1,4 +1,5 @@
 using System.Text;
+using FidelixAPI.API.Extensions;
 using FidelixAPI.API.Filters;
 using FidelixAPI.API.Jobs;
 using FidelixAPI.BusinessLogic.Helpers;
@@ -83,6 +84,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 builder.Services.AddAuthorization();
 
+// CRIT-04: límite de pedidos por IP en la recuperación de contraseña (responde 429 al superarlo).
+builder.Services.AgregarRateLimiting(builder.Configuration);
+
 var app = builder.Build();
 
 // Aplica migraciones pendientes y carga datos de prueba si la base está vacía.
@@ -103,6 +107,9 @@ app.UseHttpsRedirection();
 // Primero se identifica quién llama (token) y después se decide si puede entrar ([Authorize]).
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Aplica las políticas de [EnableRateLimiting] de cada endpoint (ver RateLimitingExtensions).
+app.UseRateLimiter();
 
 app.MapControllers();
 

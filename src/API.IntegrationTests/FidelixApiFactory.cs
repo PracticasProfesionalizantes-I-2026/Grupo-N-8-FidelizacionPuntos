@@ -37,6 +37,10 @@ public class FidelixApiFactory : WebApplicationFactory<Program>
         // CRIT-05: la clave JWT ya no está en appsettings.json; los tests usan una propia, solo de prueba.
         builder.UseSetting("Jwt:Key", "ClaveSoloParaTestsDeIntegracion-NoUsarEnProduccion-0123456789");
 
+        // CRIT-04: todos los tests comparten la "IP" del TestServer; se sube el límite para que el rate
+        // limiting no interfiera. El test que lo prueba crea su propio host con un límite bajo.
+        builder.UseSetting("RateLimiting:Recuperacion:PedidosPorVentana", "10000");
+
         builder.ConfigureServices(services =>
         {
             services.RemoveAll<DbContextOptions<FidelixDbContext>>();

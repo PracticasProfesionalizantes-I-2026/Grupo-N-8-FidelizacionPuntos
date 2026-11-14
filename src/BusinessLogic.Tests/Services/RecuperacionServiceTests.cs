@@ -96,6 +96,39 @@ public class RecuperacionServiceTests
         _clienteRepo.Verify(r => r.UpdateAsync(It.IsAny<Cliente>()), Times.Never);
     }
 
+    /// <summary> CRIT-04: un código equivocado suma un intento fallido al código vigente, sin invalidarlo todavía. </summary>
+    [Fact]
+    public async Task ConfirmarRecuperacionAsync_WithInvalidCode_IncrementsFailedAttempts()
+    {
+        var codigo = ConfigurarCodigoVigente();
+
+        await Assert.ThrowsAsync<CodigoRecuperacionInvalidoException>(() =>
+            _sut.ConfirmarRecuperacionAsync(new RecuperacionConfirmacionDTO { Email = _cliente.Email, Codigo = "999999", NuevaPassword = "NuevaClave123" }));
+
+        Assert.Equal(1, codigo.IntentosFallidos);
+        Assert.False(codigo.Usado);
+        _codigoRepo.Verify(r => r.UpdateRangoAsync(It.Is<IEnumerable<CodigoRecuperacion>>(c => c.Contains(codigo))), Times.Once);
+    }
+
+    /// <summary>
+    /// CRIT-04: al tercer código equivocado el código vigente se invalida; ni siquiera el correcto sirve
+    /// después (hay que pedir uno nuevo). Así no se puede adivinar un código de 6 dígitos probando.
+    /// </summary>
+    [Fact]
+    public async Task ConfirmarRecuperacionAsync_AfterMaxFailedAttempts_InvalidatesCode()
+    {
+        var codigo = ConfigurarCodigoVigente();
+        var equivocado = new RecuperacionConfirmacionDTO { Email = _cliente.Email, Codigo = "999999", NuevaPassword = "NuevaClave123" };
+
+        for (var i = 0; i < RecuperacionService.MaxIntentosCodigo; i++)
+        {
+            await Assert.ThrowsAsync<CodigoRecuperacionInvalidoException>(() => _sut.ConfirmarRecuperacionAsync(equivocado));
+        }
+
+        Assert.True(codigo.Usado);
+        Assert.Equal(RecuperacionService.MaxIntentosCodigo, codigo.IntentosFallidos);
+    }
+
     /// <summary> CU-25, flujo 5b: una contraseña débil lanza PasswordInvalidaException (RN-02) y el código no se consume. </summary>
     [Fact]
     public async Task ConfirmarRecuperacionAsync_WithWeakPassword_ThrowsPasswordInvalidaException()

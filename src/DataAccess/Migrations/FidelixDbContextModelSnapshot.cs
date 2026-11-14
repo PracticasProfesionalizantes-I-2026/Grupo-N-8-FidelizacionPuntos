@@ -177,6 +177,9 @@ namespace FidelixAPI.DataAccess.Migrations
                     b.Property<DateTime>("FechaExpiracion")
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("IntentosFallidos")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Rol")
                         .IsRequired()
                         .HasColumnType("TEXT");

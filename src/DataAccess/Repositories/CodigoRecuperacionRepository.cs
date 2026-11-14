@@ -23,6 +23,13 @@ public class CodigoRecuperacionRepository(FidelixDbContext context) : ICodigoRec
             .OrderByDescending(c => c.FechaExpiracion)
             .ToListAsync();
 
-    /// <summary>Persiste los cambios sobre un código ya trackeado.</summary>
-    public Task UpdateAsync(CodigoRecuperacion entity) => context.SaveChangesAsync();
+    /// <summary>
+    /// Persiste los cambios de los códigos indicados. Se asegura de que todos estén trackeados (por si
+    /// alguno llegó sin tracking) y guarda en un único SaveChanges, o sea, en una sola transacción.
+    /// </summary>
+    public async Task UpdateRangoAsync(IEnumerable<CodigoRecuperacion> codigos)
+    {
+        context.CodigosRecuperacion.UpdateRange(codigos);
+        await context.SaveChangesAsync();
+    }
 }

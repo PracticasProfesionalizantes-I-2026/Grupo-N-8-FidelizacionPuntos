@@ -19,6 +19,8 @@ public class RecuperacionService(
 {
     /// <summary> RN-27: el código vence a los 15 minutos. </summary>
     private const int MinutosVigencia = 15;
+    /// <summary> CRIT-04: con 3 códigos equivocados, los códigos vigentes del email se invalidan. </summary>
+    public const int MaxIntentosCodigo = 3;
     /// <summary> Mensaje genérico del paso 1: no revela si la cuenta existe (flujo 3a). </summary>
     private const string MensajeGenerico = "Si el dato ingresado corresponde a una cuenta, se envió un código";
 
@@ -58,12 +60,18 @@ public class RecuperacionService(
     /// <summary>
     /// Valida el código contra los vigentes del email (5a), la nueva contraseña (5b, RN-02), actualiza
     /// la contraseña de la cuenta y marca los códigos como usados para que no se puedan reutilizar (RN-27).
+    /// Un código equivocado suma un intento fallido; al tercero los códigos se invalidan (CRIT-04).
     /// </summary>
     public async Task<MensajeResponseDTO> ConfirmarRecuperacionAsync(RecuperacionConfirmacionDTO dto)
     {
         var vigentes = await codigoRepository.GetVigentesPorEmailAsync(dto.Email, DateTime.UtcNow);
-        var codigo = vigentes.FirstOrDefault(c => PasswordHasher.Verify(dto.Codigo, c.CodigoHash))
-            ?? throw new CodigoRecuperacionInvalidoException("El código ingresado es inválido o expiró");
+        var codigo = vigentes.FirstOrDefault(c => PasswordHasher.Verify(dto.Codigo, c.CodigoHash));
+
+        if (codigo is null)
+        {
+            await RegistrarIntentoFallidoAsync(vigentes);
+            throw new CodigoRecuperacionInvalidoException("El código ingresado es inválido o expiró");
+        }
 
         if (!PoliticaPassword.EsValida(dto.NuevaPassword))
         {
@@ -77,9 +85,34 @@ public class RecuperacionService(
         }
 
         await ActualizarPasswordAsync(dto.Email, codigo.Rol, PasswordHasher.Hash(dto.NuevaPassword));
-        await codigoRepository.UpdateAsync(codigo);
+        await codigoRepository.UpdateRangoAsync(vigentes);
 
         return new MensajeResponseDTO { Mensaje = "La contraseña se actualizó correctamente." };
+    }
+
+    /// <summary>
+    /// CRIT-04: suma un intento fallido a cada código vigente del email y, al llegar a
+    /// <see cref="MaxIntentosCodigo"/>, lo marca como usado. Así, un código de 6 dígitos (un millón de
+    /// combinaciones) no se puede adivinar probando: después de 3 errores hay que pedir uno nuevo, y
+    /// pedirlo está limitado por el rate limiting del endpoint.
+    /// </summary>
+    private async Task RegistrarIntentoFallidoAsync(IReadOnlyList<CodigoRecuperacion> vigentes)
+    {
+        if (vigentes.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var c in vigentes)
+        {
+            c.IntentosFallidos++;
+            if (c.IntentosFallidos >= MaxIntentosCodigo)
+            {
+                c.Usado = true;
+            }
+        }
+
+        await codigoRepository.UpdateRangoAsync(vigentes);
     }
 
     /// <summary> Busca una cuenta activa con ese email en clientes, empleados y admins, y devuelve su rol. </summary>

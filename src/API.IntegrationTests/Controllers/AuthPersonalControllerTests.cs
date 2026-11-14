@@ -174,6 +174,52 @@ public class AuthPersonalControllerTests : IClassFixture<FidelixApiFactory>, IAs
         Assert.Equal(HttpStatusCode.BadRequest, respuesta.StatusCode);
     }
 
+    /// <summary>
+    /// CRIT-04: después de 3 códigos equivocados, el código se invalida; ni el correcto sirve y hay que
+    /// pedir uno nuevo. Así no se puede adivinar el código de 6 dígitos por fuerza bruta.
+    /// </summary>
+    [Fact]
+    public async Task ConfirmarRecuperacion_AfterThreeWrongCodes_InvalidatesTheCode()
+    {
+        var (_, _, email) = await TestHelpers.RegistrarYAutenticarClienteAsync(_factory.CreateClient());
+        await _cliente.PostAsJsonAsync("/api/auth/recuperar-contrasena", new RecuperacionSolicitudDTO { Email = email });
+        var codigoCorrecto = _emails.UltimoCodigoPara(email)!;
+        var codigoIncorrecto = codigoCorrecto == "000000" ? "111111" : "000000";
+
+        for (var i = 0; i < 3; i++)
+        {
+            await _cliente.PostAsJsonAsync("/api/auth/recuperar-contrasena/confirmar",
+                new RecuperacionConfirmacionDTO { Email = email, Codigo = codigoIncorrecto, NuevaPassword = "NuevaClave123" });
+        }
+        var conCodigoCorrecto = await _cliente.PostAsJsonAsync("/api/auth/recuperar-contrasena/confirmar",
+            new RecuperacionConfirmacionDTO { Email = email, Codigo = codigoCorrecto, NuevaPassword = "NuevaClave123" });
+
+        Assert.Equal(HttpStatusCode.BadRequest, conCodigoCorrecto.StatusCode);
+    }
+
+    /// <summary>
+    /// CRIT-04: los endpoints de recuperación tienen límite de pedidos por IP. Con un límite de 2, el
+    /// tercer pedido dentro de la ventana responde 429 Too Many Requests con el formato de error de la API.
+    /// </summary>
+    [Fact]
+    public async Task RecuperarContrasena_WhenRateLimitExceeded_Returns429TooManyRequests()
+    {
+        var cliente = _factory.WithWebHostBuilder(b =>
+        {
+            b.UseSetting("RateLimiting:Recuperacion:PedidosPorVentana", "2");
+            b.ConfigureTestServices(s => s.AddSingleton<IEmailSender>(_emails));
+        }).CreateClient();
+        var pedido = new RecuperacionSolicitudDTO { Email = "nadie@fidelix.local" };
+
+        await cliente.PostAsJsonAsync("/api/auth/recuperar-contrasena", pedido);
+        await cliente.PostAsJsonAsync("/api/auth/recuperar-contrasena", pedido);
+        var tercero = await cliente.PostAsJsonAsync("/api/auth/recuperar-contrasena", pedido);
+        var error = await tercero.Content.ReadFromJsonAsync<ErrorResponseDTO>();
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, tercero.StatusCode);
+        Assert.False(string.IsNullOrEmpty(error!.Mensaje));
+    }
+
     /// <summary>CU-25, flujo 5b: con el código correcto pero una contraseña débil devuelve 400.</summary>
     [Fact]
     public async Task ConfirmarRecuperacion_WithWeakPassword_Returns400BadRequest()

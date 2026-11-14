@@ -15,4 +15,10 @@ public class CodigoRecuperacion : EntidadBase
     public string CodigoHash { get; set; } = string.Empty;
     public DateTime FechaExpiracion { get; set; }
     public bool Usado { get; set; }
+
+    /// <summary>
+    /// Veces que se ingresó un código equivocado mientras este estaba vigente. Al llegar al máximo
+    /// (3) el código se invalida, para que no se pueda adivinar por fuerza bruta (CRIT-04).
+    /// </summary>
+    public int IntentosFallidos { get; set; }
 }

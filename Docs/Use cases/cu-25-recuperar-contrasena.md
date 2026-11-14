@@ -63,7 +63,10 @@ contraseña.
      fue utilizado, violando **RN-27**.
   2. El Sistema (Capa de Negocio) lanza la excepción de dominio
      `CodigoRecuperacionInvalidoException`.
-  3. El Sistema devuelve un código **400 Bad Request** con el mensaje: "El
+  3. El Sistema suma un intento fallido a los códigos vigentes del email. Al tercer
+     código equivocado, los invalida (quedan como usados): hay que pedir uno nuevo.
+     Esto impide adivinar el código de 6 dígitos probando combinaciones.
+  4. El Sistema devuelve un código **400 Bad Request** con el mensaje: "El
      código ingresado es inválido o expiró". El flujo retorna al Paso 1.
 
 * **5b. Nueva contraseña inválida (HTTP 400 Bad Request):**
@@ -73,6 +76,14 @@ contraseña.
      `PasswordInvalidaException`.
   3. El Sistema devuelve un código **400 Bad Request** con el mensaje: "La
      contraseña no cumple los requisitos mínimos". El flujo retorna al Paso 4.
+
+* **1a / 5c. Demasiados pedidos desde el mismo origen (HTTP 429 Too Many Requests):**
+  1. El sistema detecta que, desde la misma dirección IP, se superó el máximo de
+     pedidos de recuperación (solicitud o confirmación) dentro de la ventana de
+     tiempo (por defecto, 5 por minuto).
+  2. El Sistema rechaza el pedido sin procesarlo y devuelve un código **429 Too Many
+     Requests** con el mensaje: "Demasiados intentos. Espere unos minutos y vuelva a
+     intentar". Fin del caso de uso.
 
 ### 5. SUB-VARIACIONES
 1. **Cliente:** el código se envía al email registrado del propio cliente.
@@ -95,6 +106,7 @@ contraseña.
 
 * **RN-27:** código de 6 dígitos (generador criptográfico), guardado **hasheado**, vence a los 15 minutos y es de un solo uso (al confirmar se invalidan todos los vigentes del email).
 * **RN-28:** si la cuenta es de un empleado, el código se envía a los admins.
+* **Protección contra fuerza bruta (CRIT-04):** `CodigoRecuperacion.IntentosFallidos` cuenta los códigos equivocados; al llegar a `RecuperacionService.MaxIntentosCodigo` (3) los códigos vigentes del email se marcan como usados. Además, los dos endpoints tienen rate limiting por IP (`[EnableRateLimiting("recuperacion")]`, configurado en `RateLimitingExtensions` y en `RateLimiting:Recuperacion` de `appsettings.json`), que limita también cuántos códigos nuevos se pueden pedir.
 * El email se envía con `IEmailSender`; en desarrollo `LoggingEmailSender` lo escribe en la consola de la API (ahí se lee el código para la demo).
 * Al cambiar la contraseña de un cliente también se le quita el bloqueo por intentos fallidos (RN-03).
 * **Colección Bruno:** `bruno/Auth/`.
@@ -109,6 +121,7 @@ contraseña.
 | --- | --- | --- |
 | `200` | OK | Éxito al solicitar el código (exista o no la cuenta) o al confirmar la nueva contraseña. |
 | `400` | Bad Request | Código inválido/expirado/usado (RN-27), o nueva contraseña inválida (RN-02). |
+| `429` | Too Many Requests | Se superó el límite de pedidos de recuperación por IP (flujo 1a/5c). |
 
 ### Matriz de trazabilidad CU-25 → Test
 
@@ -118,5 +131,7 @@ contraseña.
 | 3a. Cuenta inexistente/inactiva | `200 OK` (sin envío) | `SolicitarRecuperacionAsync_WithUnknownAccount_DoesNotSendEmail` | `SolicitarRecuperacion_WithUnknownAccount_Returns200OKWithoutLeakingExistence` |
 | 5a. Código inválido/expirado/usado | `400 Bad Request` | `ConfirmarRecuperacionAsync_WithInvalidCode_ThrowsCodigoRecuperacionInvalidoException` | `ConfirmarRecuperacion_WithInvalidCode_Returns400BadRequest` |
 | 5b. Contraseña inválida | `400 Bad Request` | `ConfirmarRecuperacionAsync_WithWeakPassword_ThrowsPasswordInvalidaException` | `ConfirmarRecuperacion_WithWeakPassword_Returns400BadRequest` |
+| 5a. Tres códigos equivocados | `400 Bad Request` (código invalidado) | `ConfirmarRecuperacionAsync_AfterMaxFailedAttempts_InvalidatesCode` | `ConfirmarRecuperacion_AfterThreeWrongCodes_InvalidatesTheCode` |
+| 1a/5c. Límite de pedidos por IP | `429 Too Many Requests` | — (middleware de la API) | `RecuperarContrasena_WhenRateLimitExceeded_Returns429TooManyRequests` |
 
 > Regla de oro: cada flujo del caso de uso debe tener al menos un test.

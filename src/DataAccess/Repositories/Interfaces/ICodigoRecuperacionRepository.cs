@@ -11,6 +11,9 @@ public interface ICodigoRecuperacionRepository
     /// <summary>Códigos sin usar y sin vencer de un email, con tracking (al confirmar se marcan como usados).</summary>
     Task<IReadOnlyList<CodigoRecuperacion>> GetVigentesPorEmailAsync(string email, DateTime ahora);
 
-    /// <summary>Persiste los cambios sobre códigos ya trackeados.</summary>
-    Task UpdateAsync(CodigoRecuperacion entity);
+    /// <summary>
+    /// Persiste los cambios sobre varios códigos ya trackeados (se marcan como usados todos los vigentes
+    /// de un email, o se les suma un intento fallido). La firma deja explícito que se guarda un conjunto.
+    /// </summary>
+    Task UpdateRangoAsync(IEnumerable<CodigoRecuperacion> codigos);
 }
