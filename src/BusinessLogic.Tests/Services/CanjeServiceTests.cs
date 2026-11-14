@@ -85,6 +85,19 @@ public class CanjeServiceTests
         _movimientoRepo.Verify(r => r.CreateAsync(It.IsAny<Movimiento>()), Times.Never);
     }
 
+    /// <summary>
+    /// CRIT-01: si otro canje consumió los mismos lotes, el conflicto de concurrencia se propaga tal cual
+    /// (→ 409, el cliente reintenta) en vez de envolverse en PersistenceException (→ 500).
+    /// </summary>
+    [Fact]
+    public async Task CrearCanjeAsync_WhenConcurrentCanjeWins_PropagatesConflictoConcurrenciaException()
+    {
+        _movimientoRepo.Setup(r => r.CreateAsync(It.IsAny<Movimiento>()))
+            .ThrowsAsync(new ConflictoConcurrenciaException("El saldo cambió"));
+
+        await Assert.ThrowsAsync<ConflictoConcurrenciaException>(() => _sut.CrearCanjeAsync(_clienteId, Pedido()));
+    }
+
     /// <summary> CU-07, flujo 5a: si falla el guardado, se traduce a PersistenceException. </summary>
     [Fact]
     public async Task CrearCanjeAsync_WhenRepositoryFails_ThrowsPersistenceException()

@@ -85,6 +85,11 @@ public class CanjesController(ICanjeService canjeService) : ControllerBase
         {
             return Conflict(new ErrorResponseDTO(ex.Message));
         }
+        catch (ConflictoConcurrenciaException ex)
+        {
+            // CRIT-01: canje simultáneo sobre los mismos puntos; no se descontó nada, se puede reintentar.
+            return Conflict(new ErrorResponseDTO(ex.Message));
+        }
         catch (PersistenceException ex)
         {
             return StatusCode(StatusCodes.Status500InternalServerError, new ErrorResponseDTO(ex.Message));

@@ -13,4 +13,10 @@ public interface IClienteRepository : IRepositorioBase<Cliente>
 
     /// <summary>Busca por email (login CU-02, recuperación CU-25, unicidad RN-01).</summary>
     Task<Cliente?> GetByEmailAsync(string email);
+
+    /// <summary>
+    /// Clientes activos nacidos el día y mes indicados (CU-26). Filtra en la base, sin traer la
+    /// tabla completa a memoria (CRIT-03). Solo lectura.
+    /// </summary>
+    Task<IReadOnlyList<Cliente>> GetActivosNacidosElAsync(int mes, int dia);
 }

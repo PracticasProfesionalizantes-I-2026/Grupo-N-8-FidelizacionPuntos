@@ -1,8 +1,10 @@
+using FidelixAPI.API.Extensions;
 using FidelixAPI.BusinessLogic.Interfaces;
 using FidelixAPI.Shared.DTOs.Auth;
 using FidelixAPI.Shared.DTOs.Comun;
 using FidelixAPI.Shared.Exceptions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace FidelixAPI.API.Controllers;
 
@@ -46,13 +48,18 @@ public class AuthPersonalController(IAuthPersonalService authPersonalService, IR
         }
     }
 
-    /// <summary> Paso 1 de la recuperación (CU-25): siempre 200, exista o no la cuenta (flujo 3a). </summary>
+    /// <summary> Paso 1 de la recuperación (CU-25): siempre 200, exista o no la cuenta (flujo 3a). Limitado por IP (429). </summary>
     [HttpPost("recuperar-contrasena")]
+    [EnableRateLimiting(RateLimitingExtensions.PoliticaRecuperacion)]
     public async Task<IActionResult> SolicitarRecuperacion(RecuperacionSolicitudDTO dto) =>
         Ok(await recuperacionService.SolicitarRecuperacionAsync(dto));
 
-    /// <summary> Paso 2 de la recuperación (CU-25): código válido (5a) y contraseña válida (5b). </summary>
+    /// <summary>
+    /// Paso 2 de la recuperación (CU-25): código válido (5a) y contraseña válida (5b). Limitado por IP
+    /// (429) y con un máximo de 3 códigos equivocados antes de invalidarlos (CRIT-04).
+    /// </summary>
     [HttpPost("recuperar-contrasena/confirmar")]
+    [EnableRateLimiting(RateLimitingExtensions.PoliticaRecuperacion)]
     public async Task<IActionResult> ConfirmarRecuperacion(RecuperacionConfirmacionDTO dto)
     {
         try

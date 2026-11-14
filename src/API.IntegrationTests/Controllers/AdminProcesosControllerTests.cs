@@ -1,7 +1,10 @@
 using System.Net;
 using System.Net.Http.Json;
 using FidelixAPI.API.IntegrationTests.Fakes;
+using FidelixAPI.BusinessLogic.Interfaces;
+using FidelixAPI.BusinessLogic.Services;
 using FidelixAPI.DataAccess.Context;
+using FidelixAPI.DataAccess.Entities;
 using FidelixAPI.DataAccess.Repositories;
 using FidelixAPI.DataAccess.Repositories.Interfaces;
 using FidelixAPI.Shared.DTOs.Auditoria;
@@ -100,6 +103,67 @@ public class AdminProcesosControllerTests : IClassFixture<FidelixApiFactory>, IA
         Assert.Single(historialOk!.Items);
     }
 
+    /// <summary>
+    /// CRIT-02: si el vencimiento del cliente A se guarda pero su auditoría falla, el error no puede
+    /// arrastrarse al cliente B. Antes, el catch restauraba los lotes de A en memoria y el SaveChanges
+    /// de B los volvía a guardar: A recuperaba los puntos vencidos. Ahora A queda en 0 y B se procesa.
+    /// </summary>
+    [Fact]
+    public async Task PointsExpirationJob_WhenAuditFailsForOneCliente_DoesNotLeakIntoNextCliente()
+    {
+        var (idA, clientA) = await ClienteNuevoAsync();
+        var (idB, clientB) = await ClienteNuevoAsync();
+        // El lote de A es más viejo, así A se procesa antes que B.
+        var loteA = await _factory.AcreditarPuntosAsync(idA, 70, fechaVencimiento: DateTime.UtcNow.AddDays(-1), fecha: DateTime.UtcNow.AddDays(-300));
+        await _factory.AcreditarPuntosAsync(idB, 20, fechaVencimiento: DateTime.UtcNow.AddDays(-1), fecha: DateTime.UtcNow.AddDays(-250));
+        var admin = _factory.WithWebHostBuilder(b => b.ConfigureTestServices(s =>
+            s.AddScoped<IAuditoriaService>(sp => new AuditoriaServiceQueFallaParaUnCliente(
+                new AuditoriaService(sp.GetRequiredService<IAuditoriaRepository>()), idA)))).CreateClient();
+        _factory.Autenticar(admin, Roles.Admin);
+
+        var respuesta = await admin.PostAsync(UrlVencimiento, null);
+        // Segunda corrida (con la auditoría normal): si el lote de A hubiera vuelto a 70, se le vencería otra vez.
+        await _factory.CreateClientComo(Roles.Admin).PostAsync(UrlVencimiento, null);
+        var vencimientosA = await clientA.GetFromJsonAsync<ListadoResponseDTO<MovimientoResponseDTO>>("/api/clientes/me/movimientos?tipoMovimiento=Vencimiento");
+        var vencimientosB = await clientB.GetFromJsonAsync<ListadoResponseDTO<MovimientoResponseDTO>>("/api/clientes/me/movimientos?tipoMovimiento=Vencimiento");
+        using var scope = _factory.Services.CreateScope();
+        var loteAEnBase = await scope.ServiceProvider.GetRequiredService<FidelixDbContext>().Movimientos.FindAsync(loteA.Id);
+
+        Assert.Equal(HttpStatusCode.OK, respuesta.StatusCode);
+        Assert.Equal(0, loteAEnBase!.PuntosDisponibles); // No "recuperó" los 70 puntos vencidos.
+        Assert.Equal(-70, Assert.Single(vencimientosA!.Items).Puntos); // Un solo vencimiento, no dos.
+        Assert.Equal(-20, Assert.Single(vencimientosB!.Items).Puntos);
+    }
+
+    /// <summary>
+    /// CRIT-02 (escenario del informe): un movimiento que quedó "Added" y un lote "Modified" tras un
+    /// error. Después de DescartarCambios, el SaveChanges siguiente no guarda ninguno de los dos.
+    /// </summary>
+    [Fact]
+    public async Task UnidadDeTrabajo_DescartarCambios_PreventsPendingChangesFromBeingSavedLater()
+    {
+        var (id, _) = await ClienteNuevoAsync();
+        var lote = await _factory.AcreditarPuntosAsync(id, 50);
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<FidelixDbContext>();
+            var loteTrackeado = await context.Movimientos.FindAsync(lote.Id);
+            loteTrackeado!.PuntosDisponibles = 0;
+            context.Movimientos.Add(new Movimiento { ClienteId = id, Tipo = TipoMovimiento.Vencimiento, Puntos = -50, Detalle = "Fallido" });
+
+            scope.ServiceProvider.GetRequiredService<IUnidadDeTrabajo>().DescartarCambios();
+            await context.SaveChangesAsync(); // Simula el guardado del "cliente siguiente".
+
+            Assert.Equal(50, loteTrackeado.PuntosDisponibles);
+        }
+
+        using var verificacion = _factory.Services.CreateScope();
+        var contextoNuevo = verificacion.ServiceProvider.GetRequiredService<FidelixDbContext>();
+        Assert.Equal(50, (await contextoNuevo.Movimientos.FindAsync(lote.Id))!.PuntosDisponibles);
+        Assert.False(contextoNuevo.Movimientos.Any(m => m.ClienteId == id && m.Detalle == "Fallido"));
+    }
+
     /// <summary>CU-26: un cliente que cumple años hoy recibe el bono una sola vez en el año (RN-29).</summary>
     [Fact]
     public async Task BonoCumpleanosJob_WithMatchingCliente_AccruesPointsOncePerYear()
@@ -114,5 +178,25 @@ public class AdminProcesosControllerTests : IClassFixture<FidelixApiFactory>, IA
 
         Assert.Equal(500, Assert.Single(bonos!.Items).Puntos);
         Assert.Equal(500, saldo!.PuntosDisponibles);
+    }
+
+    /// <summary>
+    /// CRIT-03: la búsqueda de cumpleañeros filtra por día y mes en la base real (SQLite), en vez de
+    /// traer todos los clientes a memoria. Confirma que EF traduce `.Month`/`.Day` a SQL correctamente.
+    /// </summary>
+    [Fact]
+    public async Task GetActivosNacidosElAsync_FiltersByDayAndMonthInDatabase()
+    {
+        var (bisiestoId, _) = await ClienteNuevoAsync(fechaNacimiento: new DateTime(2000, 2, 29));
+        var (otroId, _) = await ClienteNuevoAsync(fechaNacimiento: new DateTime(2000, 3, 1));
+
+        using var scope = _factory.Services.CreateScope();
+        var repo = scope.ServiceProvider.GetRequiredService<IClienteRepository>();
+        var nacidos29Feb = await repo.GetActivosNacidosElAsync(2, 29);
+        var nacidos28Feb = await repo.GetActivosNacidosElAsync(2, 28);
+
+        Assert.Contains(nacidos29Feb, c => c.Id == bisiestoId);
+        Assert.DoesNotContain(nacidos29Feb, c => c.Id == otroId);
+        Assert.DoesNotContain(nacidos28Feb, c => c.Id == bisiestoId);
     }
 }

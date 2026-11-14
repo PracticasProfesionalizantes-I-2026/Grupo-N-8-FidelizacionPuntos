@@ -80,7 +80,8 @@ _No aplica: el proceso se ejecuta por un único mecanismo (job programado)._
 * **Job:** `BonoCumpleanosJob` corre al arrancar la API y después cada 24 h (se apaga con `Jobs:Habilitados = false`).
 * **Ejecución manual:** `POST /api/admin/procesos/bono-cumpleanos` (rol Admin, `AdminProcesosController`).
 * El bono queda **disponible de inmediato** (no es una compra, así que no aplica el pendiente de N2) y vence según los días de la regla vigente (CU-19). Los nacidos un 29/2 lo reciben el 28/2 en los años no bisiestos.
-* Test de integración: `BonoCumpleanosJob_WithMatchingCliente_AccruesPointsOncePerYear`.
+* **Búsqueda de cumpleañeros en la base (CRIT-03):** `IClienteRepository.GetActivosNacidosElAsync(mes, dia)` filtra por día y mes en SQL; ya no se cargan todos los clientes en memoria. La regla del 29/2 queda en `PuntosService`: el 28/2 de un año no bisiesto se hace una segunda consulta por 29/2.
+* Tests de integración: `BonoCumpleanosJob_WithMatchingCliente_AccruesPointsOncePerYear` y `GetActivosNacidosElAsync_FiltersByDayAndMonthInDatabase`.
 * **Colección Bruno:** `bruno/Admin/Procesos/`.
 
 ---

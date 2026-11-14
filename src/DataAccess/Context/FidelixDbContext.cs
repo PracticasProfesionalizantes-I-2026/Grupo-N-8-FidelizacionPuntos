@@ -56,5 +56,12 @@ public class FidelixDbContext(DbContextOptions<FidelixDbContext> options) : DbCo
             .WithMany(b => b.Canjes)
             .HasForeignKey(m => m.BeneficioId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // CRIT-01 (doble gasto): PuntosDisponibles es token de concurrencia optimista. EF agrega su valor
+        // original al WHERE del UPDATE; si otro canje (o el vencimiento) ya lo cambió, no se actualiza
+        // ninguna fila, EF lanza DbUpdateConcurrencyException y todo el SaveChanges se revierte.
+        modelBuilder.Entity<Movimiento>()
+            .Property(m => m.PuntosDisponibles)
+            .IsConcurrencyToken();
     }
 }

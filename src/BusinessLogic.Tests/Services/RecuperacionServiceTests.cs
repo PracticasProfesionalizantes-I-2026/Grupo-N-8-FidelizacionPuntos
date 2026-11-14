@@ -42,7 +42,7 @@ public class RecuperacionServiceTests
     [Fact]
     public async Task SolicitarRecuperacionAsync_WithActiveAccount_SendsCode()
     {
-        await _sut.SolicitarRecuperacionAsync(new RecuperacionSolicitudDTO { Email = _cliente.Email });
+        await _sut.SolicitarRecuperacionAsync(new RecuperacionSolicitudDTO { Email = _cliente.Email, Rol = Roles.Cliente });
 
         _codigoRepo.Verify(r => r.CreateAsync(It.Is<CodigoRecuperacion>(c => c.Email == _cliente.Email && c.Rol == Roles.Cliente)), Times.Once);
         _email.Verify(e => e.EnviarAsync(_cliente.Email, It.IsAny<string>(), It.IsAny<string>()), Times.Once);
@@ -52,7 +52,7 @@ public class RecuperacionServiceTests
     [Fact]
     public async Task SolicitarRecuperacionAsync_WithUnknownAccount_DoesNotSendEmail()
     {
-        var resultado = await _sut.SolicitarRecuperacionAsync(new RecuperacionSolicitudDTO { Email = "nadie@test.com" });
+        var resultado = await _sut.SolicitarRecuperacionAsync(new RecuperacionSolicitudDTO { Email = "nadie@test.com", Rol = Roles.Cliente });
 
         Assert.Equal("Si el dato ingresado corresponde a una cuenta, se envió un código", resultado.Mensaje);
         _email.Verify(e => e.EnviarAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
@@ -66,10 +66,37 @@ public class RecuperacionServiceTests
         _empleadoRepo.Setup(r => r.GetByEmailAsync("emp@test.com")).ReturnsAsync(new Empleado { Email = "emp@test.com", Activo = true });
         _adminRepo.Setup(r => r.GetAllAsync()).ReturnsAsync([new Admin { Email = "admin@test.com" }]);
 
-        await _sut.SolicitarRecuperacionAsync(new RecuperacionSolicitudDTO { Email = "emp@test.com" });
+        await _sut.SolicitarRecuperacionAsync(new RecuperacionSolicitudDTO { Email = "emp@test.com", Rol = Roles.Empleado });
 
         _email.Verify(e => e.EnviarAsync("admin@test.com", It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         _email.Verify(e => e.EnviarAsync("emp@test.com", It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
+
+    /// <summary>
+    /// CRIT-06: si el mismo email es de un cliente y de un empleado, se recupera la cuenta del rol pedido.
+    /// Antes siempre ganaba el cliente y el empleado no podía recuperar su contraseña.
+    /// </summary>
+    [Fact]
+    public async Task SolicitarRecuperacionAsync_WithEmailSharedByClienteAndEmpleado_UsesRequestedRole()
+    {
+        _clienteRepo.Setup(r => r.GetByEmailAsync("compartido@test.com")).ReturnsAsync(new Cliente { Email = "compartido@test.com", Activo = true });
+        _empleadoRepo.Setup(r => r.GetByEmailAsync("compartido@test.com")).ReturnsAsync(new Empleado { Email = "compartido@test.com", Activo = true });
+        _adminRepo.Setup(r => r.GetAllAsync()).ReturnsAsync([new Admin { Email = "admin@test.com" }]);
+
+        await _sut.SolicitarRecuperacionAsync(new RecuperacionSolicitudDTO { Email = "compartido@test.com", Rol = Roles.Empleado });
+
+        _codigoRepo.Verify(r => r.CreateAsync(It.Is<CodigoRecuperacion>(c => c.Rol == Roles.Empleado)), Times.Once);
+        _email.Verify(e => e.EnviarAsync("admin@test.com", It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+    }
+
+    /// <summary> CRIT-06: si el email no tiene cuenta en el rol pedido, responde igual (3a) aunque exista en otro rol. </summary>
+    [Fact]
+    public async Task SolicitarRecuperacionAsync_WithEmailOnlyInAnotherRole_DoesNotSendCode()
+    {
+        await _sut.SolicitarRecuperacionAsync(new RecuperacionSolicitudDTO { Email = _cliente.Email, Rol = Roles.Empleado });
+
+        _codigoRepo.Verify(r => r.CreateAsync(It.IsAny<CodigoRecuperacion>()), Times.Never);
+        _email.Verify(e => e.EnviarAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 
     /// <summary> CU-25: con un código válido actualiza la contraseña, quita el bloqueo y marca el código como usado (RN-27). </summary>
@@ -94,6 +121,39 @@ public class RecuperacionServiceTests
         await Assert.ThrowsAsync<CodigoRecuperacionInvalidoException>(() =>
             _sut.ConfirmarRecuperacionAsync(new RecuperacionConfirmacionDTO { Email = _cliente.Email, Codigo = "999999", NuevaPassword = "NuevaClave123" }));
         _clienteRepo.Verify(r => r.UpdateAsync(It.IsAny<Cliente>()), Times.Never);
+    }
+
+    /// <summary> CRIT-04: un código equivocado suma un intento fallido al código vigente, sin invalidarlo todavía. </summary>
+    [Fact]
+    public async Task ConfirmarRecuperacionAsync_WithInvalidCode_IncrementsFailedAttempts()
+    {
+        var codigo = ConfigurarCodigoVigente();
+
+        await Assert.ThrowsAsync<CodigoRecuperacionInvalidoException>(() =>
+            _sut.ConfirmarRecuperacionAsync(new RecuperacionConfirmacionDTO { Email = _cliente.Email, Codigo = "999999", NuevaPassword = "NuevaClave123" }));
+
+        Assert.Equal(1, codigo.IntentosFallidos);
+        Assert.False(codigo.Usado);
+        _codigoRepo.Verify(r => r.UpdateRangoAsync(It.Is<IEnumerable<CodigoRecuperacion>>(c => c.Contains(codigo))), Times.Once);
+    }
+
+    /// <summary>
+    /// CRIT-04: al tercer código equivocado el código vigente se invalida; ni siquiera el correcto sirve
+    /// después (hay que pedir uno nuevo). Así no se puede adivinar un código de 6 dígitos probando.
+    /// </summary>
+    [Fact]
+    public async Task ConfirmarRecuperacionAsync_AfterMaxFailedAttempts_InvalidatesCode()
+    {
+        var codigo = ConfigurarCodigoVigente();
+        var equivocado = new RecuperacionConfirmacionDTO { Email = _cliente.Email, Codigo = "999999", NuevaPassword = "NuevaClave123" };
+
+        for (var i = 0; i < RecuperacionService.MaxIntentosCodigo; i++)
+        {
+            await Assert.ThrowsAsync<CodigoRecuperacionInvalidoException>(() => _sut.ConfirmarRecuperacionAsync(equivocado));
+        }
+
+        Assert.True(codigo.Usado);
+        Assert.Equal(RecuperacionService.MaxIntentosCodigo, codigo.IntentosFallidos);
     }
 
     /// <summary> CU-25, flujo 5b: una contraseña débil lanza PasswordInvalidaException (RN-02) y el código no se consume. </summary>

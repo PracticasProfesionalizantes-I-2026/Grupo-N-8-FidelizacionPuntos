@@ -1,0 +1,23 @@
+meta {
+  name: Recuperar Contrasena - Sin Rol
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{baseUrl}}/api/auth/recuperar-contrasena
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "email": "cliente.demo@fidelix.local"
+  }
+}
+
+tests {
+  test("400 Bad Request: el rol es obligatorio para saber qué cuenta recuperar (CU-25, CRIT-06)", function () {
+    expect(res.status).to.equal(400);
+  });
+}
