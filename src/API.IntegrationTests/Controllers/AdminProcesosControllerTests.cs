@@ -115,4 +115,24 @@ public class AdminProcesosControllerTests : IClassFixture<FidelixApiFactory>, IA
         Assert.Equal(500, Assert.Single(bonos!.Items).Puntos);
         Assert.Equal(500, saldo!.PuntosDisponibles);
     }
+
+    /// <summary>
+    /// CRIT-03: la búsqueda de cumpleañeros filtra por día y mes en la base real (SQLite), en vez de
+    /// traer todos los clientes a memoria. Confirma que EF traduce `.Month`/`.Day` a SQL correctamente.
+    /// </summary>
+    [Fact]
+    public async Task GetActivosNacidosElAsync_FiltersByDayAndMonthInDatabase()
+    {
+        var (bisiestoId, _) = await ClienteNuevoAsync(fechaNacimiento: new DateTime(2000, 2, 29));
+        var (otroId, _) = await ClienteNuevoAsync(fechaNacimiento: new DateTime(2000, 3, 1));
+
+        using var scope = _factory.Services.CreateScope();
+        var repo = scope.ServiceProvider.GetRequiredService<IClienteRepository>();
+        var nacidos29Feb = await repo.GetActivosNacidosElAsync(2, 29);
+        var nacidos28Feb = await repo.GetActivosNacidosElAsync(2, 28);
+
+        Assert.Contains(nacidos29Feb, c => c.Id == bisiestoId);
+        Assert.DoesNotContain(nacidos29Feb, c => c.Id == otroId);
+        Assert.DoesNotContain(nacidos28Feb, c => c.Id == bisiestoId);
+    }
 }

@@ -92,8 +92,7 @@ public class PuntosServiceTests
     public async Task AplicarBonoCumpleanosAsync_WithMatchingClientes_AccruesPointsAndLogsAudit()
     {
         var cumpleanero = new Cliente { Id = IdsDePrueba.Nuevo(), Activo = true, FechaNacimiento = new DateTime(1990, 10, 28) };
-        var otro = new Cliente { Id = IdsDePrueba.Nuevo(), Activo = true, FechaNacimiento = new DateTime(1990, 5, 1) };
-        _clienteRepo.Setup(r => r.GetAllAsync()).ReturnsAsync([cumpleanero, otro]);
+        _clienteRepo.Setup(r => r.GetActivosNacidosElAsync(10, 28)).ReturnsAsync([cumpleanero]);
 
         var resultado = await _sut.AplicarBonoCumpleanosAsync(Hoy);
 
@@ -110,7 +109,7 @@ public class PuntosServiceTests
     public async Task AplicarBonoCumpleanosAsync_WhenAlreadyGrantedThisYear_SkipsCliente()
     {
         var cumpleanero = new Cliente { Id = IdsDePrueba.Nuevo(), Activo = true, FechaNacimiento = new DateTime(1990, 10, 28) };
-        _clienteRepo.Setup(r => r.GetAllAsync()).ReturnsAsync([cumpleanero]);
+        _clienteRepo.Setup(r => r.GetActivosNacidosElAsync(10, 28)).ReturnsAsync([cumpleanero]);
         _movimientoRepo.Setup(r => r.ExisteBonoEnAnioAsync(cumpleanero.Id, 2026)).ReturnsAsync(true);
 
         var resultado = await _sut.AplicarBonoCumpleanosAsync(Hoy);
@@ -125,7 +124,7 @@ public class PuntosServiceTests
     {
         var falla = new Cliente { Id = IdsDePrueba.Nuevo(), Activo = true, FechaNacimiento = new DateTime(1990, 10, 28) };
         var ok = new Cliente { Id = IdsDePrueba.Nuevo(), Activo = true, FechaNacimiento = new DateTime(1995, 10, 28) };
-        _clienteRepo.Setup(r => r.GetAllAsync()).ReturnsAsync([falla, ok]);
+        _clienteRepo.Setup(r => r.GetActivosNacidosElAsync(10, 28)).ReturnsAsync([falla, ok]);
         _movimientoRepo.Setup(r => r.CreateAsync(It.Is<Movimiento>(m => m.ClienteId == falla.Id)))
             .ThrowsAsync(new InvalidOperationException("Falla simulada"));
 
@@ -141,10 +140,34 @@ public class PuntosServiceTests
     public async Task AplicarBonoCumpleanosAsync_WithLeapDayBirthday_GrantsOnFeb28InNonLeapYear()
     {
         var bisiesto = new Cliente { Id = IdsDePrueba.Nuevo(), Activo = true, FechaNacimiento = new DateTime(2000, 2, 29) };
-        _clienteRepo.Setup(r => r.GetAllAsync()).ReturnsAsync([bisiesto]);
+        _clienteRepo.Setup(r => r.GetActivosNacidosElAsync(2, 28)).ReturnsAsync([]);
+        _clienteRepo.Setup(r => r.GetActivosNacidosElAsync(2, 29)).ReturnsAsync([bisiesto]);
 
         var resultado = await _sut.AplicarBonoCumpleanosAsync(new DateTime(2027, 2, 28, 0, 0, 0, DateTimeKind.Utc));
 
         Assert.Equal(1, resultado.ClientesProcesados);
+    }
+
+    /// <summary> En un año bisiesto el 28/2 es un día normal: no se busca a los nacidos el 29/2. </summary>
+    [Fact]
+    public async Task AplicarBonoCumpleanosAsync_OnFeb28OfLeapYear_DoesNotIncludeLeapDayBirthdays()
+    {
+        _clienteRepo.Setup(r => r.GetActivosNacidosElAsync(2, 28)).ReturnsAsync([]);
+
+        var resultado = await _sut.AplicarBonoCumpleanosAsync(new DateTime(2028, 2, 28, 0, 0, 0, DateTimeKind.Utc));
+
+        Assert.Equal("SinCambios", resultado.Estado);
+        _clienteRepo.Verify(r => r.GetActivosNacidosElAsync(2, 29), Times.Never);
+    }
+
+    /// <summary> CRIT-03: el proceso ya no carga la tabla completa de clientes en memoria. </summary>
+    [Fact]
+    public async Task AplicarBonoCumpleanosAsync_DoesNotLoadAllClientes()
+    {
+        _clienteRepo.Setup(r => r.GetActivosNacidosElAsync(10, 28)).ReturnsAsync([]);
+
+        await _sut.AplicarBonoCumpleanosAsync(Hoy);
+
+        _clienteRepo.Verify(r => r.GetAllAsync(), Times.Never);
     }
 }

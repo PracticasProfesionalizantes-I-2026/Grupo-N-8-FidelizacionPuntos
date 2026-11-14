@@ -96,8 +96,7 @@ public class PuntosService(
     /// </summary>
     public async Task<ResultadoProcesoDTO> AplicarBonoCumpleanosAsync(DateTime fecha)
     {
-        var clientes = await clienteRepository.GetAllAsync();
-        var cumpleaneros = clientes.Where(c => c.Activo && c.FechaNacimiento is not null && CumpleAnios(c.FechaNacimiento.Value, fecha)).ToList();
+        var cumpleaneros = await BuscarCumpleanerosAsync(fecha);
 
         if (cumpleaneros.Count == 0)
         {
@@ -146,15 +145,21 @@ public class PuntosService(
             $"Bono acreditado a {acreditados} cliente(s); {omitidos} ya lo habían recibido este año.");
     }
 
-    /// <summary> Indica si la fecha es el cumpleaños (día y mes), con el caso especial del 29 de febrero. </summary>
-    private static bool CumpleAnios(DateTime nacimiento, DateTime fecha)
+    /// <summary>
+    /// Clientes activos que cumplen años en la fecha. El filtro corre en la base (CRIT-03: antes se
+    /// traía la tabla completa a memoria). Regla del 29/2: en un año no bisiesto, los nacidos ese día
+    /// festejan el 28/2, así que ese día se suma una segunda consulta por 29/2.
+    /// </summary>
+    private async Task<List<Cliente>> BuscarCumpleanerosAsync(DateTime fecha)
     {
-        if (nacimiento.Month == 2 && nacimiento.Day == 29 && !DateTime.IsLeapYear(fecha.Year))
+        var cumpleaneros = (await clienteRepository.GetActivosNacidosElAsync(fecha.Month, fecha.Day)).ToList();
+
+        if (fecha.Month == 2 && fecha.Day == 28 && !DateTime.IsLeapYear(fecha.Year))
         {
-            return fecha.Month == 2 && fecha.Day == 28;
+            cumpleaneros.AddRange(await clienteRepository.GetActivosNacidosElAsync(2, 29));
         }
 
-        return nacimiento.Month == fecha.Month && nacimiento.Day == fecha.Day;
+        return cumpleaneros;
     }
 
     /// <summary> Avisa al cliente por email; si el aviso falla no se deshace el vencimiento, solo se registra. </summary>

@@ -24,6 +24,16 @@ public class ClienteRepository(FidelixDbContext context) : IClienteRepository
     public Task<Cliente?> GetByEmailAsync(string email) =>
         context.Clientes.FirstOrDefaultAsync(c => c.Email == email);
 
+    /// <summary>
+    /// Clientes activos nacidos en ese día y mes, sin tracking. EF Core traduce `.Month` y `.Day`
+    /// a `strftime` de SQLite, así el filtro corre en la base y no en memoria (CRIT-03).
+    /// </summary>
+    public async Task<IReadOnlyList<Cliente>> GetActivosNacidosElAsync(int mes, int dia) =>
+        await context.Clientes.AsNoTracking()
+            .Where(c => c.Activo && c.FechaNacimiento != null
+                     && c.FechaNacimiento.Value.Month == mes && c.FechaNacimiento.Value.Day == dia)
+            .ToListAsync();
+
     /// <summary>Persiste el cliente nuevo; el Id lo genera la base (autoincremental) y EF lo carga en la entidad.</summary>
     public async Task<Cliente> CreateAsync(Cliente entity)
     {
