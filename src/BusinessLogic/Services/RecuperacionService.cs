@@ -25,12 +25,12 @@ public class RecuperacionService(
     private const string MensajeGenerico = "Si el dato ingresado corresponde a una cuenta, se envió un código";
 
     /// <summary>
-    /// Busca la cuenta activa por email (cliente, empleado o admin). Si no hay ninguna, responde igual
+    /// Busca la cuenta activa con ese email en la tabla del rol indicado. Si no hay ninguna, responde igual
     /// y no envía nada (3a). Si la hay, guarda el código hasheado y lo envía al destinatario según el rol.
     /// </summary>
     public async Task<MensajeResponseDTO> SolicitarRecuperacionAsync(RecuperacionSolicitudDTO dto)
     {
-        var cuenta = await BuscarCuentaActivaAsync(dto.Email);
+        var cuenta = await BuscarCuentaActivaAsync(dto.Email, dto.Rol);
         if (cuenta is null)
         {
             return new MensajeResponseDTO { Mensaje = MensajeGenerico };
@@ -78,14 +78,17 @@ public class RecuperacionService(
             throw new PasswordInvalidaException("La contraseña no cumple los requisitos mínimos");
         }
 
-        // Un solo uso: se invalidan todos los códigos vigentes del email, no solo el usado.
-        foreach (var c in vigentes)
+        // Un solo uso: se invalidan todos los códigos vigentes de esa cuenta (email + rol), no solo el usado.
+        // Los de otra cuenta con el mismo email y otro rol siguen vigentes (CRIT-06).
+        var codigosDeLaCuenta = vigentes.Where(c => c.Rol == codigo.Rol).ToList();
+        foreach (var c in codigosDeLaCuenta)
         {
             c.Usado = true;
         }
 
+        // El código sabe a qué cuenta pertenece: su rol define qué contraseña se cambia.
         await ActualizarPasswordAsync(dto.Email, codigo.Rol, PasswordHasher.Hash(dto.NuevaPassword));
-        await codigoRepository.UpdateRangoAsync(vigentes);
+        await codigoRepository.UpdateRangoAsync(codigosDeLaCuenta);
 
         return new MensajeResponseDTO { Mensaje = "La contraseña se actualizó correctamente." };
     }
@@ -115,14 +118,18 @@ public class RecuperacionService(
         await codigoRepository.UpdateRangoAsync(vigentes);
     }
 
-    /// <summary> Busca una cuenta activa con ese email en clientes, empleados y admins, y devuelve su rol. </summary>
-    private async Task<(string Rol, int Id)?> BuscarCuentaActivaAsync(string email)
+    /// <summary>
+    /// Busca la cuenta activa con ese email solo en la tabla del rol pedido. Antes se buscaba en orden
+    /// cliente → empleado → admin y, si un empleado también era cliente con el mismo email, siempre se
+    /// resolvía como cliente: el empleado no podía recuperar su contraseña (CRIT-06).
+    /// </summary>
+    private async Task<(string Rol, int Id)?> BuscarCuentaActivaAsync(string email, string rol) => rol switch
     {
-        if (await clienteRepository.GetByEmailAsync(email) is { Activo: true } cliente) return (Roles.Cliente, cliente.Id);
-        if (await empleadoRepository.GetByEmailAsync(email) is { Activo: true } empleado) return (Roles.Empleado, empleado.Id);
-        if (await adminRepository.GetByEmailAsync(email) is { } admin) return (Roles.Admin, admin.Id);
-        return null;
-    }
+        Roles.Cliente => await clienteRepository.GetByEmailAsync(email) is { Activo: true } cliente ? (Roles.Cliente, cliente.Id) : null,
+        Roles.Empleado => await empleadoRepository.GetByEmailAsync(email) is { Activo: true } empleado ? (Roles.Empleado, empleado.Id) : null,
+        Roles.Admin => await adminRepository.GetByEmailAsync(email) is { } admin ? (Roles.Admin, admin.Id) : null,
+        _ => null
+    };
 
     /// <summary> RN-28: el código de un empleado se envía a los admins; el resto, a la propia cuenta. </summary>
     private async Task<IReadOnlyList<string>> DestinatariosAsync(string email, string rol)

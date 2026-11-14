@@ -171,8 +171,8 @@ del login del rol indicado (`Authorization: Bearer ...`).
 | POST | `/api/auth/login` | Público | CU-02 | 200, 401, 403 |
 | POST | `/api/auth/empleados/login` | Público | CU-09 | 200, 401, 403 |
 | POST | `/api/auth/admin/login` | Público | CU-14 | 200, 401 |
-| POST | `/api/auth/recuperar-contrasena` | Público | CU-25 | 200 |
-| POST | `/api/auth/recuperar-contrasena/confirmar` | Público | CU-25 | 200, 400 |
+| POST | `/api/auth/recuperar-contrasena` | Público | CU-25 | 200, 400, 429 |
+| POST | `/api/auth/recuperar-contrasena/confirmar` | Público | CU-25 | 200, 400, 429 |
 | **Cliente** | | | | |
 | POST | `/api/clientes/registro` | Público | CU-01 | 201, 400, 409 |
 | GET | `/api/clientes/me` | Cliente | CU-03 | 200, 404 |

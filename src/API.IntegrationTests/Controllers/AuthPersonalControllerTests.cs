@@ -4,6 +4,7 @@ using FidelixAPI.API.IntegrationTests.Fakes;
 using FidelixAPI.BusinessLogic.Interfaces;
 using FidelixAPI.DataAccess.Seed;
 using FidelixAPI.Shared.DTOs.Auth;
+using FidelixAPI.Shared.DTOs.Empleado;
 using FidelixAPI.Shared.DTOs.Canje;
 using FidelixAPI.Shared.DTOs.Cliente;
 using FidelixAPI.Shared.DTOs.Comun;
@@ -138,7 +139,7 @@ public class AuthPersonalControllerTests : IClassFixture<FidelixApiFactory>, IAs
     {
         var (_, _, email) = await TestHelpers.RegistrarYAutenticarClienteAsync(_factory.CreateClient());
 
-        await _cliente.PostAsJsonAsync("/api/auth/recuperar-contrasena", new RecuperacionSolicitudDTO { Email = email });
+        await _cliente.PostAsJsonAsync("/api/auth/recuperar-contrasena", new RecuperacionSolicitudDTO { Email = email, Rol = Roles.Cliente });
         var codigo = _emails.UltimoCodigoPara(email);
         var respuesta = await _cliente.PostAsJsonAsync("/api/auth/recuperar-contrasena/confirmar",
             new RecuperacionConfirmacionDTO { Email = email, Codigo = codigo!, NuevaPassword = "NuevaClave123" });
@@ -152,7 +153,7 @@ public class AuthPersonalControllerTests : IClassFixture<FidelixApiFactory>, IAs
     [Fact]
     public async Task SolicitarRecuperacion_WithUnknownAccount_Returns200OKWithoutLeakingExistence()
     {
-        var respuesta = await _cliente.PostAsJsonAsync("/api/auth/recuperar-contrasena", new RecuperacionSolicitudDTO { Email = "nadie@fidelix.local" });
+        var respuesta = await _cliente.PostAsJsonAsync("/api/auth/recuperar-contrasena", new RecuperacionSolicitudDTO { Email = "nadie@fidelix.local", Rol = Roles.Cliente });
         var mensaje = await respuesta.Content.ReadFromJsonAsync<MensajeResponseDTO>();
 
         Assert.Equal(HttpStatusCode.OK, respuesta.StatusCode);
@@ -165,7 +166,7 @@ public class AuthPersonalControllerTests : IClassFixture<FidelixApiFactory>, IAs
     public async Task ConfirmarRecuperacion_WithInvalidCode_Returns400BadRequest()
     {
         var (_, _, email) = await TestHelpers.RegistrarYAutenticarClienteAsync(_factory.CreateClient());
-        await _cliente.PostAsJsonAsync("/api/auth/recuperar-contrasena", new RecuperacionSolicitudDTO { Email = email });
+        await _cliente.PostAsJsonAsync("/api/auth/recuperar-contrasena", new RecuperacionSolicitudDTO { Email = email, Rol = Roles.Cliente });
         var codigoIncorrecto = _emails.UltimoCodigoPara(email) == "000000" ? "111111" : "000000";
 
         var respuesta = await _cliente.PostAsJsonAsync("/api/auth/recuperar-contrasena/confirmar",
@@ -182,7 +183,7 @@ public class AuthPersonalControllerTests : IClassFixture<FidelixApiFactory>, IAs
     public async Task ConfirmarRecuperacion_AfterThreeWrongCodes_InvalidatesTheCode()
     {
         var (_, _, email) = await TestHelpers.RegistrarYAutenticarClienteAsync(_factory.CreateClient());
-        await _cliente.PostAsJsonAsync("/api/auth/recuperar-contrasena", new RecuperacionSolicitudDTO { Email = email });
+        await _cliente.PostAsJsonAsync("/api/auth/recuperar-contrasena", new RecuperacionSolicitudDTO { Email = email, Rol = Roles.Cliente });
         var codigoCorrecto = _emails.UltimoCodigoPara(email)!;
         var codigoIncorrecto = codigoCorrecto == "000000" ? "111111" : "000000";
 
@@ -209,7 +210,7 @@ public class AuthPersonalControllerTests : IClassFixture<FidelixApiFactory>, IAs
             b.UseSetting("RateLimiting:Recuperacion:PedidosPorVentana", "2");
             b.ConfigureTestServices(s => s.AddSingleton<IEmailSender>(_emails));
         }).CreateClient();
-        var pedido = new RecuperacionSolicitudDTO { Email = "nadie@fidelix.local" };
+        var pedido = new RecuperacionSolicitudDTO { Email = "nadie@fidelix.local", Rol = Roles.Cliente };
 
         await cliente.PostAsJsonAsync("/api/auth/recuperar-contrasena", pedido);
         await cliente.PostAsJsonAsync("/api/auth/recuperar-contrasena", pedido);
@@ -225,10 +226,49 @@ public class AuthPersonalControllerTests : IClassFixture<FidelixApiFactory>, IAs
     public async Task ConfirmarRecuperacion_WithWeakPassword_Returns400BadRequest()
     {
         var (_, _, email) = await TestHelpers.RegistrarYAutenticarClienteAsync(_factory.CreateClient());
-        await _cliente.PostAsJsonAsync("/api/auth/recuperar-contrasena", new RecuperacionSolicitudDTO { Email = email });
+        await _cliente.PostAsJsonAsync("/api/auth/recuperar-contrasena", new RecuperacionSolicitudDTO { Email = email, Rol = Roles.Cliente });
 
         var respuesta = await _cliente.PostAsJsonAsync("/api/auth/recuperar-contrasena/confirmar",
             new RecuperacionConfirmacionDTO { Email = email, Codigo = _emails.UltimoCodigoPara(email)!, NuevaPassword = "123" });
+
+        Assert.Equal(HttpStatusCode.BadRequest, respuesta.StatusCode);
+    }
+
+    /// <summary>
+    /// CRIT-06: un empleado que también es cliente con el mismo email puede recuperar su contraseña de
+    /// empleado (antes siempre se resolvía como cliente). Solo cambia la cuenta del rol pedido.
+    /// </summary>
+    [Fact]
+    public async Task RecuperarContrasena_WithEmailSharedByClienteAndEmpleado_RecoversRequestedRole()
+    {
+        var (_, _, email) = await TestHelpers.RegistrarYAutenticarClienteAsync(_factory.CreateClient());
+        var alta = await _factory.CreateClientComo(Roles.Admin).PostAsJsonAsync("/api/admin/empleados", new EmpleadoCreateDTO
+        {
+            Nombre = "Empleado y Cliente",
+            Documento = TestHelpers.DocumentoUnico(),
+            Email = email,
+            Password = "Empleado123!"
+        });
+        Assert.Equal(HttpStatusCode.Created, alta.StatusCode);
+
+        await _cliente.PostAsJsonAsync("/api/auth/recuperar-contrasena", new RecuperacionSolicitudDTO { Email = email, Rol = Roles.Empleado });
+        var codigo = _emails.UltimoCodigoPara("admin@fidelix.local"); // RN-28: el código del empleado va al admin.
+        var confirmacion = await _cliente.PostAsJsonAsync("/api/auth/recuperar-contrasena/confirmar",
+            new RecuperacionConfirmacionDTO { Email = email, Codigo = codigo!, NuevaPassword = "NuevaEmpleado1!" });
+
+        Assert.Equal(HttpStatusCode.OK, confirmacion.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await LoginEmpleado(email, "NuevaEmpleado1!")).StatusCode);
+        var loginCliente = await _cliente.PostAsJsonAsync("/api/auth/login", new LoginRequestDTO { Email = email, Password = "Cliente123!" });
+        Assert.Equal(HttpStatusCode.OK, loginCliente.StatusCode); // La cuenta de cliente no se tocó.
+    }
+
+    /// <summary>CU-25: sin rol (o con un rol inválido) la solicitud se rechaza con 400 por validación del DTO.</summary>
+    [Theory]
+    [InlineData("")]
+    [InlineData("Gerente")]
+    public async Task SolicitarRecuperacion_WithoutValidRole_Returns400BadRequest(string rol)
+    {
+        var respuesta = await _cliente.PostAsJsonAsync("/api/auth/recuperar-contrasena", new RecuperacionSolicitudDTO { Email = "alguien@fidelix.local", Rol = rol });
 
         Assert.Equal(HttpStatusCode.BadRequest, respuesta.StatusCode);
     }
@@ -237,7 +277,7 @@ public class AuthPersonalControllerTests : IClassFixture<FidelixApiFactory>, IAs
     [Fact]
     public async Task SolicitarRecuperacion_WithEmpleado_SendsCodeToAdmin()
     {
-        await _cliente.PostAsJsonAsync("/api/auth/recuperar-contrasena", new RecuperacionSolicitudDTO { Email = "empleado@fidelix.local" });
+        await _cliente.PostAsJsonAsync("/api/auth/recuperar-contrasena", new RecuperacionSolicitudDTO { Email = "empleado@fidelix.local", Rol = Roles.Empleado });
 
         Assert.NotNull(_emails.UltimoCodigoPara("admin@fidelix.local"));
         Assert.Null(_emails.UltimoCodigoPara("empleado@fidelix.local"));
