@@ -33,6 +33,7 @@ builder.Services.AddScoped<IEmpleadoRepository, EmpleadoRepository>();
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 builder.Services.AddScoped<IAuditoriaRepository, AuditoriaRepository>();
 builder.Services.AddScoped<ICodigoRecuperacionRepository, CodigoRecuperacionRepository>();
+builder.Services.AddScoped<IUnidadDeTrabajo, UnidadDeTrabajo>();
 
 // Servicios (BusinessLogic): inyectados por interfaz en los controllers.
 builder.Services.AddScoped<IClienteService, ClienteService>();

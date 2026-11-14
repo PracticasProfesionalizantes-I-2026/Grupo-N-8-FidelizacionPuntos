@@ -77,7 +77,9 @@ interno)._
 
 * **Job:** `PointsExpirationJob` (BackgroundService) corre al arrancar la API y después cada 24 h; se apaga con `Jobs:Habilitados = false` (los tests lo apagan).
 * **Ejecución manual / reintento:** `POST /api/admin/procesos/vencimiento-puntos` (rol Admin, `AdminProcesosController`), que llama al mismo `PuntosService.AplicarVencimientoAsync`.
-* Por cada cliente: los lotes vencidos quedan en 0 (FIFO), se registra un movimiento `Vencimiento` negativo, se audita y se le avisa por email (en desarrollo, el email se escribe en la consola). Si un cliente falla, sus lotes se restauran y se sigue con el resto (**ErrorParcial**).
+* Por cada cliente: los lotes vencidos quedan en 0 (FIFO), se registra un movimiento `Vencimiento` negativo, se audita y se le avisa por email (en desarrollo, el email se escribe en la consola). Si un cliente falla, se descartan sus cambios pendientes y se sigue con el resto (**ErrorParcial**).
+* **Aislamiento entre clientes (CRIT-02):** todos los clientes comparten el mismo `DbContext`, así que un error no puede dejar entidades pendientes en el ChangeTracker. Ante una falla, `IUnidadDeTrabajo.DescartarCambios()` desacopla lo agregado (el movimiento fallido) y devuelve lo modificado (los lotes) a sus valores originales; si no, el `SaveChanges` del cliente siguiente lo guardaría también. Si el vencimiento ya se guardó y lo que falla es la auditoría, el vencimiento **no** se revierte (está persistido): solo se descarta el registro de auditoría pendiente y se loguea el error. Lo mismo aplica al bono de cumpleaños (CU-26).
+* Tests de integración: `PointsExpirationJob_WhenAuditFailsForOneCliente_DoesNotLeakIntoNextCliente` y `UnidadDeTrabajo_DescartarCambios_PreventsPendingChangesFromBeingSavedLater`.
 * **Colección Bruno:** `bruno/Admin/Procesos/`.
 
 ---

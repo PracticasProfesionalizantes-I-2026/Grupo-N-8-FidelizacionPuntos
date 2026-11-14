@@ -17,6 +17,7 @@ public class PuntosServiceTests
     private readonly Mock<IMovimientoRepository> _movimientoRepo = new();
     private readonly Mock<IReglaAcumulacionRepository> _reglaRepo = new();
     private readonly Mock<IAuditoriaService> _auditoria = new();
+    private readonly Mock<IUnidadDeTrabajo> _unidadDeTrabajo = new();
     private readonly Mock<IEmailSender> _email = new();
     private readonly Mock<IConfiguration> _configuracion = new();
     private readonly PuntosService _sut;
@@ -30,7 +31,7 @@ public class PuntosServiceTests
         _reglaRepo.Setup(r => r.GetVigenteAsync(It.IsAny<DateTime>())).ReturnsAsync(new ReglaAcumulacion { DiasVigenciaPuntos = 180 });
         _movimientoRepo.Setup(r => r.CreateAsync(It.IsAny<Movimiento>())).ReturnsAsync((Movimiento m) => m);
         _sut = new PuntosService(_clienteRepo.Object, _movimientoRepo.Object, _reglaRepo.Object, _auditoria.Object,
-            _email.Object, _configuracion.Object, NullLogger<PuntosService>.Instance);
+            _unidadDeTrabajo.Object, _email.Object, _configuracion.Object, NullLogger<PuntosService>.Instance);
     }
 
     /// <summary> CU-22: deja los lotes vencidos en 0, registra un vencimiento negativo, lo audita y avisa al cliente. </summary>
@@ -66,7 +67,10 @@ public class PuntosServiceTests
         _movimientoRepo.Verify(r => r.CreateAsync(It.IsAny<Movimiento>()), Times.Never);
     }
 
-    /// <summary> CU-22, flujo 4a: si falla un cliente, se restauran sus lotes y se sigue con el siguiente (Error parcial). </summary>
+    /// <summary>
+    /// CU-22, flujo 4a: si falla un cliente, se descartan sus cambios pendientes (CRIT-02: no se arrastran
+    /// al guardado del siguiente) y se sigue con el resto (Error parcial).
+    /// </summary>
     [Fact]
     public async Task AplicarVencimientoAsync_WhenRepositoryFailsForOneCliente_ContinuesWithRemainingClientes()
     {
@@ -83,8 +87,34 @@ public class PuntosServiceTests
         Assert.Equal("ErrorParcial", resultado.Estado);
         Assert.Equal(1, resultado.ClientesProcesados);
         Assert.Equal(1, resultado.ClientesConError);
-        Assert.Equal(30, loteQueFalla.PuntosDisponibles); // Restaurado: no quedó a medias.
         Assert.Equal(0, loteOk.PuntosDisponibles);
+        _unidadDeTrabajo.Verify(u => u.DescartarCambios(), Times.Once);
+    }
+
+    /// <summary>
+    /// CRIT-02: si el vencimiento se guardó pero la auditoría falla, NO se revierten los lotes en memoria
+    /// (eso hacía que el SaveChanges siguiente devolviera los puntos vencidos): se descarta solo lo
+    /// pendiente, el cliente cuenta como procesado y se sigue con el siguiente.
+    /// </summary>
+    [Fact]
+    public async Task AplicarVencimientoAsync_WhenAuditFailsAfterSaving_KeepsExpirationAndContinues()
+    {
+        var clienteA = IdsDePrueba.Nuevo();
+        var clienteB = IdsDePrueba.Nuevo();
+        var loteA = new Movimiento { ClienteId = clienteA, Fecha = Hoy.AddDays(-200), PuntosDisponibles = 70 };
+        var loteB = new Movimiento { ClienteId = clienteB, Fecha = Hoy.AddDays(-190), PuntosDisponibles = 20 };
+        _movimientoRepo.Setup(r => r.GetLotesVencidosAsync(Hoy)).ReturnsAsync([loteA, loteB]);
+        _auditoria.Setup(a => a.RegistrarAsync("Proceso.VencimientoPuntos", null, "Sistema", It.IsAny<int?>(),
+                It.Is<string>(d => d.StartsWith($"Cliente {clienteA}:"))))
+            .ThrowsAsync(new InvalidOperationException("Falla simulada de auditoría"));
+
+        var resultado = await _sut.AplicarVencimientoAsync(Hoy);
+
+        Assert.Equal(2, resultado.ClientesProcesados);
+        Assert.Equal(90, resultado.PuntosAfectados);
+        Assert.Equal(0, loteA.PuntosDisponibles); // No se "restauró" a 70.
+        Assert.Equal(0, loteB.PuntosDisponibles);
+        _unidadDeTrabajo.Verify(u => u.DescartarCambios(), Times.Once);
     }
 
     /// <summary> CU-26: acredita el bono a quien cumple años hoy, como lote con vencimiento, y lo audita. </summary>
@@ -133,6 +163,7 @@ public class PuntosServiceTests
         Assert.Equal("ErrorParcial", resultado.Estado);
         Assert.Equal(1, resultado.ClientesProcesados);
         _movimientoRepo.Verify(r => r.CreateAsync(It.Is<Movimiento>(m => m.ClienteId == ok.Id)), Times.Once);
+        _unidadDeTrabajo.Verify(u => u.DescartarCambios(), Times.Once);
     }
 
     /// <summary> CU-26: los nacidos un 29/2 reciben el bono el 28/2 en los años no bisiestos. </summary>

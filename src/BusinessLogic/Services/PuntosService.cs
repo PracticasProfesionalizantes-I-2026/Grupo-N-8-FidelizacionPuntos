@@ -14,6 +14,7 @@ public class PuntosService(
     IMovimientoRepository movimientoRepository,
     IReglaAcumulacionRepository reglaRepository,
     IAuditoriaService auditoriaService,
+    IUnidadDeTrabajo unidadDeTrabajo,
     IEmailSender emailSender,
     IConfiguration configuration,
     ILogger<PuntosService> logger) : IPuntosService
@@ -28,7 +29,7 @@ public class PuntosService(
     /// <summary>
     /// CU-22: agrupa los lotes vencidos por cliente y, para cada uno, los deja en 0 del más viejo al
     /// más nuevo (RN-09), registra un movimiento negativo de vencimiento y lo audita (RN-13). Si un
-    /// cliente falla, restaura sus lotes en memoria y continúa con el siguiente (Error parcial, 4a).
+    /// cliente falla, se descartan sus cambios pendientes y se sigue con el siguiente (Error parcial, 4a).
     /// </summary>
     public async Task<ResultadoProcesoDTO> AplicarVencimientoAsync(DateTime fecha)
     {
@@ -44,8 +45,8 @@ public class PuntosService(
         foreach (var grupo in lotes.GroupBy(l => l.ClienteId))
         {
             var lotesCliente = grupo.OrderBy(l => l.Fecha).ToList();
-            var valoresPrevios = lotesCliente.ToDictionary(l => l, l => l.PuntosDisponibles);
             var total = lotesCliente.Sum(l => l.PuntosDisponibles);
+            Movimiento vencimiento;
 
             try
             {
@@ -55,7 +56,7 @@ public class PuntosService(
                 }
 
                 // El SaveChanges de CreateAsync guarda el vencimiento y los lotes en 0: todo o nada.
-                var vencimiento = await movimientoRepository.CreateAsync(new Movimiento
+                vencimiento = await movimientoRepository.CreateAsync(new Movimiento
                 {
                     ClienteId = grupo.Key,
                     Tipo = TipoMovimiento.Vencimiento,
@@ -64,25 +65,23 @@ public class PuntosService(
                     Fecha = fecha,
                     Detalle = $"Vencimiento de {lotesCliente.Count} lote(s)"
                 });
-
-                await auditoriaService.RegistrarAsync("Proceso.VencimientoPuntos", null, ActorSistema, vencimiento.Id,
-                    $"Cliente {grupo.Key}: vencieron {total} puntos");
-
-                procesados++;
-                puntosVencidos += total;
-                await NotificarVencimientoAsync(grupo.Key, total);
             }
             catch (Exception ex)
             {
-                // Se deshace el cambio en memoria para que no se guarde con el cliente siguiente.
-                foreach (var (lote, previo) in valoresPrevios)
-                {
-                    lote.PuntosDisponibles = previo;
-                }
-
+                // CRIT-02: el movimiento que falló quedó "Added" y los lotes "Modified" en el contexto.
+                // Si no se descartan, el SaveChanges del cliente siguiente los guardaría también.
+                unidadDeTrabajo.DescartarCambios();
                 errores++;
                 logger.LogError(ex, "No se pudo aplicar el vencimiento del cliente {ClienteId}", grupo.Key);
+                continue;
             }
+
+            // A partir de acá el vencimiento ya está guardado: cuenta como procesado pase lo que pase.
+            procesados++;
+            puntosVencidos += total;
+            await AuditarProcesoAsync("Proceso.VencimientoPuntos", vencimiento.Id,
+                $"Cliente {grupo.Key}: vencieron {total} puntos", grupo.Key);
+            await NotificarVencimientoAsync(grupo.Key, total);
         }
 
         return Resultado("VencimientoPuntos", procesados, errores, puntosVencidos,
@@ -111,6 +110,7 @@ public class PuntosService(
 
         foreach (var cliente in cumpleaneros)
         {
+            Movimiento movimiento;
             try
             {
                 if (await movimientoRepository.ExisteBonoEnAnioAsync(cliente.Id, fecha.Year))
@@ -119,7 +119,7 @@ public class PuntosService(
                     continue;
                 }
 
-                var movimiento = await movimientoRepository.CreateAsync(new Movimiento
+                movimiento = await movimientoRepository.CreateAsync(new Movimiento
                 {
                     ClienteId = cliente.Id,
                     Tipo = TipoMovimiento.BonoCumpleanos,
@@ -129,16 +129,18 @@ public class PuntosService(
                     FechaVencimiento = fecha.AddDays(diasVigencia),
                     Detalle = $"Bono de cumpleaños {fecha.Year}"
                 });
-
-                await auditoriaService.RegistrarAsync("Proceso.BonoCumpleanos", null, ActorSistema, movimiento.Id,
-                    $"Cliente {cliente.Id}: bono de {bono} puntos");
-                acreditados++;
             }
             catch (Exception ex)
             {
+                // CRIT-02: el bono que falló no puede quedar "Added" y guardarse con el cliente siguiente.
+                unidadDeTrabajo.DescartarCambios();
                 errores++;
                 logger.LogError(ex, "No se pudo acreditar el bono del cliente {ClienteId}; se reintenta en la próxima ejecución", cliente.Id);
+                continue;
             }
+
+            acreditados++;
+            await AuditarProcesoAsync("Proceso.BonoCumpleanos", movimiento.Id, $"Cliente {cliente.Id}: bono de {bono} puntos", cliente.Id);
         }
 
         return Resultado("BonoCumpleanos", acreditados, errores, acreditados * bono,
@@ -160,6 +162,24 @@ public class PuntosService(
         }
 
         return cumpleaneros;
+    }
+
+    /// <summary>
+    /// Audita un movimiento ya guardado por un proceso (RN-13). Si la auditoría falla NO se deshace el
+    /// movimiento (ya está persistido): se descarta el registro de auditoría pendiente, para que no se
+    /// guarde con el cliente siguiente, y se registra el error en el log.
+    /// </summary>
+    private async Task AuditarProcesoAsync(string tipoOperacion, int movimientoId, string detalle, int clienteId)
+    {
+        try
+        {
+            await auditoriaService.RegistrarAsync(tipoOperacion, null, ActorSistema, movimientoId, detalle);
+        }
+        catch (Exception ex)
+        {
+            unidadDeTrabajo.DescartarCambios();
+            logger.LogError(ex, "{Operacion} del cliente {ClienteId} guardado, pero no se pudo auditar", tipoOperacion, clienteId);
+        }
     }
 
     /// <summary> Avisa al cliente por email; si el aviso falla no se deshace el vencimiento, solo se registra. </summary>
